@@ -1,6 +1,5 @@
 #include "MarlinKalTest.h"
 
-#include "kaldet/MaterialDB.h"
 
 #include "kaltest/TKalDetCradle.h"
 #include "kaltest/TVKalDetector.h"
@@ -24,7 +23,6 @@
 
 #include "streamlog/streamlog.h"
 
-using namespace ild_kaldet;
 
 MarlinKalTest::MarlinKalTest( const gear::GearMgr& gearMgr, bool MSOn, bool EnergyLossOn) :  
   _gearMgr( &gearMgr )  
@@ -55,8 +53,6 @@ MarlinKalTest::~MarlinKalTest(){
 
 void MarlinKalTest::init() {
   
-  // create material database 
-  ild_kaldet::MaterialDB::Instance().initialise();
 
 //  Double_t ip_radius  = 0.5     ; //mm
 //  Double_t ip_halfl   = 2500.0  ; //mm
