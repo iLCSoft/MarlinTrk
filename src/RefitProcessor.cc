@@ -28,6 +28,8 @@ using namespace lcio ;
 using namespace marlin ;
 
 
+
+
 RefitProcessor aRefitProcessor ;
 
 
@@ -43,25 +45,25 @@ RefitProcessor::RefitProcessor() : Processor("RefitProcessor") {
 			   "InputTrackCollectionName" , 
 			   "Name of the input track collection"  ,
 			   _input_track_col_name ,
-			   std::string("LDCTracks") ) ;
+			   std::string("TruthTracks") ) ;
 
   registerInputCollection( LCIO::LCRELATION,
 			   "InputTrackRelCollection" , 
 			   "Name of the MCParticle-Track Relations collection for input tracks"  ,
 			   _input_track_rel_name ,
-			   std::string("LDCTracksMCP") ) ;
+			   std::string("TruthTracksMCP") ) ;
 
   registerOutputCollection( LCIO::TRACK,
 			   "OutputTrackCollectionName" , 
 			   "Name of the output track collection"  ,
 			   _output_track_col_name ,
-			   std::string("RefittedLDCTracks") ) ;
+			   std::string("RefittedTracks") ) ;
 
   registerOutputCollection( LCIO::LCRELATION,
 			   "OutputTrackRelCollection" , 
 			   "Name of the MCParticle-Track Relations collection for output tracks"  ,
 			   _output_track_rel_name ,
-			   std::string("RefittedLDCTracksMCP") ) ;
+			   std::string("RefittedTracksMCP") ) ;
 
 registerProcessorParameter("MultipleScatteringOn",
 			     "Use MultipleScattering in Fit",
@@ -108,7 +110,7 @@ void RefitProcessor::processEvent( LCEvent * evt ) {
   // get input collection and relations 
   LCCollection* input_track_col = this->GetCollection( evt, _input_track_col_name ) ;
 
-  //  LCRelationNavigator* input_track_rels = this->GetRelations( evt, _input_track_rel_name ) ;
+  LCRelationNavigator* input_track_rels = this->GetRelations( evt, _input_track_rel_name ) ;
 
   if( input_track_col != 0 ){
 
@@ -131,7 +133,23 @@ void RefitProcessor::processEvent( LCEvent * evt ) {
       
 	Track* track = dynamic_cast<Track*>( input_track_col->getElementAt( i ) ) ;
 		
-	MarlinTrk::IMarlinTrack* marlin_trk = new MarlinKalTestTrack(track, _kaltest) ;
+	//	MarlinTrk::IMarlinTrack* marlin_trk = new MarlinKalTestTrack(track, _kaltest) ;
+	MarlinTrk::IMarlinTrack* marlin_trk = _kaltest->createTrack();
+
+	EVENT::TrackerHitVec trkHits = track->getTrackerHits() ;	
+
+	sort(trkHits.begin(), trkHits.end(), RefitProcessor::compare_r() );
+
+	EVENT::TrackerHitVec::iterator it = trkHits.begin();
+
+	for( it = trkHits.begin() ; it != trkHits.end() ; ++it )
+	  {
+	    
+	    EVENT::TrackerHit* trkhit = (*it);
+	    marlin_trk->addHit(*it);
+	    
+	  }
+
 	
 	bool fit_success = marlin_trk->fit( false ) ; // SJA:FIXME: false means from out to in here i.e. backwards. This would be better if had a more meaningful name perhaps fit_fwd and fit_rev
 
@@ -139,19 +157,28 @@ void RefitProcessor::processEvent( LCEvent * evt ) {
 
 	  TrackImpl* refittedTrack = marlin_trk->getIPFit() ;
 
-	  // assign the relations previously assigned to the input tracks  
-	  //	LCObjectVec objVec = input_track_rels->getRelatedToObjects( track );
-	  //	FloatVec weights = input_track_rels->getRelatedToWeights( track ); 
-	  
-	  //	for( unsigned int irel=0 ; irel < objVec.size() ; ++irel )
-	  //	  {
-	  //	    LCRelationImpl* rel = new LCRelationImpl ;
-	  //	    rel->setFrom (refittedTrack) ;
-	  //            rel->setTo ( objVec[irel] ) ;
-	  //	    rel->setWeight(weights[irel]) ; 
-	  //	    trackRelVec->addElement( rel );
-	  //	  }
+	  for( it = trkHits.begin() ; it != trkHits.end() ; ++it )
+	    {
+	      
+	      EVENT::TrackerHit* trkhit = (*it);
+	      refittedTrack->addHit(*it);
+	      
+	    }
 
+
+	  // assign the relations previously assigned to the input tracks  
+	  LCObjectVec objVec = input_track_rels->getRelatedToObjects( track );
+	  FloatVec weights   = input_track_rels->getRelatedToWeights( track ); 
+	  
+	  for( unsigned int irel=0 ; irel < objVec.size() ; ++irel )
+	    {
+	      LCRelationImpl* rel = new LCRelationImpl ;
+	      rel->setFrom (refittedTrack) ;
+	      rel->setTo ( objVec[irel] ) ;
+	      rel->setWeight(weights[irel]) ; 
+	      trackRelVec->addElement( rel );
+	    }
+	  
 	  //	//SJA:FIXME: This has to go away. The use of hardcoded number here is completely error prone ...
 	  refittedTrack->subdetectorHitNumbers().resize(12);
 	  for ( unsigned int detIndex = 0 ;  detIndex < refittedTrack->subdetectorHitNumbers().size() ; detIndex++ ) 
@@ -166,7 +193,7 @@ void RefitProcessor::processEvent( LCEvent * evt ) {
 	
       } 
     evt->addCollection( trackVec , _output_track_col_name) ;
-    //    evt->addCollection( trackRelVec , _output_track_rel_name) ;
+    evt->addCollection( trackRelVec , _output_track_rel_name) ;
   }  
   ++_n_evt ;
 }

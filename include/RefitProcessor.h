@@ -7,10 +7,11 @@
 
 #include <UTIL/LCRelationNavigator.h>
 
-using namespace lcio ;
-using namespace marlin ;
+#include <EVENT/TrackerHit.h>
 
-class MarlinKalTest ;
+namespace MarlinTrk{
+  class IMarlinTrkFitter ;
+}
 
 
 /**  Track Refitter processor for marlin. Refits an input track collection, producing a new collection of tracks
@@ -28,12 +29,11 @@ class MarlinKalTest ;
  * @author S. J. Aplin, DESY
  */
 
-class RefitProcessor : public Processor {
+class RefitProcessor : public marlin::Processor {
   
  public:
   
-  virtual Processor*  newProcessor() { return new RefitProcessor ; }
-  
+  virtual marlin::Processor*  newProcessor() { return new RefitProcessor ; }
   
   RefitProcessor() ;
   
@@ -44,28 +44,39 @@ class RefitProcessor : public Processor {
   
   /** Called for every run.
    */
-  virtual void processRunHeader( LCRunHeader* run ) ;
+  virtual void processRunHeader( lcio::LCRunHeader* run ) ;
   
   /** Called for every event - the working horse.
    */
-  virtual void processEvent( LCEvent * evt ) ; 
+  virtual void processEvent( lcio::LCEvent * evt ) ; 
   
   
-  virtual void check( LCEvent * evt ) ; 
+  virtual void check( lcio::LCEvent * evt ) ; 
   
   
   /** Called after data processing for clean up.
    */
   virtual void end() ;
+
+
   
+  struct compare_r {
+    bool operator()( EVENT::TrackerHit* a, EVENT::TrackerHit* b)  const { 
+      double r_a_sqd = a->getPosition()[0] * a->getPosition()[0] + a->getPosition()[1] * a->getPosition()[1] ; 
+      double r_b_sqd = b->getPosition()[0] * b->getPosition()[0] + b->getPosition()[1] * b->getPosition()[1] ; 
+      return ( r_a_sqd < r_b_sqd ) ; 
+    }
+  } ;
+
+
   
  protected:
 
   /* helper function to get collection using try catch block */
-  LCCollection* GetCollection( LCEvent * evt, std::string colName ) ;
+  lcio::LCCollection* GetCollection( lcio::LCEvent * evt, std::string colName ) ;
   
   /* helper function to get relations using try catch block */
-  LCRelationNavigator* GetRelations(LCEvent * evt, std::string RelName ) ;
+  lcio::LCRelationNavigator* GetRelations(lcio::LCEvent * evt, std::string RelName ) ;
 
   /** Input track collection name for refitting.
    */
@@ -83,9 +94,9 @@ class RefitProcessor : public Processor {
   */
   std::string _output_track_rel_name ;
 
-  /** pointer to the MarlinKalTest instance which sets up the geometery
+  /** pointer to the IMarlinTrkFitter instance 
    */
-  MarlinKalTest* _kaltest ;
+  MarlinTrk::IMarlinTrkFitter* _kaltest ;
 
   bool _MSOn ;
   bool _ElossOn ;

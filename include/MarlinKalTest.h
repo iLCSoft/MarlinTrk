@@ -30,9 +30,7 @@ class ILDVMeasLayer ;
  */
 class MarlinKalTest : public MarlinTrk::IMarlinTrkFitter {
 
-  MarlinKalTest(){}
-  
-public:
+ public:
   
   // define some configuration constants
   static const bool FitBackward   = kIterBackward ;
@@ -40,25 +38,26 @@ public:
   static const bool OrderOutgoing  = true ;
   static const bool OrderIncoming  = false ;
   static const bool PropagateToIP  = true ;
-
+  
 
   /** Default c'tor, initializes the geometry from GEAR. */
   MarlinKalTest( const gear::GearMgr& gearMgr, bool MSOn, bool EnergyLossOn) ;
   
   ~MarlinKalTest() ;
-
-
+  
+  
   // initialise track fitter system
   void init() ; 
   
   // instantiate its implementation of the IMarlinTrack 
-  MarlinTrk::IMarlinTrack* createTrack() { MarlinTrk::IMarlinTrkFitterException exp; throw; } ;
+  MarlinTrk::IMarlinTrack* createTrack()  ;
 
   // take multiple scattering into account during the fit
   void includeMultipleScattering( bool on )  ;
 
   // take energy loss into account during the fit
   void includeEnergyLoss( bool on )  ;
+
 
 
   void storeActiveMeasurementLayerIDs(TVKalDetector* detector);  
@@ -74,6 +73,7 @@ protected:
   TKalDetCradle* _det ;            // the detector cradle
 
   std::map< Int_t, ILDVMeasLayer*> _active_measurement_layer;
+
 
 } ;
 

@@ -1,5 +1,6 @@
 #include "MarlinKalTest.h"
 
+#include "MarlinKalTestTrack.h"
 
 #include "kaltest/TKalDetCradle.h"
 #include "kaltest/TVKalDetector.h"
@@ -87,6 +88,12 @@ void MarlinKalTest::init() {
   _det->Close() ;          // close the cradle
   _det->Sort() ;           // sort meas. layers from inside to outside
     
+}
+
+MarlinTrk::IMarlinTrack* MarlinKalTest::createTrack()  {
+
+  return new MarlinKalTestTrack(this) ;
+
 }
 
 void MarlinKalTest::includeMultipleScattering( bool msOn ) {

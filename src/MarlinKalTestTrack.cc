@@ -41,60 +41,38 @@ struct compare_r {
 } ; 
 
 
-MarlinKalTestTrack::MarlinKalTestTrack( EVENT::Track * lcTrk, MarlinKalTest* ktest) 
-  : _initialLCTrack(lcTrk) , _ktest(ktest)
+MarlinKalTestTrack::MarlinKalTestTrack( MarlinKalTest* ktest) 
+  : _ktest(ktest)
 {
+
   _kaltrack = new TKalTrack() ;
   _kaltrack->SetOwner() ;
-  _lcioHits = lcTrk->getTrackerHits() ;
-  _kalhits = new TObjArray(_lcioHits.size()) ;
+
+  _kalhits = new TObjArray() ;
+
+}
+
+void MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit) 
+{
+
+
+  int layerID = 0;
+  if( trkhit->ext<ILDDetectorIDs::HitInfo>() ) {
+    layerID = trkhit->ext<ILDDetectorIDs::HitInfo>()->layerID ;
+  }
   
-  // sort hits in R
-  sort(_lcioHits.begin(), _lcioHits.end(), compare_r() );
+  streamlog_out(DEBUG3) << "hit has type " << trkhit->getType() 
+			<< " and layer "
+			<< trkhit->ext<ILDDetectorIDs::HitInfo>()->layerID
+			<< std::endl ;
   
-  // add IP hit so that we can access the state there
-  // first get the IP measurement layer
-//  const ILDVMeasLayer* ipml = _ktest->getSensitiveMeasurementLayer( ILDDetectorIDs::DetID::IP * ILDDetectorIDs::DetID::Factor ) ;
-//  
-//  Double_t  x[2];
-//  Double_t dx[2];
-//  
-//  x[0] = 0.0 ; // RPhi 
-//  x[1] = 0.0 ; // z
-//
-//  dx[0] = 1.e6 ;   // give a huge error to RPhi so that this dummy hit will not be used in the fit
-//  dx[1] = 1.e6 ;   // give a huge error to z    so that this dummy hit will not be used in the fit
-//  
-//
-//  _kalhits->Add( new ILDIPHit( *ipml , x, dx, ipml->GetBz()) ) ;
-
-
-  // add hits from the track supplied lcio
-
-  EVENT::TrackerHitVec::iterator it = _lcioHits.begin();  
-  for( it = _lcioHits.begin() ; it != _lcioHits.end() ; ++it )
-    {
-
-      EVENT::TrackerHit* trkhit = (*it);
-      //      int layerID = trkhit->ext<ILDDetectorIDs::HitInfo>()->layerID ;
-      int layerID = 0;
-      if( trkhit->ext<ILDDetectorIDs::HitInfo>() ) {
-	layerID = trkhit->ext<ILDDetectorIDs::HitInfo>()->layerID ;
-      }
-
-      streamlog_out(DEBUG3) << "hit " << it - _lcioHits.begin() 
-			    << " has type " << trkhit->getType() 
-			    << " and layer "
-			    << trkhit->ext<ILDDetectorIDs::HitInfo>()->layerID
-			    << std::endl ;
-      
-
-      if( (layerID / ILDDetectorIDs::DetID::Factor) == ILDDetectorIDs::DetID::VXD ){	
-
-	streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack add VXD hit " << std::endl ; 
-
-//	// get measurement layer
-//	const ILDVMeasLayer* ml = _ktest->getSensitiveMeasurementLayer(layerID) ;
+  
+  if( (layerID / ILDDetectorIDs::DetID::Factor) == ILDDetectorIDs::DetID::VXD ){	
+    
+    streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack add VXD hit " << std::endl ; 
+    
+    //	// get measurement layer
+    //	const ILDVMeasLayer* ml = _ktest->getSensitiveMeasurementLayer(layerID) ;
 //	const ILDVXDMeasLayer* mlvxd =  dynamic_cast<const ILDVXDMeasLayer*>( ml ) ;
 //
 //	const TVector3 hit( trkhit->getPosition()[0], trkhit->getPosition()[1], trkhit->getPosition()[2]);
@@ -125,20 +103,230 @@ MarlinKalTestTrack::MarlinKalTestTrack( EVENT::Track * lcTrk, MarlinKalTest* kte
 //			      << " dRPhi = " << dx[0]
 //			      << " dZ = "    << dx[1]
 //			      << std::endl ;
-      }
+  }
+  
+  else if( (layerID / ILDDetectorIDs::DetID::Factor) == ILDDetectorIDs::DetID::SIT ){	
+    
+    streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack add SIT hit with layerID = " << layerID << std::endl ; 
+    
+    //	// get measurement layer
+    //	const ILDVMeasLayer* ml = _ktest->getSensitiveMeasurementLayer(layerID) ; // SJA:FIXME: this does not work for values out of range i.e. SIT layer 42
+    //	const ILDSITMeasLayer* mlsit =  dynamic_cast<const ILDSITMeasLayer*>( ml ) ;
+    //
+    //	const TVector3 hit( trkhit->getPosition()[0], trkhit->getPosition()[1], trkhit->getPosition()[2]);
+    //		
+    //	// convert to layer coordinates 	
+    //	TKalMatrix h    = mlsit->XvToMv(hit);
+    //	Double_t   rphi = h(0, 0);
+    //	Double_t   d    = h(1, 0);
+    //
+    //	Double_t  x[2] ;
+    //	Double_t dx[2] ;
+    //	
+    //	x[0] = rphi ;
+    //	x[1] = d ;
+    //
+    //	// convert errors		
+    //	dx[0] = sqrt(trkhit->getCovMatrix()[0] + trkhit->getCovMatrix()[2]) ;
+    //	dx[1] = sqrt(trkhit->getCovMatrix()[5]) ; 
+    //
+    //	// SJA:FIXME: stop getting the B-Field from the layer
+    //	_kalhits->Add( new ILDSITHit( *ml , x, dx, ml->GetBz(), (*it)) ) ; 
+    //
+    //	streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack SIT hit added" 
+    //			      << " R = " << hit.Perp()
+    //			      << " Layer R = " << mlsit->GetR() 
+    //			      << " RPhi = "  <<  x[0]
+    //			      << " Z = "     <<  x[1]
+    //			      << " dRPhi = " << dx[0]
+    //			      << " dZ = "    << dx[1]
+    //			      << std::endl ;
+  }
+  
+  else if( (layerID / ILDDetectorIDs::DetID::Factor) == ILDDetectorIDs::DetID::TPC ){	
+    
+    streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack add TPC hit " << std::endl ; 
+    
+    // get measurement layer
+    const ILDVMeasLayer* ml = _ktest->getSensitiveMeasurementLayer(layerID) ;
+    const ILDCylinderMeasLayer* mltpc =  dynamic_cast<const ILDCylinderMeasLayer*>( ml ) ;
+    
+    const TVector3 hit( trkhit->getPosition()[0], trkhit->getPosition()[1], trkhit->getPosition()[2]);
+    
+    // convert to layer coordinates 	
+    TKalMatrix h    = mltpc->XvToMv(hit);
+    Double_t   rphi = h(0, 0);
+    Double_t   d    = h(1, 0);
+    
+    Double_t  x[2] ;
+    Double_t dx[2] ;
+    
+    x[0] = rphi ;
+    x[1] = d ;
+    
+    // convert errors
+    dx[0] = sqrt(trkhit->getCovMatrix()[0] + trkhit->getCovMatrix()[2]) ;
+    dx[1] = sqrt(trkhit->getCovMatrix()[5]) ; 
+    
+    // SJA:FIXME: stop getting the B-Field from the layer
+    //	_kalhits->Add( new ILDTPCHit( *ml , x, dx, ml->GetBz(), (*it)) ) ; 
+    _kalhits->Add( new ILDCylinderHit( *ml , x, dx, ml->GetBz()) ) ; 
+    
+    streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack TPC hit added" 
+			  << " R = " << hit.Perp()
+			  << " Layer R = " << mltpc->GetR() 
+			  << " RPhi = "  <<  x[0]
+			  << " Z = "     <<  x[1]
+			  << " dRPhi = " << dx[0]
+			  << " dZ = "    << dx[1]
+			  << std::endl ;
+  }
+  
+  //  _kalhits
+  
+  streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack hit added " 
+			<< "number of hits for track = " << _kalhits->GetEntries() 
+			<< std::endl ;
 
-      else if( (layerID / ILDDetectorIDs::DetID::Factor) == ILDDetectorIDs::DetID::SIT ){	
+} 
 
-	streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack add SIT hit with layerID = " << layerID << std::endl ; 
 
+//MarlinKalTestTrack::MarlinKalTestTrack( EVENT::Track * lcTrk, MarlinKalTest* ktest) 
+//  : _initialLCTrack(lcTrk) , _ktest(ktest)
+//{
+//  _kaltrack = new TKalTrack() ;
+//  _kaltrack->SetOwner() ;
+//  _lcioHits = lcTrk->getTrackerHits() ;
+//  _kalhits = new TObjArray(_lcioHits.size()) ;
+//  
+//  // sort hits in R
+//  sort(_lcioHits.begin(), _lcioHits.end(), compare_r() );
+//  
+//  // add IP hit so that we can access the state there
+//  // first get the IP measurement layer
+////  const ILDVMeasLayer* ipml = _ktest->getSensitiveMeasurementLayer( ILDDetectorIDs::DetID::IP * ILDDetectorIDs::DetID::Factor ) ;
+////  
+////  Double_t  x[2];
+////  Double_t dx[2];
+////  
+////  x[0] = 0.0 ; // RPhi 
+////  x[1] = 0.0 ; // z
+////
+////  dx[0] = 1.e6 ;   // give a huge error to RPhi so that this dummy hit will not be used in the fit
+////  dx[1] = 1.e6 ;   // give a huge error to z    so that this dummy hit will not be used in the fit
+////  
+////
+////  _kalhits->Add( new ILDIPHit( *ipml , x, dx, ipml->GetBz()) ) ;
+//
+//
+//  // add hits from the track supplied lcio
+//
+//  EVENT::TrackerHitVec::iterator it = _lcioHits.begin();  
+//  for( it = _lcioHits.begin() ; it != _lcioHits.end() ; ++it )
+//    {
+//
+//      EVENT::TrackerHit* trkhit = (*it);
+//      //      int layerID = trkhit->ext<ILDDetectorIDs::HitInfo>()->layerID ;
+//      int layerID = 0;
+//      if( trkhit->ext<ILDDetectorIDs::HitInfo>() ) {
+//	layerID = trkhit->ext<ILDDetectorIDs::HitInfo>()->layerID ;
+//      }
+//
+//      streamlog_out(DEBUG3) << "hit " << it - _lcioHits.begin() 
+//			    << " has type " << trkhit->getType() 
+//			    << " and layer "
+//			    << trkhit->ext<ILDDetectorIDs::HitInfo>()->layerID
+//			    << std::endl ;
+//      
+//
+//      if( (layerID / ILDDetectorIDs::DetID::Factor) == ILDDetectorIDs::DetID::VXD ){	
+//
+//	streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack add VXD hit " << std::endl ; 
+//
+////	// get measurement layer
+////	const ILDVMeasLayer* ml = _ktest->getSensitiveMeasurementLayer(layerID) ;
+////	const ILDVXDMeasLayer* mlvxd =  dynamic_cast<const ILDVXDMeasLayer*>( ml ) ;
+////
+////	const TVector3 hit( trkhit->getPosition()[0], trkhit->getPosition()[1], trkhit->getPosition()[2]);
+////
+////	// convert to layer coordinates 	
+////	TKalMatrix h    = mlvxd->XvToMv(hit);
+////	Double_t   rphi = h(0, 0);
+////	Double_t   d    = h(1, 0);
+////
+////	Double_t  x[2] ;
+////	Double_t dx[2] ;
+////	
+////	x[0] = rphi ;
+////	x[1] = d ;
+////
+////	// convert errors		
+////	dx[0] = sqrt(trkhit->getCovMatrix()[0] + trkhit->getCovMatrix()[2]) ;
+////	dx[1] = sqrt(trkhit->getCovMatrix()[5]) ; 
+////
+////	// SJA:FIXME: stop getting the B-Field from the layer
+////	_kalhits->Add( new ILDVXDHit( *ml , x, dx, ml->GetBz(), (*it)) ) ; 
+////
+////	streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack VXD hit added" 
+////			      << " R = " << hit.Perp()
+////			      << " Layer R = " << mlvxd->GetR() 
+////			      << " RPhi = "  <<  x[0]
+////			      << " Z = "     <<  x[1]
+////			      << " dRPhi = " << dx[0]
+////			      << " dZ = "    << dx[1]
+////			      << std::endl ;
+//      }
+//
+//      else if( (layerID / ILDDetectorIDs::DetID::Factor) == ILDDetectorIDs::DetID::SIT ){	
+//
+//	streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack add SIT hit with layerID = " << layerID << std::endl ; 
+//
+////	// get measurement layer
+////	const ILDVMeasLayer* ml = _ktest->getSensitiveMeasurementLayer(layerID) ; // SJA:FIXME: this does not work for values out of range i.e. SIT layer 42
+////	const ILDSITMeasLayer* mlsit =  dynamic_cast<const ILDSITMeasLayer*>( ml ) ;
+////
+////	const TVector3 hit( trkhit->getPosition()[0], trkhit->getPosition()[1], trkhit->getPosition()[2]);
+////		
+////	// convert to layer coordinates 	
+////	TKalMatrix h    = mlsit->XvToMv(hit);
+////	Double_t   rphi = h(0, 0);
+////	Double_t   d    = h(1, 0);
+////
+////	Double_t  x[2] ;
+////	Double_t dx[2] ;
+////	
+////	x[0] = rphi ;
+////	x[1] = d ;
+////
+////	// convert errors		
+////	dx[0] = sqrt(trkhit->getCovMatrix()[0] + trkhit->getCovMatrix()[2]) ;
+////	dx[1] = sqrt(trkhit->getCovMatrix()[5]) ; 
+////
+////	// SJA:FIXME: stop getting the B-Field from the layer
+////	_kalhits->Add( new ILDSITHit( *ml , x, dx, ml->GetBz(), (*it)) ) ; 
+////
+////	streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack SIT hit added" 
+////			      << " R = " << hit.Perp()
+////			      << " Layer R = " << mlsit->GetR() 
+////			      << " RPhi = "  <<  x[0]
+////			      << " Z = "     <<  x[1]
+////			      << " dRPhi = " << dx[0]
+////			      << " dZ = "    << dx[1]
+////			      << std::endl ;
+//      }
+//
+//      else if( (layerID / ILDDetectorIDs::DetID::Factor) == ILDDetectorIDs::DetID::TPC ){	
+//
+//	streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack add TPC hit " << std::endl ; 
+//
 //	// get measurement layer
-//	const ILDVMeasLayer* ml = _ktest->getSensitiveMeasurementLayer(layerID) ; // SJA:FIXME: this does not work for values out of range i.e. SIT layer 42
-//	const ILDSITMeasLayer* mlsit =  dynamic_cast<const ILDSITMeasLayer*>( ml ) ;
+//	const ILDVMeasLayer* ml = _ktest->getSensitiveMeasurementLayer(layerID) ;
+//	const ILDCylinderMeasLayer* mltpc =  dynamic_cast<const ILDCylinderMeasLayer*>( ml ) ;
 //
 //	const TVector3 hit( trkhit->getPosition()[0], trkhit->getPosition()[1], trkhit->getPosition()[2]);
-//		
+//
 //	// convert to layer coordinates 	
-//	TKalMatrix h    = mlsit->XvToMv(hit);
+//	TKalMatrix h    = mltpc->XvToMv(hit);
 //	Double_t   rphi = h(0, 0);
 //	Double_t   d    = h(1, 0);
 //
@@ -148,72 +336,40 @@ MarlinKalTestTrack::MarlinKalTestTrack( EVENT::Track * lcTrk, MarlinKalTest* kte
 //	x[0] = rphi ;
 //	x[1] = d ;
 //
-//	// convert errors		
+//	// convert errors
 //	dx[0] = sqrt(trkhit->getCovMatrix()[0] + trkhit->getCovMatrix()[2]) ;
 //	dx[1] = sqrt(trkhit->getCovMatrix()[5]) ; 
 //
 //	// SJA:FIXME: stop getting the B-Field from the layer
-//	_kalhits->Add( new ILDSITHit( *ml , x, dx, ml->GetBz(), (*it)) ) ; 
+//	//	_kalhits->Add( new ILDTPCHit( *ml , x, dx, ml->GetBz(), (*it)) ) ; 
+//	_kalhits->Add( new ILDCylinderHit( *ml , x, dx, ml->GetBz()) ) ; 
 //
-//	streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack SIT hit added" 
+//	streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack TPC hit added" 
 //			      << " R = " << hit.Perp()
-//			      << " Layer R = " << mlsit->GetR() 
+//			      << " Layer R = " << mltpc->GetR() 
 //			      << " RPhi = "  <<  x[0]
 //			      << " Z = "     <<  x[1]
 //			      << " dRPhi = " << dx[0]
 //			      << " dZ = "    << dx[1]
 //			      << std::endl ;
-      }
-
-      else if( (layerID / ILDDetectorIDs::DetID::Factor) == ILDDetectorIDs::DetID::TPC ){	
-
-	streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack add TPC hit " << std::endl ; 
-
-	// get measurement layer
-	const ILDVMeasLayer* ml = _ktest->getSensitiveMeasurementLayer(layerID) ;
-	const ILDCylinderMeasLayer* mltpc =  dynamic_cast<const ILDCylinderMeasLayer*>( ml ) ;
-
-	const TVector3 hit( trkhit->getPosition()[0], trkhit->getPosition()[1], trkhit->getPosition()[2]);
-
-	// convert to layer coordinates 	
-	TKalMatrix h    = mltpc->XvToMv(hit);
-	Double_t   rphi = h(0, 0);
-	Double_t   d    = h(1, 0);
-
-	Double_t  x[2] ;
-	Double_t dx[2] ;
-	
-	x[0] = rphi ;
-	x[1] = d ;
-
-	// convert errors
-	dx[0] = sqrt(trkhit->getCovMatrix()[0] + trkhit->getCovMatrix()[2]) ;
-	dx[1] = sqrt(trkhit->getCovMatrix()[5]) ; 
-
-	// SJA:FIXME: stop getting the B-Field from the layer
-	//	_kalhits->Add( new ILDTPCHit( *ml , x, dx, ml->GetBz(), (*it)) ) ; 
-	_kalhits->Add( new ILDCylinderHit( *ml , x, dx, ml->GetBz()) ) ; 
-
-	streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack TPC hit added" 
-			      << " R = " << hit.Perp()
-			      << " Layer R = " << mltpc->GetR() 
-			      << " RPhi = "  <<  x[0]
-			      << " Z = "     <<  x[1]
-			      << " dRPhi = " << dx[0]
-			      << " dZ = "    << dx[1]
-			      << std::endl ;
-      }
-	
-    }
-
-  //  _kalhits
-
-  streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack track created with" 
-			<< "number of hits = " << _kalhits->GetEntries() 
-			<< std::endl ;
+//      }
+//	
+//    }
+//
+//  //  _kalhits
+//
+//  streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack track created with" 
+//			<< "number of hits = " << _kalhits->GetEntries() 
+//			<< std::endl ;
+//
+//
+//} 
 
 
-} 
+
+
+
+
 
 MarlinKalTestTrack::~MarlinKalTestTrack(){
   delete _kaltrack ;
@@ -222,6 +378,8 @@ MarlinKalTestTrack::~MarlinKalTestTrack(){
 
 
 bool MarlinKalTestTrack::fit( Bool_t fitDirection ) {
+
+  //SJA:FIXME: do we need to sort the hits here ... ?
 
   const Bool_t gkDir = fitDirection ; 
 

@@ -21,13 +21,17 @@ class MarlinKalTestTrack : public MarlinTrk::IMarlinTrack {
 
  public:
 
-  MarlinKalTestTrack( EVENT::Track* trk, MarlinKalTest* ktest) ;
+  //  MarlinKalTestTrack( EVENT::Track* trk, MarlinKalTest* ktest) ;
+  MarlinKalTestTrack(MarlinKalTest* ktest) ;
 
   ~MarlinKalTestTrack() ;
 
  protected:
   
  private:
+
+  MarlinKalTestTrack(const MarlinKalTestTrack&) ;                 // Prevent copy-construction
+  MarlinKalTestTrack& operator=(const MarlinKalTestTrack&) ;      // Prevent assignment
 
   /** helper function to restrict the range of the azimuthal angle to ]-pi,pi]*/
   inline double toBaseRange( double phi){
@@ -52,7 +56,7 @@ class MarlinKalTestTrack : public MarlinTrk::IMarlinTrack {
   virtual IMPL::TrackImpl* getNearestFitToZPlane(float z) {  MarlinTrk::IMarlinTrackException exp; throw; } ; // Not Implemented Yet !
 
    // add hit to track
-  void addHit(EVENT::TrackerHit* hit) {  MarlinTrk::IMarlinTrackException exp; throw; } ;  // Not Implemented Yet !
+  void addHit(EVENT::TrackerHit* hit)  ;  
 
   // memeber variables 
   EVENT::Track* _initialLCTrack ;
