@@ -10,7 +10,7 @@
 #include <EVENT/TrackerHit.h>
 
 namespace MarlinTrk{
-  class IMarlinTrkFitter ;
+  class IMarlinTrkSystem ;
 }
 
 
@@ -94,9 +94,9 @@ class RefitProcessor : public marlin::Processor {
   */
   std::string _output_track_rel_name ;
 
-  /** pointer to the IMarlinTrkFitter instance 
+  /** pointer to the IMarlinTrkSystem instance 
    */
-  MarlinTrk::IMarlinTrkFitter* _kaltest ;
+  MarlinTrk::IMarlinTrkSystem* _trksystem ;
 
   bool _MSOn ;
   bool _ElossOn ;

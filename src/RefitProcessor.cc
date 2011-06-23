@@ -19,13 +19,13 @@
 #include <ILDDetectorIDs.h>
 
 
-#include "MarlinKalTest.h"
-#include "MarlinKalTestTrack.h"
+#include "Factory.h"
+#include "IMarlinTrack.h"
 
 using namespace lcio ;
 using namespace marlin ;
 
-
+using namespace MarlinTrk ;
 
 
 RefitProcessor aRefitProcessor ;
@@ -85,8 +85,22 @@ void RefitProcessor::init() {
   printParameters() ;
 
   // set up the geometery needed by KalTest
-  _kaltest = new MarlinKalTest( *marlin::Global::GEAR, _MSOn, _ElossOn) ;
+  //  _trksystem = new MarlinKalTest( *marlin::Global::GEAR, _MSOn, _ElossOn) ;
+  
+  //FIXME: for now do KalTest only - make this a steering parameter to use other fitters
+  _trksystem =  MarlinTrk::Factory::createMarlinTrkSystem( "KalTest" , marlin::Global::GEAR , "" ) ;
+  
+  if( _trksystem == 0 ){
+    
+    throw EVENT::Exception( std::string("  Cannot initialize MarlinTrkSystem of Type: ") + std::string("KalTest" )  ) ;
+    
+  }
 
+  _trksystem->setOption( IMarlinTrkSystem::CFG::useQMS,    _MSOn ) ;
+  _trksystem->setOption( IMarlinTrkSystem::CFG::usedEdx,  _ElossOn) ;
+  _trksystem->init() ;  
+
+  
   _n_run = 0 ;
   _n_evt = 0 ;
   
@@ -131,8 +145,8 @@ void RefitProcessor::processEvent( LCEvent * evt ) {
       
 	Track* track = dynamic_cast<Track*>( input_track_col->getElementAt( i ) ) ;
 		
-	//	MarlinTrk::IMarlinTrack* marlin_trk = new MarlinKalTestTrack(track, _kaltest) ;
-	MarlinTrk::IMarlinTrack* marlin_trk = _kaltest->createTrack();
+	//	MarlinTrk::IMarlinTrack* marlin_trk = new MarlinKalTestTrack(track, _trksystem) ;
+	MarlinTrk::IMarlinTrack* marlin_trk = _trksystem->createTrack();
 
 	EVENT::TrackerHitVec trkHits = track->getTrackerHits() ;	
 

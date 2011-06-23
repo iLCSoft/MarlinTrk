@@ -1,7 +1,8 @@
 #ifndef INCLUDE_MarlinKalTest
 #define INCLUDE_MarlinKalTest 1
 
-#include "IMarlinTrkFitter.h"
+//#include "IMarlinTrkFitter.h"
+#include "IMarlinTrkSystem.h"
 
 #include "gear/GearMgr.h"
 
@@ -28,7 +29,7 @@ class ILDVMeasLayer ;
 
 /** Interface to KaltTest Kalman fitter - instantiates and holds the detector geometry.
  */
-class MarlinKalTest : public MarlinTrk::IMarlinTrkFitter {
+class MarlinKalTest : public MarlinTrk::IMarlinTrkSystem {
 
  public:
   
@@ -41,7 +42,9 @@ class MarlinKalTest : public MarlinTrk::IMarlinTrkFitter {
   
 
   /** Default c'tor, initializes the geometry from GEAR. */
-  MarlinKalTest( const gear::GearMgr& gearMgr, bool MSOn, bool EnergyLossOn) ;
+  MarlinKalTest( const gear::GearMgr& gearMgr, bool MSOn=true, bool EnergyLossOn=true) ;
+
+  //  MarlinKalTest( const gear::GearMgr& gearMgr ) ;
   
   ~MarlinKalTest() ;
   
