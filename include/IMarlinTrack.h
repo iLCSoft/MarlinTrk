@@ -2,8 +2,12 @@
 #define IMarlinTrack_h
 
 #include "lcio.h"
-#include "IMPL/TrackImpl.h"
+
 #include "EVENT/TrackerHit.h"
+#include "IMPL/TrackStateImpl.h"
+
+#include "gearimpl/Vector3D.h"
+
 
 #include <exception>
 
@@ -23,23 +27,26 @@ namespace MarlinTrk{
   public:
     
     virtual ~IMarlinTrack() {};
-    
-    virtual bool fit( bool fitDirection ) = 0 ;
-    
-    // returns a pointer to a New LCIO Track with fit parameters determinded at the IP. The responsiblitiy for deletion lies with the caller.
-    virtual IMPL::TrackImpl* getIPFit() = 0 ;
-    
-    // returns a pointer to an LCIO Track whose referece point is the closest to the specified point.
-    virtual IMPL::TrackImpl* getNearestFitToPoint(float* point) = 0 ;
-    
-    // returns a pointer to an LCIO Track whose referece point is the closest to a cylinder of radius r which is centered at the origin parallel to the z axis.
-    virtual IMPL::TrackImpl* getNearestFitToCylinder(float r) = 0 ;
-    
-    // returns a pointer to an LCIO Track whose referece point is the closest to a plane normal to the z axis.
-    virtual IMPL::TrackImpl* getNearestFitToZPlane(float z) = 0 ;
-    
+
     // add hit to track
     virtual void addHit(EVENT::TrackerHit* hit) = 0 ;
+
+    // perform the fit of all current hits, return true is fit succeeds and false if it fails
+    virtual bool fit( bool fitDirection ) = 0 ;
+
+    // Propagate the fit to the point of closest approach to the given point. The responsiblitiy for deletion lies with the caller.
+    virtual IMPL::TrackStateImpl* propagate(gear::Vector3D* point) = 0 ;
+    
+    // Propagate the fit to the point of closest approach to the nominal IP=(0.0,0.0,0.0). The responsiblitiy for deletion lies with the caller.
+    virtual IMPL::TrackStateImpl* propagateToIP() = 0 ;
+  
+    // extrapolate to next sensitive layer, returning intersection point in global coordinates, layer number of sensitive layer returned via layerNumber reference 
+    virtual gear::Vector3D intersectionWithNextSensitiveLayer( bool direction, int& layerNumber) = 0 ;
+
+    // extrapolate to numbered sensitive layer, returning intersection point in global coordinates 
+    virtual gear::Vector3D intersectionWithSensitiveLayer( int layerNumber) = 0 ;
+
+       
     
   protected:
     

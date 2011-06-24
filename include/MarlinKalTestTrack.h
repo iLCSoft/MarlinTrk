@@ -21,7 +21,6 @@ class MarlinKalTestTrack : public MarlinTrk::IMarlinTrack {
 
  public:
 
-  //  MarlinKalTestTrack( EVENT::Track* trk, MarlinKalTest* ktest) ;
   MarlinKalTestTrack(MarlinKalTest* ktest) ;
 
   ~MarlinKalTestTrack() ;
@@ -41,25 +40,27 @@ class MarlinKalTestTrack : public MarlinTrk::IMarlinTrack {
   }
 
   // make member functions private to force use through interface
-  bool fit( Bool_t fitDirection );
-  
- // returns a pointer to a New LCIO Track with fit parameters determinded at the IP. The responsiblitiy for deletion lies with the caller.
-  IMPL::TrackImpl* getIPFit();
 
-  // returns a pointer to an LCIO Track whose referece point is the closest to the specified point.
-  virtual IMPL::TrackImpl* getNearestFitToPoint(float* point) {  MarlinTrk::IMarlinTrackException exp; throw; } ; // Not Implemented Yet !
+  // add hit to track
+  void addHit(EVENT::TrackerHit* hit) ;
   
-  // returns a pointer to an LCIO Track whose referece point is the closest to a cylinder of radius r which is centered at the origin parallel to the z axis.
-  virtual IMPL::TrackImpl* getNearestFitToCylinder(float r) {  MarlinTrk::IMarlinTrackException exp; throw; } ; // Not Implemented Yet !
+  // perform the fit of all current hits, return true is fit succeeds and false if it fails
+  bool fit( bool fitDirection ) ;
   
-  // returns a pointer to an LCIO Track whose referece point is the closest to a plane normal to the z axis.
-  virtual IMPL::TrackImpl* getNearestFitToZPlane(float z) {  MarlinTrk::IMarlinTrackException exp; throw; } ; // Not Implemented Yet !
+  // Propagate the fit to the point of closest approach to the given point. The responsiblitiy for deletion lies with the caller.
+  IMPL::TrackStateImpl* propagate(gear::Vector3D* point) {  MarlinTrk::IMarlinTrackException exp; throw; } ; // Not Implemented Yet !
 
-   // add hit to track
-  void addHit(EVENT::TrackerHit* hit)  ;  
+  // Propagate the fit to the point of closest approach to the nominal IP=(0.0,0.,0.0). The responsiblitiy for deletion lies with the caller.
+  IMPL::TrackStateImpl* propagateToIP() ;
+  
+  // extrapolate to next sensitive layer, returning intersection point in global coordinates, layer number of sensitive layer returned via layerNumber reference 
+  gear::Vector3D intersectionWithNextSensitiveLayer( bool direction, int& layerNumber) {  MarlinTrk::IMarlinTrackException exp; throw; } ; // Not Implemented Yet !
+  
+  // extrapolate to numbered sensitive layer, returning intersection point in global coordinates 
+  gear::Vector3D intersectionWithSensitiveLayer( int layerNumber) {  MarlinTrk::IMarlinTrackException exp; throw; } ; // Not Implemented Yet !
+  
 
   // memeber variables 
-  EVENT::Track* _initialLCTrack ;
 
   TKalTrack* _kaltrack;
 

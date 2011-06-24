@@ -8,7 +8,7 @@
 #include "kaldet/ILDVMeasLayer.h"
 
 //#include "kaldet/ILDIPKalDetector.h"
-//#include "kaldet/ILDVXDKalDetector.h"
+#include "kaldet/ILDVXDKalDetector.h"
 //#include "kaldet/ILDSITKalDetector.h"
 #include "kaldet/ILDTPCKalDetector.h"
 
@@ -37,10 +37,10 @@ MarlinKalTest::MarlinKalTest( const gear::GearMgr& gearMgr, bool MSOn, bool Ener
   // this could be made a public init() method taking options ....
   streamlog_out( DEBUG4 ) << "  MarlinKalTest - call init " << std::endl ;
   
-  this->includeMultipleScattering(MSOn) ;  
-  this->includeEnergyLoss(EnergyLossOn) ;  
-
-  init() ;
+//  this->includeMultipleScattering(MSOn) ;  
+//  this->includeEnergyLoss(EnergyLossOn) ;  
+//
+//  init() ;
   
   streamlog_out( DEBUG4 ) << "  MarlinKalTest - established " << std::endl ;
 
@@ -64,9 +64,9 @@ void MarlinKalTest::init() {
   // now store the measurement layer id's for the active layers 
   //  this->storeActiveMeasurementLayerIDs(ipdet);
 
-//  ILDVXDKalDetector* vxddet = new ILDVXDKalDetector( *_gearMgr )  ;
-//  // now store the measurement layer id's for the active layers 
-//  this->storeActiveMeasurementLayerIDs(vxddet);
+  ILDVXDKalDetector* vxddet = new ILDVXDKalDetector( *_gearMgr )  ;
+  // now store the measurement layer id's for the active layers 
+  this->storeActiveMeasurementLayerIDs(vxddet);
   
 //  ILDSITKalDetector* sitdet = new ILDSITKalDetector( *_gearMgr )  ;
 //  // now store the measurement layer id's for the active layers 
@@ -80,7 +80,7 @@ void MarlinKalTest::init() {
 
 
 //  _det->Install( *ipdet ) ;  
-//  _det->Install( *vxddet ) ;  
+  _det->Install( *vxddet ) ;  
 //  _det->Install( *sitdet ) ;    
   _det->Install( *tpcdet ) ;  
 

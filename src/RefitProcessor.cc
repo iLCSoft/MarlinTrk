@@ -5,6 +5,8 @@
 #include <IMPL/LCCollectionVec.h>
 #include <IMPL/LCFlagImpl.h>
 #include <EVENT/Track.h>
+#include <IMPL/TrackStateImpl.h>
+#include <IMPL/TrackImpl.h>
 
 #include <IMPL/LCRelationImpl.h>
 #include <UTIL/LCRelationNavigator.h>
@@ -162,12 +164,16 @@ void RefitProcessor::processEvent( LCEvent * evt ) {
 	    
 	  }
 
-	
 	bool fit_success = marlin_trk->fit( false ) ; // SJA:FIXME: false means from out to in here i.e. backwards. This would be better if had a more meaningful name perhaps fit_fwd and fit_rev
 
 	if( fit_success ){ 
 
-	  TrackImpl* refittedTrack = marlin_trk->getIPFit() ;
+	  TrackStateImpl* trkState = marlin_trk->propagateToIP() ;
+
+	  IMPL::TrackImpl* refittedTrack = new IMPL::TrackImpl();
+	  
+	  refittedTrack->addTrackState(trkState);
+
 
 	  for( it = trkHits.begin() ; it != trkHits.end() ; ++it )
 	    {
