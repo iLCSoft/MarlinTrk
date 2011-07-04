@@ -12,8 +12,13 @@
 #include <EVENT/TrackerHit.h>
 
 #include <ILDDetectorIDs.h>
+#include <ILDPlanarHitExt.h>
 
+#include "kaldet/ILDCylinderMeasLayer.h"
 #include "kaldet/ILDCylinderHit.h"
+
+#include "kaldet/ILDPlanarMeasLayer.h"
+#include "kaldet/ILDPlanarHit.h"
 
 #include "streamlog/streamlog.h"
 
@@ -56,7 +61,47 @@ void MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit)
     
     streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack add VXD hit " << std::endl ; 
    
-    MarlinTrk::IMarlinTrackException exp; throw;  // Not Implemented Yet !
+    if( trkhit->ext<ILDPlanarHitExt::PlanarHitExt>() ) {
+
+    // get measurement layer
+
+      int layer  = layerID % (ILDDetectorIDs::DetID::VXD * ILDDetectorIDs::DetID::Factor ) ;    
+      int ladder = trkhit->ext<ILDPlanarHitExt::PlanarHitExt>()->ladder_number ;
+      int layerID_with_ladder = ILDDetectorIDs::DetID::VXD * ILDDetectorIDs::DetID::Factor  + layer * 100 + ladder ;
+
+      const ILDVMeasLayer* ml = _ktest->getSensitiveMeasurementLayer(layerID_with_ladder) ;
+      const ILDPlanarMeasLayer* mlvxd =  dynamic_cast<const ILDPlanarMeasLayer*>( ml ) ;
+
+      Double_t  x[2] ;
+      Double_t dx[2] ;
+
+      x[0] = trkhit->ext<ILDPlanarHitExt::PlanarHitExt>()->u;
+      x[1] = trkhit->ext<ILDPlanarHitExt::PlanarHitExt>()->v;
+      dx[0] = trkhit->ext<ILDPlanarHitExt::PlanarHitExt>()->du;
+      dx[1] = trkhit->ext<ILDPlanarHitExt::PlanarHitExt>()->dv;
+
+      _kalhits->Add( new ILDPlanarHit( *ml , x, dx, ml->GetBz()) ) ; 
+
+      ILDPlanarHit ht_tmp( *ml , x, dx, ml->GetBz()) ;
+      TVector3 global_pos = mlvxd->HitToXv( ht_tmp ) ;
+
+      streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack VXD hit added" 
+			    << " Layer R = " << mlvxd->GetXc().Mag() 
+			    << " Layer phi = " << mlvxd->GetXc().Phi() 
+			    << " ladder = "  <<  ladder
+			    << " u = "  <<  x[0]
+			    << " v = "  <<  x[1]
+			    << " du = " << dx[0]
+			    << " dv = " << dx[1]
+			    << " x = " << global_pos.X()
+			    << " y = " << global_pos.Y()
+			    << " z = " << global_pos.Z()
+			    << std::endl ;
+
+    }
+    else{
+      MarlinTrk::IMarlinTrackException exp; throw;  // No ILDPlanarHitExt extention data
+    }
  
   }
   
@@ -124,7 +169,7 @@ bool MarlinKalTestTrack::fit( Bool_t fitDirection ) {
 
   const Bool_t gkDir = fitDirection ; 
 
-  streamlog_out(DEBUG) << "MarlinKalTestTrack::fit() called " << std::endl ;
+  streamlog_out(DEBUG4) << "MarlinKalTestTrack::fit() called " << std::endl ;
 
   if (_kalhits->GetEntries() < 3) {
     
@@ -158,8 +203,11 @@ bool MarlinKalTestTrack::fit( Bool_t fitDirection ) {
   if ( (pDummyHit = dynamic_cast<ILDCylinderHit *>( startingHit )) ) {
     //    pDummyHit = (new ILDCylinderHit(*static_cast<ILDTPCHit*>( startingHit )));
   }
+  else if ( (pDummyHit = dynamic_cast<ILDPlanarHit *>( startingHit )) ) {
+    //    pDummyHit = (new ILDPlanarHit(*static_cast<ILDTPCHit*>( startingHit )));
+  }
   else {
-    streamlog_out( ERROR) << "<<<<<< KalTrack::fitTrack(): dynamic_cast failed >>>>>>>" << std::endl;
+    streamlog_out( ERROR) << "<<<<<< KalTrack::fitTrack(): dynamic_cast failed for hit type >>>>>>>" << std::endl;
     return false;
   }
 
@@ -239,11 +287,11 @@ bool MarlinKalTestTrack::fit( Bool_t fitDirection ) {
     // get the measurement layer of the current hit
     const ILDVMeasLayer* ml =  dynamic_cast<const ILDVMeasLayer*>( &(hitp->GetMeasLayer() ) ) ;
     
-    streamlog_out( DEBUG )  << "Kaltrack::fit :  add site to track at index : " << ml->GetIndex() << " for type " << ml->GetMLName() << std::endl ;
+    streamlog_out( DEBUG3 )  << "Kaltrack::fit :  add site to track at index : " << ml->GetIndex() << " for type " << ml->GetMLName() << " layer ID " << ml->getLayerID() << std::endl ;
     
     // try to add the site and filter 
     if (!_kaltrack->AddAndFilter(site)) {        
-      streamlog_out( DEBUG )  << "Kaltrack::fit :  site discarded!" << std::endl;
+      streamlog_out( DEBUG4 )  << "Kaltrack::fit : site discarded! at index : " << ml->GetIndex() << " for type " << ml->GetMLName() << " layer ID " << ml->getLayerID() << std::endl ;
       delete &site;                        // delete it if failed      
     }
   } // end of Kalman filter
@@ -256,7 +304,7 @@ bool MarlinKalTestTrack::fit( Bool_t fitDirection ) {
 
 IMPL::TrackStateImpl* MarlinKalTestTrack::propagateToIP(){
 
-  streamlog_out(DEBUG) << "MarlinKalTestTrack::PropagateToIP() called " << std::endl ;
+  streamlog_out(DEBUG4) << "MarlinKalTestTrack::PropagateToIP() called " << std::endl ;
 
   // create track state to be returned
   IMPL::TrackStateImpl* trk = new IMPL::TrackStateImpl();
@@ -339,7 +387,7 @@ IMPL::TrackStateImpl* MarlinKalTestTrack::propagateToIP(){
 
   trk->setReferencePoint( pivot ) ;
 
-  streamlog_out( DEBUG ) << " kaltest track parameters: "
+  streamlog_out( DEBUG4 ) << " kaltest track parameters: "
 			 << " chi2/ndf " << chi2 / ndf  
     			 << " chi2 " <<  chi2 << std::endl 
     
