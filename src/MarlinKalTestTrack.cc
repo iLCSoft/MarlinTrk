@@ -12,7 +12,7 @@
 #include <EVENT/TrackerHit.h>
 
 #include <ILDDetectorIDs.h>
-#include <ILDPlanarHitExt.h>
+//#include <ILDPlanarHitExt.h>
 
 #include "kaldet/ILDCylinderMeasLayer.h"
 #include "kaldet/ILDCylinderHit.h"
@@ -61,12 +61,15 @@ void MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit)
     
     streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack add VXD hit " << std::endl ; 
    
-    if( trkhit->ext<ILDPlanarHitExt::PlanarHitExt>() ) {
+    //    if( trkhit->ext<ILDPlanarHitExt::PlanarHitExt>() ) {
 
     // get measurement layer
 
       int layer  = layerID % (ILDDetectorIDs::DetID::VXD * ILDDetectorIDs::DetID::Factor ) ;    
-      int ladder = trkhit->ext<ILDPlanarHitExt::PlanarHitExt>()->ladder_number ;
+
+      //      int ladder = trkhit->ext<ILDPlanarHitExt::PlanarHitExt>()->ladder_number ;
+
+      int ladder = 0 ;
       int layerID_with_ladder = ILDDetectorIDs::DetID::VXD * ILDDetectorIDs::DetID::Factor  + layer * 100 + ladder ;
 
       const ILDVMeasLayer* ml = _ktest->getSensitiveMeasurementLayer(layerID_with_ladder) ;
@@ -75,10 +78,16 @@ void MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit)
       Double_t  x[2] ;
       Double_t dx[2] ;
 
-      x[0] = trkhit->ext<ILDPlanarHitExt::PlanarHitExt>()->u;
-      x[1] = trkhit->ext<ILDPlanarHitExt::PlanarHitExt>()->v;
-      dx[0] = trkhit->ext<ILDPlanarHitExt::PlanarHitExt>()->du;
-      dx[1] = trkhit->ext<ILDPlanarHitExt::PlanarHitExt>()->dv;
+//      x[0] = trkhit->ext<ILDPlanarHitExt::PlanarHitExt>()->u;
+//      x[1] = trkhit->ext<ILDPlanarHitExt::PlanarHitExt>()->v;
+//      dx[0] = trkhit->ext<ILDPlanarHitExt::PlanarHitExt>()->du;
+//      dx[1] = trkhit->ext<ILDPlanarHitExt::PlanarHitExt>()->dv;
+
+      x[0] = 0.0 ;
+      x[1] = 0.0 ; 
+      dx[0] = 0.0 ;
+      dx[1] = 0.0 ;
+
 
       _kalhits->Add( new ILDPlanarHit( *ml , x, dx, ml->GetBz()) ) ; 
 
@@ -98,10 +107,10 @@ void MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit)
 			    << " z = " << global_pos.Z()
 			    << std::endl ;
 
-    }
-    else{
-      MarlinTrk::IMarlinTrackException exp; throw;  // No ILDPlanarHitExt extention data
-    }
+//    }
+//    else{
+//      MarlinTrk::IMarlinTrackException exp; throw;  // No ILDPlanarHitExt extention data
+//    }
  
   }
   
