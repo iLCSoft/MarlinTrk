@@ -49,12 +49,13 @@ void MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit)
   int layerID = 0;
   if( trkhit->ext<ILDDetectorIDs::HitInfo>() ) {
     layerID = trkhit->ext<ILDDetectorIDs::HitInfo>()->layerID ;
+    
+    streamlog_out(DEBUG3) << "hit has type " << trkhit->getType() 
+			  << " and layer "
+			  << trkhit->ext<ILDDetectorIDs::HitInfo>()->layerID
+			  << std::endl ;
   }
   
-  streamlog_out(DEBUG3) << "hit has type " << trkhit->getType() 
-			<< " and layer "
-			<< trkhit->ext<ILDDetectorIDs::HitInfo>()->layerID
-			<< std::endl ;
   
   
   if( (layerID / ILDDetectorIDs::DetID::Factor) == ILDDetectorIDs::DetID::VXD ){	
