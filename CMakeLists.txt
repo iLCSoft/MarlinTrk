@@ -86,12 +86,12 @@ ADD_DEFINITIONS( "-Wno-long-long" )
 
 # include directories
 INCLUDE_DIRECTORIES( ./include )
-INCLUDE_DIRECTORIES( ./kaltest )
+INCLUDE_DIRECTORIES( ./temporary_utils )
 #INSTALL_DIRECTORY( ./include DESTINATION . FILES_MATCHING PATTERN "*.h" )
 
 # add library
 AUX_SOURCE_DIRECTORY( ./src library_sources )
-AUX_SOURCE_DIRECTORY( ./kaltest library_sources )
+AUX_SOURCE_DIRECTORY( ./temporary_utils library_sources )
 ADD_SHARED_LIBRARY( ${PROJECT_NAME} ${library_sources} )
 INSTALL_SHARED_LIBRARY( ${PROJECT_NAME} DESTINATION lib )
 
