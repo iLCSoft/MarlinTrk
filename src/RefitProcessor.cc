@@ -1,5 +1,6 @@
 #include "RefitProcessor.h"
 #include <iostream>
+#include <algorithm>
 
 #include <EVENT/LCCollection.h>
 #include <IMPL/LCCollectionVec.h>
