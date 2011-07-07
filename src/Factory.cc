@@ -1,6 +1,6 @@
-#include "Factory.h"
+#include "MarlinTrk/Factory.h"
 
-#include "MarlinKalTest.h"
+#include "MarlinTrk/MarlinKalTest.h"
 
 
 

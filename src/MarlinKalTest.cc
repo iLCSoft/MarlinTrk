@@ -1,6 +1,6 @@
-#include "MarlinKalTest.h"
+#include "MarlinTrk/MarlinKalTest.h"
 
-#include "MarlinKalTestTrack.h"
+#include "MarlinTrk/MarlinKalTestTrack.h"
 
 #include "kaltest/TKalDetCradle.h"
 #include "kaltest/TVKalDetector.h"
@@ -17,7 +17,7 @@
 #include "gear/TPCParameters.h"
 #include "gear/PadRowLayout2D.h"
 
-#include <ILDDetectorIDs.h>
+//#include <ILDDetectorIDs.h>
 
 #include <math.h>
 #include <cmath>

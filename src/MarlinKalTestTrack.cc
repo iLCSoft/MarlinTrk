@@ -1,7 +1,7 @@
 
-#include "MarlinKalTestTrack.h"
+#include "MarlinTrk/MarlinKalTestTrack.h"
 
-#include "MarlinKalTest.h"
+#include "MarlinTrk/MarlinKalTest.h"
 
 #include <kaltest/TKalTrack.h>
 #include <kaltest/TKalTrackState.h>

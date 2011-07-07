@@ -1,4 +1,4 @@
-#include "IMarlinTrkSystem.h"
+#include "MarlinTrk/IMarlinTrkSystem.h"
 #include <sstream>
 
 namespace MarlinTrk{
