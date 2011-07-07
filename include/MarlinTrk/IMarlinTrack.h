@@ -12,15 +12,7 @@
 #include <exception>
 
 namespace MarlinTrk{
-  
-  class IMarlinTrackException: public std::exception
-    {
-      virtual const char* what() const throw()
-      {
-	return "IMarlinTrackException occurred";
-      }
-    } ;
-  
+    
   
   class IMarlinTrack {
     

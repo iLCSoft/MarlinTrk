@@ -2,6 +2,7 @@
 #define MarlinKalTestTrack_h
 
 #include "IMarlinTrack.h"
+#include "IMarlinTrkSystem.h"
 
 #include <TObjArray.h>
 
@@ -48,16 +49,16 @@ class MarlinKalTestTrack : public MarlinTrk::IMarlinTrack {
   bool fit( bool fitDirection ) ;
   
   // Propagate the fit to the point of closest approach to the given point. The responsiblitiy for deletion lies with the caller.
-  IMPL::TrackStateImpl* propagate(gear::Vector3D* point) {  MarlinTrk::IMarlinTrackException exp; throw; } ; // Not Implemented Yet !
+  IMPL::TrackStateImpl* propagate(gear::Vector3D* point) {  throw MarlinTrk::Exception("Function Not Implemented Yet "); } ; 
 
   // Propagate the fit to the point of closest approach to the nominal IP=(0.0,0.,0.0). The responsiblitiy for deletion lies with the caller.
   IMPL::TrackStateImpl* propagateToIP() ;
   
   // extrapolate to next sensitive layer, returning intersection point in global coordinates, layer number of sensitive layer returned via layerNumber reference 
-  gear::Vector3D intersectionWithNextSensitiveLayer( bool direction, int& layerNumber) {  MarlinTrk::IMarlinTrackException exp; throw; } ; // Not Implemented Yet !
+  gear::Vector3D intersectionWithNextSensitiveLayer( bool direction, int& layerNumber) { throw MarlinTrk::Exception("Function Not Implemented Yet "); } ;
   
   // extrapolate to numbered sensitive layer, returning intersection point in global coordinates 
-  gear::Vector3D intersectionWithSensitiveLayer( int layerNumber) {  MarlinTrk::IMarlinTrackException exp; throw; } ; // Not Implemented Yet !
+  gear::Vector3D intersectionWithSensitiveLayer( int layerNumber) { throw MarlinTrk::Exception("Function Not Implemented Yet"); } ; 
   
 
   // memeber variables 

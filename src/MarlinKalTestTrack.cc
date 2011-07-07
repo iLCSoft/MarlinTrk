@@ -10,7 +10,8 @@
 #include <lcio.h>
 #include <EVENT/TrackerHit.h>
 #include <EVENT/TrackerHitPlane.h>
-#include <UTIL/CellIDDecoder.h>
+
+#include <UTIL/BitField64.h>
 
 #include <ILDCellIDEncoding.h>
 
@@ -43,29 +44,34 @@ MarlinKalTestTrack::~MarlinKalTestTrack(){
 
 void MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit) 
 {
-
   
-  CellIDDecoder<lcio::TrackerHit> idDecoder( ILDCellIDEncoding::encoder_string );
+  UTIL::BitField64 deencoder( ILDCellIDEncoding::encoder_string ) ; 
 
-  streamlog_out(DEBUG3) << "subdet = " << idDecoder( trkhit )[ ILDCellIDEncoding::Fields::subdet ]  << std::endl ; 
-  streamlog_out(DEBUG3) << "layer = " << idDecoder( trkhit )[ ILDCellIDEncoding::Fields::layer ]  << std::endl ; 
-  streamlog_out(DEBUG3) << "module = " << idDecoder( trkhit )[ ILDCellIDEncoding::Fields::module ]  << std::endl ; 
-  streamlog_out(DEBUG3) << "side = " << idDecoder( trkhit )[ ILDCellIDEncoding::Fields::side ]  << std::endl ; 
+  lcio::long64 cellid = trkhit->getCellID1() ;
+  cellid <<= 32 ;
+  cellid |= trkhit->getCellID0() ;
 
-  int subdetID = idDecoder( trkhit )[ ILDCellIDEncoding::Fields::subdet ];
-  int layerID  = idDecoder( trkhit )[ ILDCellIDEncoding::Fields::layer ];
-  
+  deencoder.setValue(cellid) ;
+
+  int subdetID = deencoder[ ILDCellIDEncoding::Fields::subdet ] ;
+  int layerID  = deencoder[ ILDCellIDEncoding::Fields::layer ] ;
+
   if( subdetID == ILDCellIDEncoding::DetID::VXD ){	
     
     streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack add VXD hit " << std::endl ; 
    
-    // get measurement layer
-    
-    int ladder = idDecoder( trkhit )[ ILDCellIDEncoding::Fields::module ] ;
+    int vxd_layer_ID = trkhit->getCellID0();    
 
-    int layerID_with_ladder = ILDCellIDEncoding::DetID::VXD * 10000  + layerID * 100 + ladder ;
-    
-    const ILDVMeasLayer* ml = _ktest->getSensitiveMeasurementLayer(layerID_with_ladder) ;
+    const ILDVMeasLayer* ml = _ktest->getSensitiveMeasurementLayer( vxd_layer_ID ) ;
+
+    if( ml == NULL ) {
+      
+      std::stringstream errorMsg;
+      errorMsg << "MarlinKalTestTrack::MarlinKalTestTrack vxd layer id unkown: layerID = " << vxd_layer_ID << std::endl ; 
+      throw MarlinTrk::Exception(errorMsg.str());
+      
+    }
+
     const ILDPlanarMeasLayer* mlvxd =  dynamic_cast<const ILDPlanarMeasLayer*>( ml ) ;
         
     const TVector3 hit( trkhit->getPosition()[0], trkhit->getPosition()[1], trkhit->getPosition()[2]);
@@ -79,8 +85,8 @@ void MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit)
     x[0] = h(0, 0);
     x[1] = h(1, 0);
   
-    dx[0] = (dynamic_cast<TrackerHitPlane*>( trkhit ))->getdU() ;
-    dx[1] = (dynamic_cast<TrackerHitPlane*>( trkhit ))->getdV() ;
+    dx[0] = (dynamic_cast<EVENT::TrackerHitPlane*>( trkhit ))->getdU() ;
+    dx[1] = (dynamic_cast<EVENT::TrackerHitPlane*>( trkhit ))->getdV() ;
     
     _kalhits->Add( new ILDPlanarHit( *ml , x, dx, ml->GetBz()) ) ; 
     
@@ -90,7 +96,7 @@ void MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit)
     streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack VXD hit added" 
 			  << " Layer R = " << mlvxd->GetXc().Mag() 
 			  << " Layer phi = " << mlvxd->GetXc().Phi() 
-			  << " ladder = "  <<  ladder
+			  << " ladder = "  << deencoder[ ILDCellIDEncoding::Fields::module ]
 			  << " u = "  <<  x[0]
 			  << " v = "  <<  x[1]
 			  << " du = " << dx[0]
@@ -104,17 +110,28 @@ void MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit)
   
   else if( subdetID == ILDCellIDEncoding::DetID::SIT ){	
     
-    streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack add SIT hit with layerID = " << layerID << std::endl ; 
-
-    MarlinTrk::IMarlinTrackException exp; throw;  // Not Implemented Yet !
+    std::stringstream errorMsg;
+    errorMsg  << "MarlinKalTestTrack::MarlinKalTestTrack add SIT hit with layerID = " << layerID << std::endl ; 
+    throw MarlinTrk::Exception(errorMsg.str());
     
   }
   else if( subdetID == ILDCellIDEncoding::DetID::TPC ){	
     
     streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack add TPC hit " << std::endl ; 
-    
+   
+    int tpc_layer_ID = trkhit->getCellID0();
+ 
     // get measurement layer
-    const ILDVMeasLayer* ml = _ktest->getSensitiveMeasurementLayer(layerID) ;
+    const ILDVMeasLayer* ml = _ktest->getSensitiveMeasurementLayer(tpc_layer_ID) ;
+    
+    if( ml == NULL ) {
+
+      std::stringstream errorMsg;
+      errorMsg << "MarlinKalTestTrack::MarlinKalTestTrack tpc layer id unkown: layerID = " << tpc_layer_ID << std::endl ; 
+      throw MarlinTrk::Exception(errorMsg.str());
+
+    }
+    
     const ILDCylinderMeasLayer* mltpc =  dynamic_cast<const ILDCylinderMeasLayer*>( ml ) ;
     
     const TVector3 hit( trkhit->getPosition()[0], trkhit->getPosition()[1], trkhit->getPosition()[2]);
@@ -146,6 +163,13 @@ void MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit)
 			  << " dRPhi = " << dx[0]
 			  << " dZ = "    << dx[1]
 			  << std::endl ;
+  }
+  else{
+
+    std::stringstream errorMsg;
+    errorMsg  << "MarlinKalTestTrack::MarlinKalTestTrack subdetID unkown: subdetID = " << subdetID << std::endl ; 
+    throw MarlinTrk::Exception(errorMsg.str());
+
   }
   
   //  _kalhits

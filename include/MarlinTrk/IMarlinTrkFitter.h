@@ -10,13 +10,6 @@ namespace MarlinTrk{
 
 namespace MarlinTrk{
 
-  class IMarlinTrkFitterException: public std::exception
-    {
-      virtual const char* what() const throw()
-      {
-	return "IMarlinTrkFitterException occurred";
-      }
-    } ;
   
   
   class IMarlinTrkFitter {
