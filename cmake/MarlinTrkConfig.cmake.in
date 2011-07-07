@@ -34,7 +34,7 @@ SET( MarlinTrk_INCLUDE_DIRS MarlinTrk_INCLUDE_DIRS-NOTFOUND )
 MARK_AS_ADVANCED( MarlinTrk_INCLUDE_DIRS )
 
 FIND_PATH( MarlinTrk_INCLUDE_DIRS
-	NAMES MarlinTrk/IMarlinTrk.h
+	NAMES MarlinTrk/IMarlinTrack.h
 	PATHS ${MarlinTrk_ROOT}/include
 	NO_DEFAULT_PATH
 )
