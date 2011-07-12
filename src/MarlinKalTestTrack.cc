@@ -45,18 +45,72 @@ MarlinKalTestTrack::~MarlinKalTestTrack(){
 void MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit) 
 {
   
-  const ILDVMeasLayer* ml = _ktest->getSensitiveMeasurementLayer( trkhit->getCellID0() ) ;
+  //  const ILDVMeasLayer* ml = _ktest->getSensitiveMeasurementLayer( trkhit->getCellID0() ) ;
   
-  if( ml == NULL ) {
+  std::vector<ILDVMeasLayer*> measlayers ;
+  _ktest->getSensitiveMeasurementLayer( trkhit->getCellID0(), measlayers ) ;
+
+  if( measlayers.size() == 0 ) {
     
     std::stringstream errorMsg;
     errorMsg << "MarlinKalTestTrack::MarlinKalTestTrack hit layer id unkown: layerID = " << trkhit->getCellID0() << std::endl ; 
     throw MarlinTrk::Exception(errorMsg.str());
     
   } 
-  else {
-    _kalhits->Add( ml->ConvertLCIOTrkHit(trkhit) ) ; 
+  else if (measlayers.size() == 1) {
+    _kalhits->Add( measlayers[0]->ConvertLCIOTrkHit(trkhit) ) ; 
   }
+  else { // layer has been split 
+    
+    bool surf_found(false);
+
+    for( unsigned int i=0; i < measlayers.size(); ++i) {
+     
+      const TVector3 hit( trkhit->getPosition()[0], trkhit->getPosition()[1], trkhit->getPosition()[2]) ;
+      
+      TVSurface* surf = NULL;
+
+      if( (surf = dynamic_cast<ILDCylinderMeasLayer*> (  measlayers[i] )) )   {
+	// surf = dynamic_cast<ILDCylinderMeasLayer*> (  measlayers[i] )
+      }
+      else if ( (surf = dynamic_cast<ILDPlanarMeasLayer *>( measlayers[i] )) )  {
+	// surf = dynamic_cast<ILDPlanarMeasLayer*> (  measlayers[i] )
+      }
+      else {
+	std::stringstream errorMsg;
+	errorMsg << "MarlinKalTestTrack::MarlinKalTestTrack dynamic_cast failed for surface type: layerID = " << trkhit->getCellID0() << std::endl ; 
+	throw MarlinTrk::Exception(errorMsg.str());
+      }
+      
+      bool hit_on_surface = surf->IsOnSurface(hit);
+
+      if( (!surf_found) && hit_on_surface ){
+	_kalhits->Add( measlayers[i]->ConvertLCIOTrkHit(trkhit) ) ;  // Add hit and set surface found 
+	surf_found = true ;
+      }
+      else if( surf_found && hit_on_surface ) {  // only one surface should be found, if not throw 
+	std::stringstream errorMsg;
+	errorMsg << "MarlinKalTestTrack::MarlinKalTestTrack hit found to be on two surfaces: layerID = " << trkhit->getCellID0() << std::endl ; 
+	throw MarlinTrk::Exception(errorMsg.str());
+      }      
+    }
+    if( ! surf_found ){
+      streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack hit not found to be on any surface matching layerID = "
+			    << trkhit->getCellID0()
+			    << ": x = " << trkhit->getPosition()[0]
+			    << " y = " << trkhit->getPosition()[1]
+			    << " z = " << trkhit->getPosition()[2]
+			    << std::endl ;
+    }
+
+    streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack hit found to be on surface matching layerID = "
+			  << trkhit->getCellID0()
+			  << ": x = " << trkhit->getPosition()[0]
+			  << " y = " << trkhit->getPosition()[1]
+			  << " z = " << trkhit->getPosition()[2]
+			  << std::endl ;
+  }
+
 
   streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack hit added " 
 			<< "number of hits for track = " << _kalhits->GetEntries() 

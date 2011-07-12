@@ -19,6 +19,8 @@
 #include <math.h>
 #include <cmath>
 
+#include <utility>
+
 #include "streamlog/streamlog.h"
 
 
@@ -117,16 +119,28 @@ void MarlinKalTest::includeEnergyLoss( bool energyLossOn ) {
 
 
 
-ILDVMeasLayer* MarlinKalTest::getSensitiveMeasurementLayer( Int_t layerID ){
-  std::map< Int_t, ILDVMeasLayer*>::iterator it;
-  it = this->_active_measurement_layer.find(layerID);
-  if( it != this->_active_measurement_layer.end() ){
-    return it->second;
-  }
-  else{
-    return NULL; // SJA:FIXME: this should be an exception
-  }
+void MarlinKalTest::getSensitiveMeasurementLayer( int layerID , std::vector<ILDVMeasLayer*>& measlayers ){
+
+  if( ! measlayers.empty() ) {
     
+    std::stringstream errorMsg;
+    errorMsg << "MarlinKalTest::getSensitiveMeasurementLayer vector passed as second argument is not empty " << std::endl ; 
+    throw MarlinTrk::Exception(errorMsg.str());
+
+  }
+
+  std::pair<std::multimap<Int_t, ILDVMeasLayer*>::iterator, std::multimap<Int_t, ILDVMeasLayer*>::iterator> ii;
+  ii = this->_active_measurement_layer.equal_range(layerID); // set the first and last entry in ii;
+
+  std::multimap<Int_t, ILDVMeasLayer*>::iterator it; //Iterator to be used along with ii
+
+
+  for(it = ii.first; it != ii.second; ++it)
+    {
+      std::cout<<"Key = "<<it->first<<"    Value = "<<it->second << std::endl ;
+      measlayers.push_back( it->second ) ; 
+    }
+      
 }
 
 
@@ -134,15 +148,23 @@ void MarlinKalTest::storeActiveMeasurementLayerIDs(TVKalDetector* detector){
   
   Int_t nLayers = detector->GetEntriesFast() ;
   
-  for( int i=0  ; i < nLayers ; ++i ){
+  for( int i=0; i < nLayers; ++i ){
     
     ILDVMeasLayer* ml = dynamic_cast<ILDVMeasLayer*>( detector->At( i ) ); 
-    
+
+    if( ! ml ) {
+      std::stringstream errorMsg;
+      errorMsg << "MarlinKalTest::storeActiveMeasurementLayerIDs  dynamic_cast to ILDVMeasLayer* failed " << std::endl ; 
+      throw MarlinTrk::Exception(errorMsg.str());
+    }
+
     if( ml->IsActive() ) {
       streamlog_out(DEBUG) << "MarlinKalTest::storeActiveMeasurementLayerIDs added active layer with "
 			   << " LayerID = " << ml->getLayerID()
 			   << std::endl ;
-      this->_active_measurement_layer[ ml->getLayerID() ] = ml;
+
+      this->_active_measurement_layer.insert(std::pair<int,ILDVMeasLayer*>(ml->getLayerID(),ml));
+
     }
 
   }
