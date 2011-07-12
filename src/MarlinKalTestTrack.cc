@@ -45,135 +45,19 @@ MarlinKalTestTrack::~MarlinKalTestTrack(){
 void MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit) 
 {
   
-  UTIL::BitField64 deencoder( ILDCellIDEncoding::encoder_string ) ; 
-
-  lcio::long64 cellid = trkhit->getCellID1() ;
-  cellid <<= 32 ;
-  cellid |= trkhit->getCellID0() ;
-
-  deencoder.setValue(cellid) ;
-
-  int subdetID = deencoder[ ILDCellIDEncoding::Fields::subdet ] ;
-  int layerID  = deencoder[ ILDCellIDEncoding::Fields::layer ] ;
-
-  if( subdetID == ILDCellIDEncoding::DetID::VXD ){	
-    
-    streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack add VXD hit " << std::endl ; 
-   
-    int vxd_layer_ID = trkhit->getCellID0();    
-
-    const ILDVMeasLayer* ml = _ktest->getSensitiveMeasurementLayer( vxd_layer_ID ) ;
-
-    if( ml == NULL ) {
-      
-      std::stringstream errorMsg;
-      errorMsg << "MarlinKalTestTrack::MarlinKalTestTrack vxd layer id unkown: layerID = " << vxd_layer_ID << std::endl ; 
-      throw MarlinTrk::Exception(errorMsg.str());
-      
-    }
-
-    const ILDPlanarMeasLayer* mlvxd =  dynamic_cast<const ILDPlanarMeasLayer*>( ml ) ;
-        
-    const TVector3 hit( trkhit->getPosition()[0], trkhit->getPosition()[1], trkhit->getPosition()[2]);
-    
-    // convert to layer coordinates 	
-    TKalMatrix h    = mlvxd->XvToMv(hit);
-    
-    Double_t  x[2] ;
-    Double_t dx[2] ;
-    
-    x[0] = h(0, 0);
-    x[1] = h(1, 0);
+  const ILDVMeasLayer* ml = _ktest->getSensitiveMeasurementLayer( trkhit->getCellID0() ) ;
   
-    dx[0] = (dynamic_cast<EVENT::TrackerHitPlane*>( trkhit ))->getdU() ;
-    dx[1] = (dynamic_cast<EVENT::TrackerHitPlane*>( trkhit ))->getdV() ;
-    
-    _kalhits->Add( new ILDPlanarHit( *ml , x, dx, ml->GetBz()) ) ; 
-    
-    ILDPlanarHit ht_tmp( *ml , x, dx, ml->GetBz()) ;
-    TVector3 global_pos = mlvxd->HitToXv( ht_tmp ) ;
-    
-    streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack VXD hit added" 
-			  << " Layer R = " << mlvxd->GetXc().Mag() 
-			  << " Layer phi = " << mlvxd->GetXc().Phi() 
-			  << " ladder = "  << deencoder[ ILDCellIDEncoding::Fields::module ]
-			  << " u = "  <<  x[0]
-			  << " v = "  <<  x[1]
-			  << " du = " << dx[0]
-			  << " dv = " << dx[1]
-			  << " x = " << global_pos.X()
-			  << " y = " << global_pos.Y()
-			  << " z = " << global_pos.Z()
-			  << std::endl ;
-    
-  }
-  
-  else if( subdetID == ILDCellIDEncoding::DetID::SIT ){	
+  if( ml == NULL ) {
     
     std::stringstream errorMsg;
-    errorMsg  << "MarlinKalTestTrack::MarlinKalTestTrack add SIT hit with layerID = " << layerID << std::endl ; 
+    errorMsg << "MarlinKalTestTrack::MarlinKalTestTrack hit layer id unkown: layerID = " << trkhit->getCellID0() << std::endl ; 
     throw MarlinTrk::Exception(errorMsg.str());
     
+  } 
+  else {
+    _kalhits->Add( ml->ConvertLCIOTrkHit(trkhit) ) ; 
   }
-  else if( subdetID == ILDCellIDEncoding::DetID::TPC ){	
-    
-    streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack add TPC hit " << std::endl ; 
-   
-    int tpc_layer_ID = trkhit->getCellID0();
- 
-    // get measurement layer
-    const ILDVMeasLayer* ml = _ktest->getSensitiveMeasurementLayer(tpc_layer_ID) ;
-    
-    if( ml == NULL ) {
 
-      std::stringstream errorMsg;
-      errorMsg << "MarlinKalTestTrack::MarlinKalTestTrack tpc layer id unkown: layerID = " << tpc_layer_ID << std::endl ; 
-      throw MarlinTrk::Exception(errorMsg.str());
-
-    }
-    
-    const ILDCylinderMeasLayer* mltpc =  dynamic_cast<const ILDCylinderMeasLayer*>( ml ) ;
-    
-    const TVector3 hit( trkhit->getPosition()[0], trkhit->getPosition()[1], trkhit->getPosition()[2]);
-    
-    // convert to layer coordinates 	
-    TKalMatrix h    = mltpc->XvToMv(hit);
-    Double_t   rphi = h(0, 0);
-    Double_t   d    = h(1, 0);
-    
-    Double_t  x[2] ;
-    Double_t dx[2] ;
-    
-    x[0] = rphi ;
-    x[1] = d ;
-    
-    // convert errors
-    dx[0] = sqrt(trkhit->getCovMatrix()[0] + trkhit->getCovMatrix()[2]) ;
-    dx[1] = sqrt(trkhit->getCovMatrix()[5]) ; 
-    
-    // SJA:FIXME: stop getting the B-Field from the layer
-    //	_kalhits->Add( new ILDTPCHit( *ml , x, dx, ml->GetBz(), (*it)) ) ; 
-    _kalhits->Add( new ILDCylinderHit( *ml , x, dx, ml->GetBz()) ) ; 
-    
-    streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack TPC hit added" 
-			  << " R = " << hit.Perp()
-			  << " Layer R = " << mltpc->GetR() 
-			  << " RPhi = "  <<  x[0]
-			  << " Z = "     <<  x[1]
-			  << " dRPhi = " << dx[0]
-			  << " dZ = "    << dx[1]
-			  << std::endl ;
-  }
-  else{
-
-    std::stringstream errorMsg;
-    errorMsg  << "MarlinKalTestTrack::MarlinKalTestTrack subdetID unkown: subdetID = " << subdetID << std::endl ; 
-    throw MarlinTrk::Exception(errorMsg.str());
-
-  }
-  
-  //  _kalhits
-  
   streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack hit added " 
 			<< "number of hits for track = " << _kalhits->GetEntries() 
 			<< std::endl ;
