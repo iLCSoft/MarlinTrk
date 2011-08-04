@@ -336,12 +336,36 @@ int MarlinKalTestTrack::propagate( const gear::Vector3D& point, IMPL::TrackState
   TKalMatrix DFt  = TKalMatrix(TMatrixD::kTransposed, DF);
   c0 = DF * c0 + Qms * DFt ;                 // update the covariance matrix 
 
+  this->ToLCIOTrackState( helix, c0, ts );
 
+  return 0;
+
+}
+
+void MarlinKalTestTrack::ToLCIOTrackState(  IMPL::TrackStateImpl& ts ){
+
+  const TVKalSite& cursite = _kaltrack->GetCurSite();
+  TKalTrackState& trkState = (TKalTrackState&) cursite.GetCurState(); // this segfaults if no hits are present
+
+  THelicalTrack helix = trkState.GetHelix() ;
+  TMatrixD c0(trkState.GetCovMat());  
+
+  this->ToLCIOTrackState( helix, c0, ts);
+  
+
+
+}
+
+void MarlinKalTestTrack::ToLCIOTrackState( const THelicalTrack& helix, const TMatrixD& cov, IMPL::TrackStateImpl& ts ){
+
+  Int_t    ndf  = _kaltrack->GetNDF();
+  Double_t chi2 = _kaltrack->GetChi2();
+ 
   //============== convert parameters to LCIO convention ====
-
+  
   // fill 5x5 covariance matrix from the 6x6 covariance matrix return by trkState.GetCovMat()  above
-  TMatrixD covK(5,5) ;  for(int i=0;i<5;++i) for(int j=0;j<5;++j) covK[i][j] = c0[i][j] ;
-
+  TMatrixD covK(5,5) ;  for(int i=0;i<5;++i) for(int j=0;j<5;++j) covK[i][j] = cov[i][j] ;
+  
   //  this is for incomming tracks ...
   double phi       =    toBaseRange( helix.GetPhi0() + M_PI/2. ) ;
   double omega     =    1. /helix.GetRho()  ;              
@@ -355,39 +379,39 @@ int MarlinKalTestTrack::propagate( const gear::Vector3D& point, IMPL::TrackState
   ts.setZ0( z0  ) ;  
   ts.setTanLambda( tanLambda ) ;  
     
-  //  Double_t cpa  = trkState(2, 0);
+  Double_t cpa  = helix.GetKappa();
   double alpha = omega / cpa  ; // conversion factor for omega (1/R) to kappa (1/Pt) 
 
-  EVENT::FloatVec cov( 15 )  ; 
-  cov[ 0] =   covK( 0 , 0 )   ; //   d0,   d0
+  EVENT::FloatVec covLCIO( 15 )  ; 
+  covLCIO[ 0] =   covK( 0 , 0 )   ; //   d0,   d0
 
-  cov[ 1] = - covK( 1 , 0 )   ; //   phi0, d0
-  cov[ 2] =   covK( 1 , 1 )   ; //   phi0, phi
+  covLCIO[ 1] = - covK( 1 , 0 )   ; //   phi0, d0
+  covLCIO[ 2] =   covK( 1 , 1 )   ; //   phi0, phi
 
-  cov[ 3] = - covK( 2 , 0 ) * alpha   ; //   omega, d0
-  cov[ 4] =   covK( 2 , 1 ) * alpha   ; //   omega, phi
-  cov[ 5] =   covK( 2 , 2 ) * alpha * alpha  ; //   omega, omega
+  covLCIO[ 3] = - covK( 2 , 0 ) * alpha   ; //   omega, d0
+  covLCIO[ 4] =   covK( 2 , 1 ) * alpha   ; //   omega, phi
+  covLCIO[ 5] =   covK( 2 , 2 ) * alpha * alpha  ; //   omega, omega
 
-  cov[ 6] = - covK( 3 , 0 )   ; //   z0  , d0
-  cov[ 7] =   covK( 3 , 1 )   ; //   z0  , phi
-  cov[ 8] =   covK( 3 , 2 ) * alpha   ; //   z0  , omega
-  cov[ 9] =   covK( 3 , 3 )   ; //   z0  , z0
+  covLCIO[ 6] = - covK( 3 , 0 )   ; //   z0  , d0
+  covLCIO[ 7] =   covK( 3 , 1 )   ; //   z0  , phi
+  covLCIO[ 8] =   covK( 3 , 2 ) * alpha   ; //   z0  , omega
+  covLCIO[ 9] =   covK( 3 , 3 )   ; //   z0  , z0
 
-  cov[10] = - covK( 4 , 0 )   ; //   tanl, d0
-  cov[11] =   covK( 4 , 1 )   ; //   tanl, phi
-  cov[12] =   covK( 4 , 2 ) * alpha  ; //   tanl, omega
-  cov[13] =   covK( 4 , 3 )   ; //   tanl, z0
-  cov[14] =   covK( 4 , 4 )   ; //   tanl, tanl
+  covLCIO[10] = - covK( 4 , 0 )   ; //   tanl, d0
+  covLCIO[11] =   covK( 4 , 1 )   ; //   tanl, phi
+  covLCIO[12] =   covK( 4 , 2 ) * alpha  ; //   tanl, omega
+  covLCIO[13] =   covK( 4 , 3 )   ; //   tanl, z0
+  covLCIO[14] =   covK( 4 , 4 )   ; //   tanl, tanl
 
  
-  ts.setCovMatrix( cov ) ;
+  ts.setCovMatrix( covLCIO ) ;
 
 
   float pivot[3] ;
 
-  pivot[0] =  point.x() ;
-  pivot[1] =  point.y() ;
-  pivot[2] =  point.z() ;
+  pivot[0] =  helix.GetPivot().X() ;
+  pivot[1] =  helix.GetPivot().Y() ;
+  pivot[2] =  helix.GetPivot().Z() ;
 
   ts.setReferencePoint( pivot ) ;
 
@@ -395,18 +419,16 @@ int MarlinKalTestTrack::propagate( const gear::Vector3D& point, IMPL::TrackState
 			 << " chi2/ndf " << chi2 / ndf  
     			 << " chi2 " <<  chi2 << std::endl 
     
-    			 << "\t D0 "          <<  d0         <<  "[+/-" << sqrt( cov[0] ) << "] " 
-			 << "\t Phi :"        <<  phi        <<  "[+/-" << sqrt( cov[2] ) << "] " 
-			 << "\t Omega "       <<  omega      <<  "[+/-" << sqrt( cov[5] ) << "] " 
-			 << "\t Z0 "          <<  z0         <<  "[+/-" << sqrt( cov[9] ) << "] " 
-			 << "\t tan(Lambda) " <<  tanLambda  <<  "[+/-" << sqrt( cov[14]) << "] " 
+    			 << "\t D0 "          <<  d0         <<  "[+/-" << sqrt( covLCIO[0] ) << "] " 
+			 << "\t Phi :"        <<  phi        <<  "[+/-" << sqrt( covLCIO[2] ) << "] " 
+			 << "\t Omega "       <<  omega      <<  "[+/-" << sqrt( covLCIO[5] ) << "] " 
+			 << "\t Z0 "          <<  z0         <<  "[+/-" << sqrt( covLCIO[9] ) << "] " 
+			 << "\t tan(Lambda) " <<  tanLambda  <<  "[+/-" << sqrt( covLCIO[14]) << "] " 
     
 			 << "\t pivot : [" << pivot[0] << ", " << pivot[1] << ", "  << pivot[2] 
 			 << " - r: " << std::sqrt( pivot[0]*pivot[0]+pivot[1]*pivot[1] ) << "]" 
 			 << std::endl ;
-  
 
-  return 0;
 
 }
 

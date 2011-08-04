@@ -8,10 +8,14 @@
 
 #include <cmath>
 
+#include "TMatrixD.h"
+
+
 class TKalTrack ;
-class TKalTrackState ;
+class THelicalTrack ;
 
 class MarlinKalTest;
+
 
 namespace EVENT{
   class TrackerHit ;
@@ -78,7 +82,13 @@ class MarlinKalTestTrack : public MarlinTrk::IMarlinTrack {
   
   // extrapolate to numbered sensitive layer, returning intersection point in global coordinates 
    int intersectionWithLayer( int layerNumber, bool direction, gear::Vector3D& point) {  throw MarlinTrk::Exception("Function Not Implemented Yet "); } ;
+
+   // fill LCIO Track State with parameters from TKalTrack
+   void ToLCIOTrackState( IMPL::TrackStateImpl& ts ) ;
   
+   // fill LCIO Track State with parameters from helix and cov matrix 
+   void ToLCIOTrackState( const THelicalTrack& helix, const TMatrixD& cov, IMPL::TrackStateImpl& ts ) ;
+
 
   // memeber variables 
 
