@@ -23,20 +23,39 @@ namespace MarlinTrk{
     // add hit to track
     virtual void addHit(EVENT::TrackerHit* hit) = 0 ;
 
-    // perform the fit of all current hits, return true is fit succeeds and false if it fails
-    virtual bool fit( bool fitDirection ) = 0 ;
+    // perform the fit of all current hits, return code via int
+    virtual int fit( bool fitDirection ) = 0 ;
 
-    // Propagate the fit to the point of closest approach to the given point. The responsiblitiy for deletion lies with the caller.
-    virtual IMPL::TrackStateImpl* propagate(gear::Vector3D* point) = 0 ;
+
+//    // propagate the fit to the point of closest approach to the nominal IP=(0.0,0.0,0.0). 
+//    virtual int propagateToIP( IMPL::TrackStateImpl& ts) = 0 ;
+
+    // propagate the fit to the point of closest approach to the given point. 
+    virtual int propagate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts) = 0 ;
     
-    // Propagate the fit to the point of closest approach to the nominal IP=(0.0,0.0,0.0). The responsiblitiy for deletion lies with the caller.
-    virtual IMPL::TrackStateImpl* propagateToIP() = 0 ;
-  
-    // extrapolate to next sensitive layer, returning intersection point in global coordinates, layer number of sensitive layer returned via layerNumber reference 
-    virtual gear::Vector3D intersectionWithNextSensitiveLayer( bool direction, int& layerNumber) = 0 ;
+    // propagate to next sensitive layer, returning TrackState via provided reference, layer number of sensitive layer returned via layerNumber reference 
+    virtual int propagateToNextLayer( bool direction, IMPL::TrackStateImpl& ts, int& layerNumber) = 0 ;
 
+    // propagate to numbered sensitive layer, returning TrackState via provided reference 
+    virtual int propagateToLayer( bool direction, int layerNumber, IMPL::TrackStateImpl& ts) = 0 ;
+
+
+    // extrapolate the fit to the point of closest approach to the given point. 
+    virtual int extrapolate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts) = 0 ;
+  
+    // extrapolate to next sensitive layer, returning TrackState via provided reference, layer number of sensitive layer returned via layerNumber reference 
+    virtual int extrapolateToNextLayer( bool direction, IMPL::TrackStateImpl& ts, int& layerNumber) = 0 ;
+
+    // extrapolate to numbered sensitive layer, returning TrackState via provided reference 
+    virtual int extrapolateToLayer( bool direction, int layerNumber, IMPL::TrackStateImpl& ts) = 0 ;
+
+
+    // extrapolate to next sensitive layer, returning intersection point in global coordinates, layer number of sensitive layer returned via layerNumber reference 
+    virtual int intersectionWithNextLayer( bool direction, int& layerNumber, gear::Vector3D& point) = 0 ;
+    
     // extrapolate to numbered sensitive layer, returning intersection point in global coordinates 
-    virtual gear::Vector3D intersectionWithSensitiveLayer( int layerNumber) = 0 ;
+    virtual int intersectionWithLayer( int layerNumber, bool direction, gear::Vector3D& point) = 0 ;
+
 
        
     
