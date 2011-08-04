@@ -3,6 +3,7 @@
 
 #include "MarlinTrk/MarlinKalTest.h"
 
+#include <kaltest/TKalDetCradle.h>
 #include <kaltest/TKalTrack.h>
 #include <kaltest/TKalTrackState.h>
 #include "kaltest/TKalTrackSite.h"
@@ -20,6 +21,9 @@
 
 #include "kaldet/ILDPlanarMeasLayer.h"
 #include "kaldet/ILDPlanarHit.h"
+
+#include "gear/GEAR.h"
+#include "gear/BField.h"
 
 #include "streamlog/streamlog.h"
 
@@ -44,7 +48,9 @@ MarlinKalTestTrack::~MarlinKalTestTrack(){
 
 void MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit) 
 {
-  
+ 
+  //SJA:FIXME: what happens if the fit is already performed and then we add a hit which is in-between the hits already fitted. 
+ 
   //  const ILDVMeasLayer* ml = _ktest->getSensitiveMeasurementLayer( trkhit->getCellID0() ) ;
   
   std::vector<ILDVMeasLayer*> measlayers ;
@@ -70,11 +76,8 @@ void MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit)
       
       TVSurface* surf = NULL;
 
-      if( (surf = dynamic_cast<ILDCylinderMeasLayer*> (  measlayers[i] )) )   {
-	// surf = dynamic_cast<ILDCylinderMeasLayer*> (  measlayers[i] )
-      }
-      else if ( (surf = dynamic_cast<ILDPlanarMeasLayer *>( measlayers[i] )) )  {
-	// surf = dynamic_cast<ILDPlanarMeasLayer*> (  measlayers[i] )
+      if( (surf = dynamic_cast<TVSurface*> (  measlayers[i] )) )   {
+      	// surf = dynamic_cast<TVSurface*> (  measlayers[i] )
       }
       else {
 	std::stringstream errorMsg;
@@ -121,11 +124,11 @@ void MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit)
 
 
 
-bool MarlinKalTestTrack::fit( Bool_t fitDirection ) {
+int MarlinKalTestTrack::fit( bool fitDirection ) {
 
   //SJA:FIXME: do we need to sort the hits here ... ?
 
-  const Bool_t gkDir = fitDirection ; 
+  const bool gkDir = fitDirection ; 
 
   streamlog_out(DEBUG4) << "MarlinKalTestTrack::fit() called " << std::endl ;
 
@@ -159,18 +162,19 @@ bool MarlinKalTestTrack::fit( Bool_t fitDirection ) {
   TVTrackHit* pDummyHit = NULL;
 
   if ( (pDummyHit = dynamic_cast<ILDCylinderHit *>( startingHit )) ) {
-    //    pDummyHit = (new ILDCylinderHit(*static_cast<ILDTPCHit*>( startingHit )));
+    pDummyHit = (new ILDCylinderHit(*static_cast<ILDCylinderHit*>( startingHit )));
   }
   else if ( (pDummyHit = dynamic_cast<ILDPlanarHit *>( startingHit )) ) {
-    //    pDummyHit = (new ILDPlanarHit(*static_cast<ILDTPCHit*>( startingHit )));
+    pDummyHit = (new ILDPlanarHit(*static_cast<ILDPlanarHit*>( startingHit )));
   }
   else {
     streamlog_out( ERROR) << "<<<<<< KalTrack::fitTrack(): dynamic_cast failed for hit type >>>>>>>" << std::endl;
     return false;
   }
 
-  TVTrackHit &dummyHit = *pDummyHit;
+  TVTrackHit& dummyHit = *pDummyHit;
 
+  //SJA:FIXME: this constants should go in a header file
   // give the dummy hit huge errors so that it does not contribute to the fit
   dummyHit(0,1) = 1.e6;   // give a huge error to d
   dummyHit(1,1) = 1.e6;   // give a huge error to z   
@@ -180,7 +184,6 @@ bool MarlinKalTestTrack::fit( Bool_t fitDirection ) {
   
   initialSite.SetHitOwner();// site owns hit
   initialSite.SetOwner();   // site owns states
-
 
  // ---------------------------
   //  Create initial helix
@@ -193,6 +196,7 @@ bool MarlinKalTestTrack::fit( Bool_t fitDirection ) {
   TVector3    x2 = h2.GetMeasLayer().HitToXv(h2);
   TVector3    x3 = h3.GetMeasLayer().HitToXv(h3);
 
+  // create helix using 3 global space points 
   THelicalTrack helstart(x1, x2, x3, h1.GetBfield(), gkDir); // initial helix 
 
   // ---------------------------
@@ -230,7 +234,7 @@ bool MarlinKalTestTrack::fit( Bool_t fitDirection ) {
   //  Prepare hit iterrator for adding hits to kaltrack
   // ---------------------------
 
-  TIter next(_kalhits, gkDir); // come in to IP, if gkDir = kIterBackward
+  TIter next(_kalhits, gkDir); // fit inwards to IP, if gkDir = kIterBackward
 
   // ---------------------------
   //  Start Kalman Filter
@@ -254,41 +258,89 @@ bool MarlinKalTestTrack::fit( Bool_t fitDirection ) {
     }
   } // end of Kalman filter
   
-  return true;
+  return 0;
 
 }
 
 
 
-IMPL::TrackStateImpl* MarlinKalTestTrack::propagateToIP(){
+int MarlinKalTestTrack::propagate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts ){
 
-  streamlog_out(DEBUG4) << "MarlinKalTestTrack::PropagateToIP() called " << std::endl ;
+  streamlog_out(DEBUG4) << "MarlinKalTestTrack::Propagate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts ) called " << std::endl ;
 
-  // create track state to be returned
-  IMPL::TrackStateImpl* trk = new IMPL::TrackStateImpl();
-
-  // get the current site. This will be the IP for now as that is the last hit we added ... assuming it did not fail SJA:FIXME: how should this be enforced?  
-  TVKalSite& cursite = _kaltrack->GetCurSite();
+  // get the current site. SJA:FIXME: should we check here if this is valid?
+  // it would be better to get the site closest to the point in s ...
+  // here we assume that we want to take the last filtered site
+  const TVKalSite& cursite = _kaltrack->GetCurSite();
 
   TKalTrackState& trkState = (TKalTrackState&) cursite.GetCurState(); // this segfaults if no hits are present
 
   Int_t    ndf  = _kaltrack->GetNDF();
   Double_t chi2 = _kaltrack->GetChi2();
-
-  //============== convert parameters to LCIO convention ====
   
-  //  ---- get parameters at origin 
   
   THelicalTrack helix = trkState.GetHelix() ;
   double dPhi ;
 
-  // need to get the 5x5 sub matrix of the covariance matrix
-  const TMatrixD& c0 =  trkState.GetCovMat() ;
+
+  // convert the gear point supplied to TVector3
+  const TVector3 tpoint( point.x(), point.y(), point.z() ) ;
+
+  // the last layer crossed by the track before point 
+  const ILDVMeasLayer* ml = _ktest->getLastMeasLayer(helix, tpoint);
+  
+  streamlog_out( DEBUG4 ) << "  MarlinKalTestTrack - last surface before point = " << ml->GetMLName() << std::endl;
+
+  Int_t sdim = trkState.GetDimension();  // dimensions of the track state, it will be 5 or 6
+  TKalMatrix sv(sdim,1);
+
+  TKalMatrix  F(sdim,sdim);              // propagator matrix to be returned by transport function
+  F.UnitMatrix();                        // set the propagator matrix to the unit matrix
+
+  TKalMatrix  Q(sdim,sdim);                     // noise matrix to be returned by transport function 
+  Q.Zero();        
+  TVector3    x0;                        // intersection point to be returned by transport
+
+  const TVMeasLayer& tvml   = dynamic_cast<const TVMeasLayer&>(*ml) ;         // cast from ILDVMeasurementLayer
+  const TKalTrackSite& site = dynamic_cast<const TKalTrackSite&>(cursite) ;   // cast from TVKalSite
+  
+  int return_code = _ktest->_det->Transport(site, tvml, x0, sv, F, Q ) ;      // transport to last layer cross before point 
+  
+  // given that we are sure to have intersected the layer tvml as this was provided via getLastMeasLayer, x0 will lie on the layer
+  // this could be checked with the method isOnSurface 
+  // so F will be the propagation matrix from the current location to the last surface and Q will be the noise matrix up to this point 
+
+  TMatrixD c0(trkState.GetCovMat());  
+
+  TKalMatrix Ft  = TKalMatrix(TMatrixD::kTransposed, F);
+  c0 = F * c0 * Ft + Q; // update covaraince matrix and add the MS assosiated with moving to tvml
+  
+  helix.MoveTo(  x0 , dPhi , 0 , 0 ) ;  // move the helix to tvml
+
+  // get whether the track is incomming or outgoing at the last surface
+  const TVSurface *sfp = dynamic_cast<const TVSurface *>(ml);   // last surface
+  TMatrixD dxdphi = helix.CalcDxDphi(0);                        // tangent vector at last surface                       
+  TVector3 dxdphiv(dxdphi(0,0),dxdphi(1,0),dxdphi(2,0));        // convert matirix diagonal to vector
+  Double_t cpa = helix.GetKappa();                              // get pt 
+  
+  Bool_t isout = -cpa*dxdphiv.Dot(sfp->GetOutwardNormal(x0)) < 0 ? kTRUE : kFALSE;  // out-going or in-coming at the destination surface
+
+  // now move to the point
+  TKalMatrix  DF(sdim,sdim);  
+  DF.UnitMatrix();                           
+  helix.MoveTo(  tpoint , dPhi , &DF , 0) ;  // move helix to desired point, and get propagator matrix
+  
+  TKalMatrix Qms(sdim, sdim);                                       
+  tvml.CalcQms(isout, helix, dPhi, Qms);     // calculate MS for the final step through the present material 
+
+  TKalMatrix DFt  = TKalMatrix(TMatrixD::kTransposed, DF);
+  c0 = DF * c0 + Qms * DFt ;                 // update the covariance matrix 
+
+
+  //============== convert parameters to LCIO convention ====
 
   // fill 5x5 covariance matrix from the 6x6 covariance matrix return by trkState.GetCovMat()  above
   TMatrixD covK(5,5) ;  for(int i=0;i<5;++i) for(int j=0;j<5;++j) covK[i][j] = c0[i][j] ;
-
-  helix.MoveTo(  TVector3( 0., 0., 0. ) , dPhi , 0 , &covK ) ;
 
   //  this is for incomming tracks ...
   double phi       =    toBaseRange( helix.GetPhi0() + M_PI/2. ) ;
@@ -297,13 +349,13 @@ IMPL::TrackStateImpl* MarlinKalTestTrack::propagateToIP(){
   double z0        =    helix.GetDz()   ;
   double tanLambda =    helix.GetTanLambda()  ;
 
-  trk->setD0( d0 ) ;  
-  trk->setPhi( phi  ) ; // fi0  - M_PI/2.  ) ;  
-  trk->setOmega( omega  ) ;
-  trk->setZ0( z0  ) ;  
-  trk->setTanLambda( tanLambda ) ;  
+  ts.setD0( d0 ) ;  
+  ts.setPhi( phi  ) ; // fi0  - M_PI/2.  ) ;  
+  ts.setOmega( omega  ) ;
+  ts.setZ0( z0  ) ;  
+  ts.setTanLambda( tanLambda ) ;  
     
-  Double_t cpa  = trkState(2, 0);
+  //  Double_t cpa  = trkState(2, 0);
   double alpha = omega / cpa  ; // conversion factor for omega (1/R) to kappa (1/Pt) 
 
   EVENT::FloatVec cov( 15 )  ; 
@@ -328,22 +380,16 @@ IMPL::TrackStateImpl* MarlinKalTestTrack::propagateToIP(){
   cov[14] =   covK( 4 , 4 )   ; //   tanl, tanl
 
  
-  trk->setCovMatrix( cov ) ;
+  ts.setCovMatrix( cov ) ;
 
 
   float pivot[3] ;
 
-//  SJA:the code below looks suspisious as I am not sure that this is the point of closest approach to the IP rathet it seams to be the position of the last measurement, in this case the pseudo measurement inside the beampipe ILDIPMeasL
-//  pivot[0] =  ((TKalTrackSite&) cursite).GetPivot()(0) ;
-//  pivot[1] =  ((TKalTrackSite&) cursite).GetPivot()(1) ;
-//  pivot[2] =  ((TKalTrackSite&) cursite).GetPivot()(2) ;
+  pivot[0] =  point.x() ;
+  pivot[1] =  point.y() ;
+  pivot[2] =  point.z() ;
 
-// the reference point is in fact 0,0,0 as this was used for helix.MoveTo
-  pivot[0] =  0.0 ;
-  pivot[1] =  0.0 ;
-  pivot[2] =  0.0 ;
-
-  trk->setReferencePoint( pivot ) ;
+  ts.setReferencePoint( pivot ) ;
 
   streamlog_out( DEBUG4 ) << " kaltest track parameters: "
 			 << " chi2/ndf " << chi2 / ndf  
@@ -360,7 +406,7 @@ IMPL::TrackStateImpl* MarlinKalTestTrack::propagateToIP(){
 			 << std::endl ;
   
 
-  return trk;
+  return 0;
 
 }
 

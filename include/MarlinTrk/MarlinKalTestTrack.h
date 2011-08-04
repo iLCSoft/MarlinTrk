@@ -42,23 +42,42 @@ class MarlinKalTestTrack : public MarlinTrk::IMarlinTrack {
 
   // make member functions private to force use through interface
 
-  // add hit to track
-  void addHit(EVENT::TrackerHit* hit) ;
-  
-  // perform the fit of all current hits, return true is fit succeeds and false if it fails
-  bool fit( bool fitDirection ) ;
-  
-  // Propagate the fit to the point of closest approach to the given point. The responsiblitiy for deletion lies with the caller.
-  IMPL::TrackStateImpl* propagate(gear::Vector3D* point) {  throw MarlinTrk::Exception("Function Not Implemented Yet "); } ; 
 
-  // Propagate the fit to the point of closest approach to the nominal IP=(0.0,0.,0.0). The responsiblitiy for deletion lies with the caller.
-  IMPL::TrackStateImpl* propagateToIP() ;
+  // add hit to track
+   void addHit(EVENT::TrackerHit* hit) ;
+  
+  // perform the fit of all current hits, return code via int
+   int fit( bool fitDirection ) ;
+  
+  
+  // propagate the fit to the point of closest approach to the nominal IP=(0.0,0.0,0.0). 
+   //   int propagateToIP( IMPL::TrackStateImpl& ts) ;
+  
+  // propagate the fit to the point of closest approach to the given point. 
+   int propagate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts) ;
+  
+    // propagate to next sensitive layer, returning TrackState via provided reference, layer number of sensitive layer returned via layerNumber reference 
+   int propagateToNextLayer( bool direction, IMPL::TrackStateImpl& ts, int& layerNumber) {  throw MarlinTrk::Exception("Function Not Implemented Yet "); } ;
+  
+  // propagate to numbered sensitive layer, returning TrackState via provided reference 
+   int propagateToLayer( bool direction, int layerNumber, IMPL::TrackStateImpl& ts) {  throw MarlinTrk::Exception("Function Not Implemented Yet "); } ;
+  
+  
+  // extrapolate the fit to the point of closest approach to the given point. 
+   int extrapolate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts) {  throw MarlinTrk::Exception("Function Not Implemented Yet "); } ;
+  
+  // extrapolate to next sensitive layer, returning TrackState via provided reference, layer number of sensitive layer returned via layerNumber reference 
+   int extrapolateToNextLayer( bool direction, IMPL::TrackStateImpl& ts, int& layerNumber) {  throw MarlinTrk::Exception("Function Not Implemented Yet "); } ;
+  
+  // extrapolate to numbered sensitive layer, returning TrackState via provided reference 
+   int extrapolateToLayer( bool direction, int layerNumber, IMPL::TrackStateImpl& ts) {  throw MarlinTrk::Exception("Function Not Implemented Yet "); } ;
+  
   
   // extrapolate to next sensitive layer, returning intersection point in global coordinates, layer number of sensitive layer returned via layerNumber reference 
-  gear::Vector3D intersectionWithNextSensitiveLayer( bool direction, int& layerNumber) { throw MarlinTrk::Exception("Function Not Implemented Yet "); } ;
+   int intersectionWithNextLayer( bool direction, int& layerNumber, gear::Vector3D& point) {  throw MarlinTrk::Exception("Function Not Implemented Yet "); } ;
   
   // extrapolate to numbered sensitive layer, returning intersection point in global coordinates 
-  gear::Vector3D intersectionWithSensitiveLayer( int layerNumber) { throw MarlinTrk::Exception("Function Not Implemented Yet"); } ; 
+   int intersectionWithLayer( int layerNumber, bool direction, gear::Vector3D& point) {  throw MarlinTrk::Exception("Function Not Implemented Yet "); } ;
   
 
   // memeber variables 
