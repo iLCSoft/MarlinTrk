@@ -3,10 +3,11 @@
 
 #include "kaltest/TKalDetCradle.h"
 #include "kaltest/TVKalDetector.h"
+#include "kaltest/THelicalTrack.h"
 
 #include "kaldet/ILDVMeasLayer.h"
 
-//#include "kaldet/ILDIPKalDetector.h"
+#include "kaldet/ILDSupportKalDetector.h"
 #include "kaldet/ILDVXDKalDetector.h"
 //#include "kaldet/ILDSITKalDetector.h"
 #include "kaldet/ILDTPCKalDetector.h"
@@ -60,8 +61,10 @@ void MarlinKalTest::init() {
 //  const Double_t bz = _gearMgr->getBField().at( gear::Vector3D( 0.,0.,0.)  ).z() ;
 
   //  ILDIPKalDetector* ipdet = new ILDIPKalDetector( ip_radius, ip_halfl, bz )  ; 
-  // now store the measurement layer id's for the active layers 
+  //  now store the measurement layer id's for the active layers 
   //  this->storeActiveMeasurementLayerIDs(ipdet);
+
+  ILDSupportKalDetector* supportdet = new ILDSupportKalDetector( *_gearMgr )  ;  
 
   ILDVXDKalDetector* vxddet = new ILDVXDKalDetector( *_gearMgr )  ;
   // now store the measurement layer id's for the active layers 
@@ -78,7 +81,7 @@ void MarlinKalTest::init() {
   this->storeActiveMeasurementLayerIDs(tpcdet);
 
 
-//  _det->Install( *ipdet ) ;  
+  _det->Install( *supportdet ) ;  
   _det->Install( *vxddet ) ;  
 //  _det->Install( *sitdet ) ;    
   _det->Install( *tpcdet ) ;  
@@ -86,7 +89,14 @@ void MarlinKalTest::init() {
   
   _det->Close() ;          // close the cradle
   _det->Sort() ;           // sort meas. layers from inside to outside
-    
+
+  streamlog_out( DEBUG4 ) << "  MarlinKalTest - number of layers = " << _det->GetEntriesFast() << std::endl ;
+
+//  //  int ilayer =  _det->GetEntriesFast()-1 ;
+//  int ilayer = -1 ;
+//  const ILDVMeasLayer   &ml  = *dynamic_cast<ILDVMeasLayer *>(_det->At(ilayer)); 
+//  streamlog_out( DEBUG4 ) << "  MarlinKalTest - name of last layer = " << ml.GetMLName() << std::endl ;
+
 }
 
 MarlinTrk::IMarlinTrack* MarlinKalTest::createTrack()  {
@@ -169,4 +179,67 @@ void MarlinKalTest::storeActiveMeasurementLayerIDs(TVKalDetector* detector){
 
   }
   
+}
+
+const ILDVMeasLayer*  MarlinKalTest::getLastMeasLayer(THelicalTrack const& hel, TVector3 const& point) {
+
+  THelicalTrack helix = hel;
+
+  TMatrixD covK(5,5) ;
+  double deflection_to_point = 0 ;
+  helix.MoveTo(  point, deflection_to_point , 0 , 0) ;
+
+  bool isfwd = ((helix.GetKappa() > 0 && deflection_to_point < 0) || (helix.GetKappa() <= 0 && deflection_to_point > 0)) ? true : false;
+  
+  int mode = isfwd ? -1 : +1 ;
+
+//  streamlog_out( DEBUG4 ) << "  MarlinKalTest - getLastMeasLayer deflection to point = " << deflection_to_point << " kappa = " << helix.GetKappa()  << "  mode = " << mode << std::endl ;
+//  streamlog_out( DEBUG4 ) << " Point to move to:" << std::endl;
+//  point.Print();
+
+  int nsufaces =  _det->GetEntriesFast();
+
+  const ILDVMeasLayer* ml_retval = NULL;
+  double min_deflection = DBL_MAX;
+
+  for(int i=0; i<nsufaces; ++i){
+   
+    const ILDVMeasLayer   &ml  = *dynamic_cast<ILDVMeasLayer *>(_det->At(i)); 
+
+    double defection_angle = 0 ;
+    TVector3 crossing_point ;   
+
+    const TVSurface *sfp = dynamic_cast<const TVSurface *>(&ml);  // surface at destination       
+
+
+    int does_cross = sfp->CalcXingPointWith(helix, crossing_point, defection_angle, mode) ;
+
+    if( does_cross ) {
+
+      const double deflection = fabs( deflection_to_point - defection_angle ) ;
+
+      if( deflection < min_deflection ) {
+
+//	streamlog_out( DEBUG4 ) << "  MarlinKalTest - crossing found for suface = " << ml.GetMLName() 
+//				<< std::endl
+//				<< "  min_deflection = " << min_deflection
+//				<< "  deflection = " << deflection
+//				<< "  deflection angle = " << defection_angle 
+//				<< std::endl 
+//				<< " x = " << crossing_point.X() 
+//				<< " y = " << crossing_point.Y() 
+//				<< " z = " << crossing_point.Z() 
+//				<< " r = " << crossing_point.Perp() 
+//				<< std::endl ;
+	
+	min_deflection = deflection ;
+	ml_retval = &ml ;
+      }
+
+     
+    }
+
+  }
+  
+  return ml_retval;
 }
