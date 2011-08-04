@@ -26,7 +26,7 @@
 class TKalDetCradle ;
 class TVKalDetector ;
 class ILDVMeasLayer ;
-
+class THelicalTrack ;
 
 /** Interface to KaltTest Kalman fitter - instantiates and holds the detector geometry.
  */
@@ -34,6 +34,8 @@ class MarlinKalTest : public MarlinTrk::IMarlinTrkSystem {
 
  public:
   
+  friend class MarlinKalTestTrack;
+
   // define some configuration constants
   static const bool FitBackward   = kIterBackward ;
   static const bool FitForward    = kIterForward ;
@@ -68,15 +70,21 @@ class MarlinKalTest : public MarlinTrk::IMarlinTrkSystem {
 
   void getSensitiveMeasurementLayer( int layerID, std::vector<ILDVMeasLayer*>& measlayers);
 
+
+
 protected:
 
   //  void init(bool MSOn, bool EnergyLossOn) ;
+
+  // get the last layer crossed by the helix when extrapolating from the present position to the pca to point
+  const ILDVMeasLayer* getLastMeasLayer(THelicalTrack const& helix, TVector3 const& point) ;
 
   const gear::GearMgr* _gearMgr ;
 
   TKalDetCradle* _det ;            // the detector cradle
 
   std::multimap< Int_t, ILDVMeasLayer*> _active_measurement_layer;
+
 
 
 } ;
