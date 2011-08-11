@@ -54,7 +54,7 @@ namespace MarlinTrk{
     virtual int intersectionWithNextLayer( bool direction, int& layerNumber, gear::Vector3D& point) = 0 ;
     
     // extrapolate to numbered sensitive layer, returning intersection point in global coordinates 
-    virtual int intersectionWithLayer( int layerNumber, bool direction, gear::Vector3D& point) = 0 ;
+    virtual int intersectionWithLayer( bool direction, int layerNumber, gear::Vector3D& point) = 0 ;
 
 
        
