@@ -12,6 +12,10 @@
 //#include "kaldet/ILDSITKalDetector.h"
 #include "kaldet/ILDTPCKalDetector.h"
 
+//SJA:FIXME: only needed for storing the modules in the layers map
+#include <UTIL/BitField64.h>
+#include <ILDCellIDEncoding.h>
+
 #include "gear/GEAR.h"
 #include "gear/BField.h"
 #include "gear/TPCParameters.h"
@@ -68,7 +72,7 @@ void MarlinKalTest::init() {
 
   ILDVXDKalDetector* vxddet = new ILDVXDKalDetector( *_gearMgr )  ;
   // now store the measurement layer id's for the active layers 
-  this->storeActiveMeasurementLayerIDs(vxddet);
+  this->storeActiveMeasurementModuleIDs(vxddet);
   
 //  ILDSITKalDetector* sitdet = new ILDSITKalDetector( *_gearMgr )  ;
 //  // now store the measurement layer id's for the active layers 
@@ -78,7 +82,7 @@ void MarlinKalTest::init() {
 
   ILDTPCKalDetector* tpcdet = new ILDTPCKalDetector( *_gearMgr )  ;
   // now store the measurement layer id's for the active layers 
-  this->storeActiveMeasurementLayerIDs(tpcdet);
+  this->storeActiveMeasurementModuleIDs(tpcdet);
 
 
   _det->Install( *supportdet ) ;  
@@ -127,11 +131,33 @@ void MarlinKalTest::includeEnergyLoss( bool energyLossOn ) {
 
 } 
 
+void MarlinKalTest::getSensitiveMeasurementModulesForLayer( int layerID, std::vector<ILDVMeasLayer*>& measmodules){
+
+  if( ! measmodules.empty() ) {
+    
+    std::stringstream errorMsg;
+    errorMsg << "MarlinKalTest::getSensitiveMeasurementModulesForLayer vector passed as second argument is not empty " << std::endl ; 
+    throw MarlinTrk::Exception(errorMsg.str());
+    
+  }
+  
+  std::pair<std::multimap<Int_t, ILDVMeasLayer*>::iterator, std::multimap<Int_t, ILDVMeasLayer*>::iterator> ii;
+  ii = this->_active_measurement_modules_by_layer.equal_range(layerID); // set the first and last entry in ii;
+
+  std::multimap<Int_t, ILDVMeasLayer*>::iterator it; //Iterator to be used along with ii
 
 
-void MarlinKalTest::getSensitiveMeasurementLayer( int layerID , std::vector<ILDVMeasLayer*>& measlayers ){
+  for(it = ii.first; it != ii.second; ++it)
+    {
+      std::cout<<"Key = "<<it->first<<"    Value = "<<it->second << std::endl ;
+      measmodules.push_back( it->second ) ; 
+    }
+      
+}
 
-  if( ! measlayers.empty() ) {
+void MarlinKalTest::getSensitiveMeasurementModules( int moduleID , std::vector<ILDVMeasLayer*>& measmodules ){
+
+  if( ! measmodules.empty() ) {
     
     std::stringstream errorMsg;
     errorMsg << "MarlinKalTest::getSensitiveMeasurementLayer vector passed as second argument is not empty " << std::endl ; 
@@ -140,7 +166,7 @@ void MarlinKalTest::getSensitiveMeasurementLayer( int layerID , std::vector<ILDV
   }
 
   std::pair<std::multimap<Int_t, ILDVMeasLayer*>::iterator, std::multimap<Int_t, ILDVMeasLayer*>::iterator> ii;
-  ii = this->_active_measurement_layer.equal_range(layerID); // set the first and last entry in ii;
+  ii = this->_active_measurement_modules.equal_range(moduleID); // set the first and last entry in ii;
 
   std::multimap<Int_t, ILDVMeasLayer*>::iterator it; //Iterator to be used along with ii
 
@@ -148,13 +174,13 @@ void MarlinKalTest::getSensitiveMeasurementLayer( int layerID , std::vector<ILDV
   for(it = ii.first; it != ii.second; ++it)
     {
       std::cout<<"Key = "<<it->first<<"    Value = "<<it->second << std::endl ;
-      measlayers.push_back( it->second ) ; 
+      measmodules.push_back( it->second ) ; 
     }
       
 }
 
 
-void MarlinKalTest::storeActiveMeasurementLayerIDs(TVKalDetector* detector){
+void MarlinKalTest::storeActiveMeasurementModuleIDs(TVKalDetector* detector){
   
   Int_t nLayers = detector->GetEntriesFast() ;
   
@@ -169,11 +195,26 @@ void MarlinKalTest::storeActiveMeasurementLayerIDs(TVKalDetector* detector){
     }
 
     if( ml->IsActive() ) {
+
+      this->_active_measurement_modules.insert(std::pair<int,ILDVMeasLayer*>(ml->getLayerID(),ml));
+      
+      UTIL::BitField64 encoder( ILDCellIDEncoding::encoder_string ) ; 
+
+      encoder.setValue(ml->getLayerID());
+
+      // set the module field value to 0 leaving only sub_det, side and layer set.
+      encoder[ILDCellIDEncoding::Fields::module] = 0 ;
+
+      int subdet_layer_id = encoder.lowWord() ;
+
+      this->_active_measurement_modules_by_layer.insert(std::pair<int,ILDVMeasLayer*>(subdet_layer_id,ml));
+      
       streamlog_out(DEBUG) << "MarlinKalTest::storeActiveMeasurementLayerIDs added active layer with "
-			   << " LayerID = " << ml->getLayerID()
+			   << " ModuleID = " << ml->getLayerID()
+			   << " LayerID = " << subdet_layer_id
 			   << std::endl ;
 
-      this->_active_measurement_layer.insert(std::pair<int,ILDVMeasLayer*>(ml->getLayerID(),ml));
+      
 
     }
 

@@ -66,9 +66,11 @@ class MarlinKalTest : public MarlinTrk::IMarlinTrkSystem {
 
 
 
-  void storeActiveMeasurementLayerIDs(TVKalDetector* detector);  
+  void storeActiveMeasurementModuleIDs(TVKalDetector* detector);  
 
-  void getSensitiveMeasurementLayer( int layerID, std::vector<ILDVMeasLayer*>& measlayers);
+  void getSensitiveMeasurementModules( int moduleID, std::vector<ILDVMeasLayer*>& measmodules);
+
+  void getSensitiveMeasurementModulesForLayer( int layerID, std::vector<ILDVMeasLayer*>& measmodules);
 
 
 
@@ -83,7 +85,9 @@ protected:
 
   TKalDetCradle* _det ;            // the detector cradle
 
-  std::multimap< Int_t, ILDVMeasLayer*> _active_measurement_layer;
+  std::multimap< Int_t, ILDVMeasLayer*> _active_measurement_modules;
+
+  std::multimap< Int_t, ILDVMeasLayer*> _active_measurement_modules_by_layer;
 
 
 

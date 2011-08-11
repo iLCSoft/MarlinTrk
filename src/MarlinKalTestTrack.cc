@@ -53,52 +53,52 @@ void MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit)
  
   //  const ILDVMeasLayer* ml = _ktest->getSensitiveMeasurementLayer( trkhit->getCellID0() ) ;
   
-  std::vector<ILDVMeasLayer*> measlayers ;
-  _ktest->getSensitiveMeasurementLayer( trkhit->getCellID0(), measlayers ) ;
+  std::vector<ILDVMeasLayer*> meas_modules ;
+  _ktest->getSensitiveMeasurementModules( trkhit->getCellID0(), meas_modules ) ;
 
-  if( measlayers.size() == 0 ) {
+  if( meas_modules.size() == 0 ) {
     
     std::stringstream errorMsg;
-    errorMsg << "MarlinKalTestTrack::MarlinKalTestTrack hit layer id unkown: layerID = " << trkhit->getCellID0() << std::endl ; 
+    errorMsg << "MarlinKalTestTrack::MarlinKalTestTrack hit module id unkown: moduleID = " << trkhit->getCellID0() << std::endl ; 
     throw MarlinTrk::Exception(errorMsg.str());
     
   } 
-  else if (measlayers.size() == 1) {
-    _kalhits->Add( measlayers[0]->ConvertLCIOTrkHit(trkhit) ) ; 
+  else if (meas_modules.size() == 1) {
+    _kalhits->Add( meas_modules[0]->ConvertLCIOTrkHit(trkhit) ) ; 
   }
   else { // layer has been split 
     
     bool surf_found(false);
 
-    for( unsigned int i=0; i < measlayers.size(); ++i) {
+    for( unsigned int i=0; i < meas_modules.size(); ++i) {
      
       const TVector3 hit( trkhit->getPosition()[0], trkhit->getPosition()[1], trkhit->getPosition()[2]) ;
       
       TVSurface* surf = NULL;
 
-      if( (surf = dynamic_cast<TVSurface*> (  measlayers[i] )) )   {
-      	// surf = dynamic_cast<TVSurface*> (  measlayers[i] )
+      if( (surf = dynamic_cast<TVSurface*> (  meas_modules[i] )) )   {
+      	// surf = dynamic_cast<TVSurface*> (  meas_modules[i] )
       }
       else {
 	std::stringstream errorMsg;
-	errorMsg << "MarlinKalTestTrack::MarlinKalTestTrack dynamic_cast failed for surface type: layerID = " << trkhit->getCellID0() << std::endl ; 
+	errorMsg << "MarlinKalTestTrack::MarlinKalTestTrack dynamic_cast failed for surface type: moduleID = " << trkhit->getCellID0() << std::endl ; 
 	throw MarlinTrk::Exception(errorMsg.str());
       }
       
       bool hit_on_surface = surf->IsOnSurface(hit);
 
       if( (!surf_found) && hit_on_surface ){
-	_kalhits->Add( measlayers[i]->ConvertLCIOTrkHit(trkhit) ) ;  // Add hit and set surface found 
+	_kalhits->Add( meas_modules[i]->ConvertLCIOTrkHit(trkhit) ) ;  // Add hit and set surface found 
 	surf_found = true ;
       }
       else if( surf_found && hit_on_surface ) {  // only one surface should be found, if not throw 
 	std::stringstream errorMsg;
-	errorMsg << "MarlinKalTestTrack::MarlinKalTestTrack hit found to be on two surfaces: layerID = " << trkhit->getCellID0() << std::endl ; 
+	errorMsg << "MarlinKalTestTrack::MarlinKalTestTrack hit found to be on two surfaces: moduleID = " << trkhit->getCellID0() << std::endl ; 
 	throw MarlinTrk::Exception(errorMsg.str());
       }      
     }
     if( ! surf_found ){
-      streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack hit not found to be on any surface matching layerID = "
+      streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack hit not found to be on any surface matching moduleID = "
 			    << trkhit->getCellID0()
 			    << ": x = " << trkhit->getPosition()[0]
 			    << " y = " << trkhit->getPosition()[1]
@@ -106,7 +106,7 @@ void MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit)
 			    << std::endl ;
     }
 
-    streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack hit found to be on surface matching layerID = "
+    streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack hit found to be on surface matching moduleID = "
 			  << trkhit->getCellID0()
 			  << ": x = " << trkhit->getPosition()[0]
 			  << " y = " << trkhit->getPosition()[1]
@@ -263,10 +263,112 @@ int MarlinKalTestTrack::fit( bool fitDirection ) {
 }
 
 
+int MarlinKalTestTrack::extrapolate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts){  
+  
+  streamlog_out(DEBUG4) << "MarlinKalTestTrack::extrapolate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts ) called " << std::endl ;
+  
+  // get the current site. SJA:FIXME: should we check here if this is valid?
+  // it would be better to get the site closest to the point in s ...
+  // here we assume that we want to take the last filtered site
+  const TVKalSite& cursite = _kaltrack->GetCurSite();
+  
+  TKalTrackState& trkState = (TKalTrackState&) cursite.GetCurState(); // this segfaults if no hits are present
+  
+  THelicalTrack helix = trkState.GetHelix() ;
+  double dPhi ;
+
+  // convert the gear point supplied to TVector3
+  const TVector3 tpoint( point.x(), point.y(), point.z() ) ;
+
+  Int_t sdim = trkState.GetDimension();  // dimensions of the track state, it will be 5 or 6
+  TKalMatrix sv(sdim,1);
+
+  // now move to the point
+  TKalMatrix  DF(sdim,sdim);  
+  DF.UnitMatrix();                           
+  helix.MoveTo(  tpoint , dPhi , &DF , 0) ;  // move helix to desired point, and get propagator matrix
+
+  TMatrixD c0(trkState.GetCovMat());  
+
+  TKalMatrix DFt  = TKalMatrix(TMatrixD::kTransposed, DF);
+  c0 = DF * c0 * DFt ;                 // update the covariance matrix 
+
+  this->ToLCIOTrackState( helix, c0, ts );
+
+  return 0;
+  
+} 
+
+int MarlinKalTestTrack::intersectionWithLayer( bool direction, int layerID, gear::Vector3D& point) {  
+
+  std::vector<ILDVMeasLayer*> meas_modules ;
+  _ktest->getSensitiveMeasurementModules( layerID, meas_modules ) ;  
+
+  TVSurface* surf = NULL;
+  TVector3 xto;       // reference point at destination to be returned by CalcXinPointWith  
+
+  if( meas_modules.size() == 0 ) {
+    
+    std::stringstream errorMsg;
+    errorMsg << "MarlinKalTestTrack::MarlinKalTestTrack layer id unkown: layerID = " << layerID << std::endl ; 
+    throw MarlinTrk::Exception(errorMsg.str());
+    
+  } 
+  else { 
+    
+    bool surf_found(false);
+
+    for( unsigned int i=0; i < meas_modules.size(); ++i) {
+     
+      if( (surf = dynamic_cast<TVSurface*> (  meas_modules[i] )) )   {
+      	// surf = dynamic_cast<TVSurface*> (  meas_modules[i] )
+      }
+      else {
+	std::stringstream errorMsg;
+	errorMsg << "MarlinKalTestTrack::MarlinKalTestTrack dynamic_cast failed for surface type: layerID = " << layerID << std::endl ; 
+	throw MarlinTrk::Exception(errorMsg.str());
+      }
+
+      const TVKalSite& cursite = _kaltrack->GetCurSite();
+      
+      TKalTrackState& trkState = (TKalTrackState&) cursite.GetCurState(); // this segfaults if no hits are present
+      
+      THelicalTrack helix = trkState.GetHelix() ;
+            
+      Double_t dphi = 0;  // deflection angle to destination to be returned by CalcXingPointWith
+      int crossing_exist = surf->CalcXingPointWith(helix, xto, dphi, direction) ;
+      
+      if(crossing_exist > 0) { 
+	surf_found = true ;
+	break; // crossing found so take the first and break 
+      }
+
+    }
+
+    if( ! surf_found ){
+      return -1;
+    }
+   
+    point[0] = xto.X();
+    point[1] = xto.Y();
+    point[2] = xto.Z();
+
+    streamlog_out(DEBUG3) << "MarlinKalTestTrack::intersectionWithLayer intersection with layerID = "
+			  << layerID
+			  << ": at x = " << point.x()
+			  << " y = "     << point.y()
+			  << " z = "     << point.z()
+			  << std::endl ;
+
+  }
+  return 0;
+
+} 
+
 
 int MarlinKalTestTrack::propagate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts ){
 
-  streamlog_out(DEBUG4) << "MarlinKalTestTrack::Propagate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts ) called " << std::endl ;
+  streamlog_out(DEBUG4) << "MarlinKalTestTrack::propagate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts ) called " << std::endl ;
 
   // get the current site. SJA:FIXME: should we check here if this is valid?
   // it would be better to get the site closest to the point in s ...
@@ -275,10 +377,6 @@ int MarlinKalTestTrack::propagate( const gear::Vector3D& point, IMPL::TrackState
 
   TKalTrackState& trkState = (TKalTrackState&) cursite.GetCurState(); // this segfaults if no hits are present
 
-  Int_t    ndf  = _kaltrack->GetNDF();
-  Double_t chi2 = _kaltrack->GetChi2();
-  
-  
   THelicalTrack helix = trkState.GetHelix() ;
   double dPhi ;
 
@@ -304,7 +402,7 @@ int MarlinKalTestTrack::propagate( const gear::Vector3D& point, IMPL::TrackState
   const TVMeasLayer& tvml   = dynamic_cast<const TVMeasLayer&>(*ml) ;         // cast from ILDVMeasurementLayer
   const TKalTrackSite& site = dynamic_cast<const TKalTrackSite&>(cursite) ;   // cast from TVKalSite
   
-  int return_code = _ktest->_det->Transport(site, tvml, x0, sv, F, Q ) ;      // transport to last layer cross before point 
+  _ktest->_det->Transport(site, tvml, x0, sv, F, Q ) ;      // transport to last layer cross before point 
   
   // given that we are sure to have intersected the layer tvml as this was provided via getLastMeasLayer, x0 will lie on the layer
   // this could be checked with the method isOnSurface 

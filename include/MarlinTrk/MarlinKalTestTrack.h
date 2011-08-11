@@ -68,7 +68,7 @@ class MarlinKalTestTrack : public MarlinTrk::IMarlinTrack {
   
   
   // extrapolate the fit to the point of closest approach to the given point. 
-   int extrapolate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts) {  throw MarlinTrk::Exception("Function Not Implemented Yet "); } ;
+   int extrapolate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts) ;
   
   // extrapolate to next sensitive layer, returning TrackState via provided reference, layer number of sensitive layer returned via layerNumber reference 
    int extrapolateToNextLayer( bool direction, IMPL::TrackStateImpl& ts, int& layerNumber) {  throw MarlinTrk::Exception("Function Not Implemented Yet "); } ;
@@ -81,7 +81,7 @@ class MarlinKalTestTrack : public MarlinTrk::IMarlinTrack {
    int intersectionWithNextLayer( bool direction, int& layerNumber, gear::Vector3D& point) {  throw MarlinTrk::Exception("Function Not Implemented Yet "); } ;
   
   // extrapolate to numbered sensitive layer, returning intersection point in global coordinates 
-   int intersectionWithLayer( int layerNumber, bool direction, gear::Vector3D& point) {  throw MarlinTrk::Exception("Function Not Implemented Yet "); } ;
+   int intersectionWithLayer( bool direction, int layerNumber, gear::Vector3D& point)  ;
 
    // fill LCIO Track State with parameters from TKalTrack
    void ToLCIOTrackState( IMPL::TrackStateImpl& ts ) ;
