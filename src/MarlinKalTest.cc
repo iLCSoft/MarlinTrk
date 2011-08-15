@@ -149,7 +149,7 @@ void MarlinKalTest::getSensitiveMeasurementModulesForLayer( int layerID, std::ve
 
   for(it = ii.first; it != ii.second; ++it)
     {
-      std::cout<<"Key = "<<it->first<<"    Value = "<<it->second << std::endl ;
+      //      std::cout<<"Key = "<<it->first<<"    Value = "<<it->second << std::endl ;
       measmodules.push_back( it->second ) ; 
     }
       
@@ -173,7 +173,7 @@ void MarlinKalTest::getSensitiveMeasurementModules( int moduleID , std::vector<I
 
   for(it = ii.first; it != ii.second; ++it)
     {
-      std::cout<<"Key = "<<it->first<<"    Value = "<<it->second << std::endl ;
+      //      std::cout<<"Key = "<<it->first<<"    Value = "<<it->second << std::endl ;
       measmodules.push_back( it->second ) ; 
     }
       
