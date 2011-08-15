@@ -302,10 +302,13 @@ int MarlinKalTestTrack::extrapolate( const gear::Vector3D& point, IMPL::TrackSta
 int MarlinKalTestTrack::intersectionWithLayer( bool direction, int layerID, gear::Vector3D& point) {  
 
   std::vector<ILDVMeasLayer*> meas_modules ;
-  _ktest->getSensitiveMeasurementModules( layerID, meas_modules ) ;  
+  _ktest->getSensitiveMeasurementModulesForLayer( layerID, meas_modules ) ;  
 
   TVSurface* surf = NULL;
   TVector3 xto;       // reference point at destination to be returned by CalcXinPointWith  
+  Double_t dphi_min = DBL_MAX;  // use to store the min deflection angle found so that can avoid the crossing on the far side of the layer
+
+  streamlog_out(DEBUG3) << "MarlinKalTestTrack::intersectionWithLayer number of modules for layer:" << layerID << " = " <<  meas_modules.size()  << std::endl ;
 
   if( meas_modules.size() == 0 ) {
     
@@ -320,6 +323,8 @@ int MarlinKalTestTrack::intersectionWithLayer( bool direction, int layerID, gear
 
     for( unsigned int i=0; i < meas_modules.size(); ++i) {
      
+      streamlog_out(DEBUG3) << "MarlinKalTestTrack::intersectionWithLayer try and find intersection for ModuleID = " << (meas_modules[i])->getLayerID() << " layerID " << layerID << std::endl ;
+
       if( (surf = dynamic_cast<TVSurface*> (  meas_modules[i] )) )   {
       	// surf = dynamic_cast<TVSurface*> (  meas_modules[i] )
       }
@@ -334,13 +339,25 @@ int MarlinKalTestTrack::intersectionWithLayer( bool direction, int layerID, gear
       TKalTrackState& trkState = (TKalTrackState&) cursite.GetCurState(); // this segfaults if no hits are present
       
       THelicalTrack helix = trkState.GetHelix() ;
-            
+           
+      TVector3 pivot = helix.GetPivot() ;
+
+      pivot.Print();
+
       Double_t dphi = 0;  // deflection angle to destination to be returned by CalcXingPointWith
+
       int crossing_exist = surf->CalcXingPointWith(helix, xto, dphi, direction) ;
+
+      streamlog_out(DEBUG3) << "MarlinKalTestTrack::intersectionWithLayer crossing_exist = " << crossing_exist << " dphi " << dphi << std::endl ;
       
-      if(crossing_exist > 0) { 
+      if( crossing_exist > 0 && dphi < dphi_min ) { 
+
 	surf_found = true ;
-	break; // crossing found so take the first and break 
+	dphi_min = dphi ;
+	point[0] = xto.X();
+	point[1] = xto.Y();
+	point[2] = xto.Z();
+
       }
 
     }
@@ -349,9 +366,6 @@ int MarlinKalTestTrack::intersectionWithLayer( bool direction, int layerID, gear
       return -1;
     }
    
-    point[0] = xto.X();
-    point[1] = xto.Y();
-    point[2] = xto.Z();
 
     streamlog_out(DEBUG3) << "MarlinKalTestTrack::intersectionWithLayer intersection with layerID = "
 			  << layerID
@@ -432,7 +446,7 @@ int MarlinKalTestTrack::propagate( const gear::Vector3D& point, IMPL::TrackState
   tvml.CalcQms(isout, helix, dPhi, Qms);     // calculate MS for the final step through the present material 
 
   TKalMatrix DFt  = TKalMatrix(TMatrixD::kTransposed, DF);
-  c0 = DF * c0 + Qms * DFt ;                 // update the covariance matrix 
+  c0 = DF * c0 * DFt + Qms ;                 // update the covariance matrix 
 
   this->ToLCIOTrackState( helix, c0, ts );
 
