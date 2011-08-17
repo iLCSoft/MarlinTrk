@@ -37,6 +37,9 @@ MarlinKalTestTrack::MarlinKalTestTrack( MarlinKalTest* ktest)
 
   _kalhits = new TObjArray() ;
 
+  _initialised = false ;
+  _smoothed = false ;
+
 }
 
 
@@ -122,23 +125,17 @@ void MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit)
 } 
 
 
-
-
-int MarlinKalTestTrack::fit( bool fitDirection ) {
-
-  //SJA:FIXME: do we need to sort the hits here ... ?
-
-  const bool gkDir = fitDirection ; 
-
-  streamlog_out(DEBUG4) << "MarlinKalTestTrack::fit() called " << std::endl ;
+int MarlinKalTestTrack::initialise( bool direction ) {; 
 
   if (_kalhits->GetEntries() < 3) {
     
     streamlog_out( ERROR) << "<<<<<< KalTrack::fitTrack(): Shortage of Hits! nhits = "  
 			  << _kalhits->GetEntries() << " >>>>>>>" << std::endl;
-    return false;
+    return 1;
 
   }
+
+  const bool gkDir = direction ; 
 
   // establish the hit order
   Int_t i1, i2, i3; // (i1,i2,i3) = (1st,mid,last) hit to filter
@@ -230,6 +227,26 @@ int MarlinKalTestTrack::fit( bool fitDirection ) {
   // matrix at the starting measurement layer
   _kaltrack->Add(&initialSite);
 
+  _initialised = true ;
+
+  return 0 ;
+
+}
+
+int MarlinKalTestTrack::fit( bool fitDirection ) {
+
+  //SJA:FIXME: do we need to sort the hits here ... ?
+
+  const bool gkDir = fitDirection ; 
+
+  streamlog_out(DEBUG4) << "MarlinKalTestTrack::fit() called " << std::endl ;
+
+  if ( ! _initialised ) {
+
+    throw MarlinTrk::Exception("Track fit not initialised");   
+
+  }
+
   // ---------------------------
   //  Prepare hit iterrator for adding hits to kaltrack
   // ---------------------------
@@ -263,16 +280,63 @@ int MarlinKalTestTrack::fit( bool fitDirection ) {
 }
 
 
+int  MarlinKalTestTrack::getTrackState( IMPL::TrackStateImpl& ts ) {
+
+  streamlog_out( DEBUG4 )  << "MarlinKalTestTrack::getTrackState( IMPL::TrackStateImpl& ts ) " << std::endl ;
+
+  if( ! _smoothed ) {
+  
+    // then the current site will be the last filtered site
+    this->ToLCIOTrackState( ts );
+
+  }
+  else {
+
+    const TVKalSite& the_site = *(dynamic_cast<const TVKalSite*>(_kaltrack->Last())) ;
+    
+    TKalTrackState& trkState = (TKalTrackState&) the_site.GetCurState(); 
+    
+    THelicalTrack helix = trkState.GetHelix() ;
+    
+    TMatrixD c0(trkState.GetCovMat());  
+    
+    this->ToLCIOTrackState( helix, c0, ts );
+
+  }
+  
+
+  return 0 ;
+}
+
+
+int MarlinKalTestTrack::getTrackState( EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts ) {
+
+  streamlog_out( DEBUG4 )  << "MarlinKalTestTrack::getTrackState( EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts ) " << std::endl ;
+
+  // here we need to look up the site index for the given hit
+
+
+  const TVKalSite& the_site = *(dynamic_cast<const TVKalSite*>(_kaltrack->At(0))) ;
+  
+  TKalTrackState& trkState = (TKalTrackState&) the_site.GetCurState(); 
+
+  THelicalTrack helix = trkState.GetHelix() ;
+
+  TMatrixD c0(trkState.GetCovMat());  
+
+  this->ToLCIOTrackState( helix, c0, ts );
+
+  return 0 ;
+}
+
+
 int MarlinKalTestTrack::extrapolate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts){  
   
   streamlog_out(DEBUG4) << "MarlinKalTestTrack::extrapolate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts ) called " << std::endl ;
   
-  // get the current site. SJA:FIXME: should we check here if this is valid?
-  // it would be better to get the site closest to the point in s ...
-  // here we assume that we want to take the last filtered site
-  const TVKalSite& cursite = _kaltrack->GetCurSite();
-  
-  TKalTrackState& trkState = (TKalTrackState&) cursite.GetCurState(); // this segfaults if no hits are present
+  const TVKalSite& the_site = *(dynamic_cast<const TVKalSite*>(_kaltrack->Last())) ;
+
+  TKalTrackState& trkState = (TKalTrackState&) the_site.GetCurState(); // this segfaults if no hits are present
   
   THelicalTrack helix = trkState.GetHelix() ;
   double dPhi ;
