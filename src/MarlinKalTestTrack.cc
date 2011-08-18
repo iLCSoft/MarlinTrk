@@ -52,10 +52,6 @@ MarlinKalTestTrack::~MarlinKalTestTrack(){
 void MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit) 
 {
  
-  //SJA:FIXME: what happens if the fit is already performed and then we add a hit which is in-between the hits already fitted. 
- 
-  //  const ILDVMeasLayer* ml = _ktest->getSensitiveMeasurementLayer( trkhit->getCellID0() ) ;
-  
   std::vector<ILDVMeasLayer*> meas_modules ;
   _ktest->getSensitiveMeasurementModules( trkhit->getCellID0(), meas_modules ) ;
 
@@ -67,7 +63,12 @@ void MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit)
     
   } 
   else if (meas_modules.size() == 1) {
-    _kalhits->Add( meas_modules[0]->ConvertLCIOTrkHit(trkhit) ) ; 
+    
+    ILDVTrackHit* hit = meas_modules[0]->ConvertLCIOTrkHit(trkhit) ;
+    _kalhits->Add(hit ) ;  // Add hit and set surface found 
+    _lcio_hits_to_kaltest_hits[trkhit] = hit ; // add hit to map relating lcio and kaltest hits
+    _kaltest_hits_to_lcio_hits[hit] = trkhit ; // add hit to map relating kaltest and lcio hits
+
   }
   else { // layer has been split 
     
@@ -79,10 +80,7 @@ void MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit)
       
       TVSurface* surf = NULL;
 
-      if( (surf = dynamic_cast<TVSurface*> (  meas_modules[i] )) )   {
-      	// surf = dynamic_cast<TVSurface*> (  meas_modules[i] )
-      }
-      else {
+      if( ! (surf = dynamic_cast<TVSurface*> (  meas_modules[i] )) ) {
 	std::stringstream errorMsg;
 	errorMsg << "MarlinKalTestTrack::MarlinKalTestTrack dynamic_cast failed for surface type: moduleID = " << trkhit->getCellID0() << std::endl ; 
 	throw MarlinTrk::Exception(errorMsg.str());
@@ -91,14 +89,21 @@ void MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit)
       bool hit_on_surface = surf->IsOnSurface(hit);
 
       if( (!surf_found) && hit_on_surface ){
-	_kalhits->Add( meas_modules[i]->ConvertLCIOTrkHit(trkhit) ) ;  // Add hit and set surface found 
+
+	ILDVTrackHit* hit = meas_modules[i]->ConvertLCIOTrkHit(trkhit) ;
+	_kalhits->Add(hit ) ;  // Add hit and set surface found 
 	surf_found = true ;
+	_lcio_hits_to_kaltest_hits[trkhit] = hit ; // add hit to map relating lcio and kaltest hits
+	_kaltest_hits_to_lcio_hits[hit] = trkhit ; // add hit to map relating kaltest and lcio hits
+
       }
       else if( surf_found && hit_on_surface ) {  // only one surface should be found, if not throw 
+
 	std::stringstream errorMsg;
 	errorMsg << "MarlinKalTestTrack::MarlinKalTestTrack hit found to be on two surfaces: moduleID = " << trkhit->getCellID0() << std::endl ; 
 	throw MarlinTrk::Exception(errorMsg.str());
       }      
+
     }
     if( ! surf_found ){
       streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack hit not found to be on any surface matching moduleID = "
@@ -129,7 +134,7 @@ int MarlinKalTestTrack::initialise( bool direction ) {;
 
   if (_kalhits->GetEntries() < 3) {
     
-    streamlog_out( ERROR) << "<<<<<< KalTrack::fitTrack(): Shortage of Hits! nhits = "  
+    streamlog_out( ERROR) << "<<<<<< MarlinKalTestTrack::initialise: Shortage of Hits! nhits = "  
 			  << _kalhits->GetEntries() << " >>>>>>>" << std::endl;
     return 1;
 
@@ -165,7 +170,7 @@ int MarlinKalTestTrack::initialise( bool direction ) {;
     pDummyHit = (new ILDPlanarHit(*static_cast<ILDPlanarHit*>( startingHit )));
   }
   else {
-    streamlog_out( ERROR) << "<<<<<< KalTrack::fitTrack(): dynamic_cast failed for hit type >>>>>>>" << std::endl;
+    streamlog_out( ERROR) << "<<<<<<<<< MarlinKalTestTrack::initialise: dynamic_cast failed for hit type >>>>>>>" << std::endl;
     return false;
   }
 
@@ -215,7 +220,7 @@ int MarlinKalTestTrack::initialise( bool direction ) {;
   
   static TKalMatrix Cov(kSdim,kSdim);
   for (Int_t i=0; i<kSdim; i++) {
-    Cov(i,i) = 1.e6;   // dummy error matrix
+    Cov(i,i) = 1.e6;   // initialise diagonal elements of dummy error matrix
   }
 
 
@@ -235,11 +240,9 @@ int MarlinKalTestTrack::initialise( bool direction ) {;
 
 int MarlinKalTestTrack::fit( bool fitDirection ) {
 
-  //SJA:FIXME: do we need to sort the hits here ... ?
-
-  const bool gkDir = fitDirection ; 
-
   streamlog_out(DEBUG4) << "MarlinKalTestTrack::fit() called " << std::endl ;
+  
+  const bool gkDir = fitDirection ; 
 
   if ( ! _initialised ) {
 
@@ -271,7 +274,43 @@ int MarlinKalTestTrack::fit( bool fitDirection ) {
     // try to add the site and filter 
     if (!_kaltrack->AddAndFilter(site)) {        
       streamlog_out( DEBUG4 )  << "Kaltrack::fit : site discarded! at index : " << ml->GetIndex() << " for type " << ml->GetMLName() << " layer ID " << ml->getLayerID() << std::endl ;
+
       delete &site;                        // delete it if failed      
+
+      // find the lcio hit for this kaltest hit
+      std::map<ILDVTrackHit*,EVENT::TrackerHit*>::iterator it;
+      ILDVTrackHit* h  = dynamic_cast<ILDVTrackHit*>(hitp);
+      it = _kaltest_hits_to_lcio_hits.find(h) ;
+
+      if( it != _kaltest_hits_to_lcio_hits.end() ){
+	_hit_not_used_for_sites.push_back(it->second) ;
+      }
+
+      else {
+	  
+	std::stringstream errorMsg;
+	errorMsg << "MarlinKalTestTrack::fit hit pointer " << h << " not stored in _kaltest_hits_to_lcio_hits map" << std::endl ; 
+	throw MarlinTrk::Exception(errorMsg.str());
+	
+      }
+    } 
+    else {
+
+      // get the LCIO hit pointer from hitp and add it to the map associating LCIO hit pointers with the TKalTrackSite
+      std::map<ILDVTrackHit*,EVENT::TrackerHit*>::iterator it;
+      ILDVTrackHit* h  = dynamic_cast<ILDVTrackHit*>(hitp);
+      it = _kaltest_hits_to_lcio_hits.find(h) ;
+
+      if( it == _kaltest_hits_to_lcio_hits.end() )  { 
+	streamlog_out( DEBUG4 )  << "MarlinKalTestTrack::kaltest hit: " << h 
+			       << " not found " 
+			       << std::endl ;
+      }
+      
+      _hit_used_for_sites[it->second] = &site;
+      streamlog_out( DEBUG4 )  << "MarlinKalTestTrack::fit adding lcio hit: " << it->second
+			       << " to site " << &site << " in map" 
+			       << std::endl ;
     }
   } // end of Kalman filter
   
@@ -283,60 +322,59 @@ int MarlinKalTestTrack::fit( bool fitDirection ) {
 int  MarlinKalTestTrack::getTrackState( IMPL::TrackStateImpl& ts ) {
 
   streamlog_out( DEBUG4 )  << "MarlinKalTestTrack::getTrackState( IMPL::TrackStateImpl& ts ) " << std::endl ;
-
-  if( ! _smoothed ) {
   
-    // then the current site will be the last filtered site
-    this->ToLCIOTrackState( ts );
+  // use the last filtered track state 
+  const TVKalSite& site = *(dynamic_cast<const TVKalSite*>(_kaltrack->Last())) ;
 
-  }
-  else {
-
-    const TVKalSite& the_site = *(dynamic_cast<const TVKalSite*>(_kaltrack->Last())) ;
+  this->ToLCIOTrackState(site, ts);
     
-    TKalTrackState& trkState = (TKalTrackState&) the_site.GetCurState(); 
-    
-    THelicalTrack helix = trkState.GetHelix() ;
-    
-    TMatrixD c0(trkState.GetCovMat());  
-    
-    this->ToLCIOTrackState( helix, c0, ts );
-
-  }
-  
-
   return 0 ;
+
 }
 
 
 int MarlinKalTestTrack::getTrackState( EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts ) {
 
-  streamlog_out( DEBUG4 )  << "MarlinKalTestTrack::getTrackState( EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts ) " << std::endl ;
+  streamlog_out( DEBUG4 )  << "MarlinKalTestTrack::getTrackState( EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts ) using hit: " << hit << std::endl ;
 
-  // here we need to look up the site index for the given hit
+  std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
 
+  int error = getSiteFromLCIOHit(hit, it);
 
-  const TVKalSite& the_site = *(dynamic_cast<const TVKalSite*>(_kaltrack->At(0))) ;
+  if( error != 0 ) return error;
+
+  const TVKalSite& site = *(it->second) ; 
   
-  TKalTrackState& trkState = (TKalTrackState&) the_site.GetCurState(); 
-
-  THelicalTrack helix = trkState.GetHelix() ;
-
-  TMatrixD c0(trkState.GetCovMat());  
-
-  this->ToLCIOTrackState( helix, c0, ts );
+  this->ToLCIOTrackState(site, ts);
 
   return 0 ;
 }
 
-
 int MarlinKalTestTrack::extrapolate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts){  
+
+  const TVKalSite& site = *(dynamic_cast<const TVKalSite*>(_kaltrack->Last())) ;
+
+  return this->extrapolate( point, site, ts) ;
+
+}
+
+int MarlinKalTestTrack::extrapolate( const gear::Vector3D& point, EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts) {
+
+  std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
+  int error = getSiteFromLCIOHit( hit, it ) ; 
+  if( error !=0 ) return error;
+
+  const TVKalSite& site = *(it->second);
+
+  return this->extrapolate( point, site, ts) ;
+
+}
+
+int MarlinKalTestTrack::extrapolate( const gear::Vector3D& point, const TVKalSite& site ,IMPL::TrackStateImpl& ts){  
   
   streamlog_out(DEBUG4) << "MarlinKalTestTrack::extrapolate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts ) called " << std::endl ;
   
-  const TVKalSite& the_site = *(dynamic_cast<const TVKalSite*>(_kaltrack->Last())) ;
-
-  TKalTrackState& trkState = (TKalTrackState&) the_site.GetCurState(); // this segfaults if no hits are present
+  TKalTrackState& trkState = (TKalTrackState&) site.GetCurState(); // this segfaults if no hits are present
   
   THelicalTrack helix = trkState.GetHelix() ;
   double dPhi ;
@@ -363,129 +401,96 @@ int MarlinKalTestTrack::extrapolate( const gear::Vector3D& point, IMPL::TrackSta
   
 } 
 
-int MarlinKalTestTrack::intersectionWithLayer( bool direction, int layerID, gear::Vector3D& point) {  
 
-  std::vector<ILDVMeasLayer*> meas_modules ;
-  _ktest->getSensitiveMeasurementModulesForLayer( layerID, meas_modules ) ;  
+int MarlinKalTestTrack::extrapolateToLayer( bool direction, int layerID, IMPL::TrackStateImpl& ts) { 
 
-  TVSurface* surf = NULL;
-  TVector3 xto;       // reference point at destination to be returned by CalcXinPointWith  
-  Double_t dphi_min = DBL_MAX;  // use to store the min deflection angle found so that can avoid the crossing on the far side of the layer
+  const TVKalSite& site = *(dynamic_cast<const TVKalSite*>(_kaltrack->Last())) ;
+  
+  return this->extrapolateToLayer( direction, layerID, site, ts) ;
 
-  streamlog_out(DEBUG3) << "MarlinKalTestTrack::intersectionWithLayer number of modules for layer:" << layerID << " = " <<  meas_modules.size()  << std::endl ;
+}
 
-  if( meas_modules.size() == 0 ) {
-    
-    std::stringstream errorMsg;
-    errorMsg << "MarlinKalTestTrack::MarlinKalTestTrack layer id unkown: layerID = " << layerID << std::endl ; 
-    throw MarlinTrk::Exception(errorMsg.str());
-    
-  } 
-  else { 
-    
-    bool surf_found(false);
 
-    for( unsigned int i=0; i < meas_modules.size(); ++i) {
-     
-      streamlog_out(DEBUG3) << "MarlinKalTestTrack::intersectionWithLayer try and find intersection for ModuleID = " << (meas_modules[i])->getLayerID() << " layerID " << layerID << std::endl ;
+int MarlinKalTestTrack::extrapolateToLayer( bool direction, int layerID, EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts) { 
 
-      if( (surf = dynamic_cast<TVSurface*> (  meas_modules[i] )) )   {
-      	// surf = dynamic_cast<TVSurface*> (  meas_modules[i] )
-      }
-      else {
-	std::stringstream errorMsg;
-	errorMsg << "MarlinKalTestTrack::MarlinKalTestTrack dynamic_cast failed for surface type: layerID = " << layerID << std::endl ; 
-	throw MarlinTrk::Exception(errorMsg.str());
-      }
+ std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
+ int error = getSiteFromLCIOHit( hit, it ) ; 
+ if( error !=0 ) return error;
+ 
+ const TVKalSite& site = *(it->second);
+ 
+ return this->extrapolateToLayer( direction, layerID, site, ts) ;
+ 
+}
 
-      const TVKalSite& cursite = _kaltrack->GetCurSite();
-      
-      TKalTrackState& trkState = (TKalTrackState&) cursite.GetCurState(); // this segfaults if no hits are present
-      
-      THelicalTrack helix = trkState.GetHelix() ;
-           
-      TVector3 pivot = helix.GetPivot() ;
 
-      pivot.Print();
+int MarlinKalTestTrack::extrapolateToLayer( bool direction, int layerID, const TVKalSite& site, IMPL::TrackStateImpl& ts) { 
 
-      Double_t dphi = 0;  // deflection angle to destination to be returned by CalcXingPointWith
+  gear::Vector3D crossing_point ;
 
-      int crossing_exist = surf->CalcXingPointWith(helix, xto, dphi, direction) ;
+  int error = this->intersectionWithLayer( direction, layerID, site, crossing_point) ;
+  
+  if( error != 0 ) return error ;
 
-      streamlog_out(DEBUG3) << "MarlinKalTestTrack::intersectionWithLayer crossing_exist = " << crossing_exist << " dphi " << dphi << std::endl ;
-      
-      if( crossing_exist > 0 && dphi < dphi_min ) { 
-
-	surf_found = true ;
-	dphi_min = dphi ;
-	point[0] = xto.X();
-	point[1] = xto.Y();
-	point[2] = xto.Z();
-
-      }
-
-    }
-
-    if( ! surf_found ){
-      return -1;
-    }
-   
-
-    streamlog_out(DEBUG3) << "MarlinKalTestTrack::intersectionWithLayer intersection with layerID = "
-			  << layerID
-			  << ": at x = " << point.x()
-			  << " y = "     << point.y()
-			  << " z = "     << point.z()
-			  << std::endl ;
-
-  }
-  return 0;
+  return this->extrapolate( crossing_point, site, ts) ;
 
 } 
 
 
+
 int MarlinKalTestTrack::propagate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts ){
 
+  const TVKalSite& site = *(dynamic_cast<const TVKalSite*>(_kaltrack->Last())) ;
+
+  return this->propagate( point, site, ts) ;
+
+}
+
+int MarlinKalTestTrack::propagate( const gear::Vector3D& point, EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts ){
+
+  std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
+  int error = getSiteFromLCIOHit( hit, it ) ; 
+  if( error !=0 ) return error;
+
+  const TVKalSite& site = *(it->second);
+
+  return this->propagate( point, site, ts) ;
+
+}
+
+int MarlinKalTestTrack::propagate( const gear::Vector3D& point, const TVKalSite& site, IMPL::TrackStateImpl& ts ){
+
   streamlog_out(DEBUG4) << "MarlinKalTestTrack::propagate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts ) called " << std::endl ;
-
-  // get the current site. SJA:FIXME: should we check here if this is valid?
-  // it would be better to get the site closest to the point in s ...
-  // here we assume that we want to take the last filtered site
-  const TVKalSite& cursite = _kaltrack->GetCurSite();
-
-  TKalTrackState& trkState = (TKalTrackState&) cursite.GetCurState(); // this segfaults if no hits are present
-
-  THelicalTrack helix = trkState.GetHelix() ;
-  double dPhi ;
-
 
   // convert the gear point supplied to TVector3
   const TVector3 tpoint( point.x(), point.y(), point.z() ) ;
 
+  TKalTrackState& trkState = (TKalTrackState&) site.GetCurState(); // this segfaults if no hits are present
+
+  THelicalTrack helix = trkState.GetHelix() ;
+  double dPhi ;
+
   // the last layer crossed by the track before point 
   const ILDVMeasLayer* ml = _ktest->getLastMeasLayer(helix, tpoint);
   
-  streamlog_out( DEBUG4 ) << "  MarlinKalTestTrack - last surface before point = " << ml->GetMLName() << std::endl;
-
   Int_t sdim = trkState.GetDimension();  // dimensions of the track state, it will be 5 or 6
   TKalMatrix sv(sdim,1);
 
   TKalMatrix  F(sdim,sdim);              // propagator matrix to be returned by transport function
   F.UnitMatrix();                        // set the propagator matrix to the unit matrix
 
-  TKalMatrix  Q(sdim,sdim);                     // noise matrix to be returned by transport function 
+  TKalMatrix  Q(sdim,sdim);              // noise matrix to be returned by transport function 
   Q.Zero();        
   TVector3    x0;                        // intersection point to be returned by transport
 
   const TVMeasLayer& tvml   = dynamic_cast<const TVMeasLayer&>(*ml) ;         // cast from ILDVMeasurementLayer
-  const TKalTrackSite& site = dynamic_cast<const TKalTrackSite&>(cursite) ;   // cast from TVKalSite
+  const TKalTrackSite& track_site = dynamic_cast<const TKalTrackSite&>(site) ;   // cast from TVKalSite
   
-  _ktest->_det->Transport(site, tvml, x0, sv, F, Q ) ;      // transport to last layer cross before point 
+  _ktest->_det->Transport(track_site, tvml, x0, sv, F, Q ) ;      // transport to last layer cross before point 
   
   // given that we are sure to have intersected the layer tvml as this was provided via getLastMeasLayer, x0 will lie on the layer
   // this could be checked with the method isOnSurface 
   // so F will be the propagation matrix from the current location to the last surface and Q will be the noise matrix up to this point 
-
   TMatrixD c0(trkState.GetCovMat());  
 
   TKalMatrix Ft  = TKalMatrix(TMatrixD::kTransposed, F);
@@ -518,19 +523,138 @@ int MarlinKalTestTrack::propagate( const gear::Vector3D& point, IMPL::TrackState
 
 }
 
-void MarlinKalTestTrack::ToLCIOTrackState(  IMPL::TrackStateImpl& ts ){
 
-  const TVKalSite& cursite = _kaltrack->GetCurSite();
-  TKalTrackState& trkState = (TKalTrackState&) cursite.GetCurState(); // this segfaults if no hits are present
+int MarlinKalTestTrack::propagateToLayer( bool direction, int layerID, IMPL::TrackStateImpl& ts) { 
 
-  THelicalTrack helix = trkState.GetHelix() ;
-  TMatrixD c0(trkState.GetCovMat());  
-
-  this->ToLCIOTrackState( helix, c0, ts);
+  const TVKalSite& site = *(dynamic_cast<const TVKalSite*>(_kaltrack->Last())) ;
   
-
+  return this->propagateToLayer( direction, layerID, site, ts) ;
 
 }
+
+
+int MarlinKalTestTrack::propagateToLayer( bool direction, int layerID, EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts) { 
+
+ std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
+ int error = getSiteFromLCIOHit( hit, it ) ; 
+ if( error !=0 ) return error;
+ 
+ const TVKalSite& site = *(it->second);
+ 
+ return this->propagateToLayer( direction, layerID, site, ts) ;
+ 
+}
+
+
+int MarlinKalTestTrack::propagateToLayer( bool direction, int layerID, const TVKalSite& site, IMPL::TrackStateImpl& ts) { 
+
+  gear::Vector3D crossing_point ;
+
+  int error = this->intersectionWithLayer( direction, layerID, site, crossing_point) ;
+  
+  if( error != 0 ) return error ;
+
+  return this->propagate( crossing_point, site, ts) ;
+
+} 
+
+
+
+int MarlinKalTestTrack::intersectionWithLayer( bool direction, int layerID, gear::Vector3D& point) {  
+
+  const TVKalSite& site = *(dynamic_cast<const TVKalSite*>(_kaltrack->Last())) ;
+
+  return this->intersectionWithLayer( direction, layerID, site, point) ;
+
+}
+
+int MarlinKalTestTrack::intersectionWithLayer( bool direction, int layerID,  EVENT::TrackerHit* hit, gear::Vector3D& point) {  
+
+  std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
+  int error = getSiteFromLCIOHit( hit, it ) ; 
+  if( error !=0 ) return error;
+  
+  const TVKalSite& site = *(it->second);
+  return this->intersectionWithLayer( direction, layerID, site, point) ;
+
+}
+
+int MarlinKalTestTrack::intersectionWithLayer( bool direction, int layerID, const TVKalSite& site, gear::Vector3D& point) {  
+
+  std::vector<ILDVMeasLayer*> meas_modules ;
+  _ktest->getSensitiveMeasurementModulesForLayer( layerID, meas_modules ) ;  
+
+  TVSurface* surf = NULL;
+  TVector3 xto;       // reference point at destination to be returned by CalcXinPointWith  
+  Double_t dphi_min = DBL_MAX;  // use to store the min deflection angle found so that can avoid the crossing on the far side of the layer
+
+  if( meas_modules.size() == 0 ) {
+    
+    std::stringstream errorMsg;
+    errorMsg << "MarlinKalTestTrack::MarlinKalTestTrack layer id unkown: layerID = " << layerID << std::endl ; 
+    throw MarlinTrk::Exception(errorMsg.str());
+    
+  } 
+  else { 
+    
+    bool surf_found(false);
+
+    for( unsigned int i=0; i < meas_modules.size(); ++i) {
+     
+      streamlog_out(DEBUG1) << "MarlinKalTestTrack::intersectionWithLayer try and find intersection for ModuleID = " << (meas_modules[i])->getLayerID() << " layerID " << layerID << std::endl ;
+
+      if( ! (surf = dynamic_cast<TVSurface*> (  meas_modules[i] )) )   {
+      
+	std::stringstream errorMsg;
+	errorMsg << "MarlinKalTestTrack::MarlinKalTestTrack dynamic_cast failed for surface type: layerID = " << layerID << std::endl ; 
+	throw MarlinTrk::Exception(errorMsg.str());
+
+      }
+      
+      TKalTrackState& trkState = (TKalTrackState&) site.GetCurState(); // this segfaults if no hits are present
+      
+      THelicalTrack helix = trkState.GetHelix() ;
+           
+      TVector3 pivot = helix.GetPivot() ;
+
+      Double_t dphi = 0;  // deflection angle to destination to be returned by CalcXingPointWith
+
+      int crossing_exist = surf->CalcXingPointWith(helix, xto, dphi, direction) ;
+
+      streamlog_out(DEBUG1) << "MarlinKalTestTrack::intersectionWithLayer crossing_exist = " << crossing_exist << " dphi " << dphi << std::endl ;
+      
+      // make sure we get the next crossing 
+      if( crossing_exist > 0 && dphi < dphi_min ) { 
+	
+	surf_found = true ;
+	dphi_min = dphi ;
+	point[0] = xto.X();
+	point[1] = xto.Y();
+	point[2] = xto.Z();
+
+      }
+
+    }
+
+    if( ! surf_found ){
+      return -1;
+    }
+   
+
+    streamlog_out(DEBUG1) << "MarlinKalTestTrack::intersectionWithLayer intersection with layerID = "
+			  << layerID
+			  << ": at x = " << point.x()
+			  << " y = "     << point.y()
+			  << " z = "     << point.z()
+			  << std::endl ;
+
+  }
+
+  return 0;
+
+} 
+
+
 
 void MarlinKalTestTrack::ToLCIOTrackState( const THelicalTrack& helix, const TMatrixD& cov, IMPL::TrackStateImpl& ts ){
 
@@ -608,3 +732,42 @@ void MarlinKalTestTrack::ToLCIOTrackState( const THelicalTrack& helix, const TMa
 
 }
 
+int MarlinKalTestTrack::getSiteFromLCIOHit( EVENT::TrackerHit* hit, std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator& it ){
+
+  it = _hit_used_for_sites.find(hit) ;
+  
+  if( it == _hit_used_for_sites.end() ) { // hit not associated with any site
+    
+    bool found = false;
+    
+    for( unsigned int i = 0; i < _hit_not_used_for_sites.size(); ++i) {
+      if( hit == _hit_not_used_for_sites[i] ) found = true ;
+    }
+
+    if( found ) {
+      streamlog_out( DEBUG4 )  << "MarlinKalTestTrack::getSiteFromLCIOHit: hit was rejected during filtering" << std::endl ;
+      return 1 ;
+    }
+    else {
+      return 2 ; // 1 hit was rejected by fit, 2 hit not associated with this track 
+    }
+  } 
+
+  streamlog_out( DEBUG4 )  << "MarlinKalTestTrack::getSiteFromLCIOHit: site found" << std::endl ;
+  return 0 ;
+  
+}
+
+void MarlinKalTestTrack::ToLCIOTrackState( const TVKalSite& site, IMPL::TrackStateImpl& ts ) {
+
+  TKalTrackState& trkState = (TKalTrackState&) site.GetCurState(); // GetCutState will return the last added state to this site
+  // Assuming everything has proceeded as expected 
+  // this will be Predicted -> Filtered -> Smoothed 
+  
+  THelicalTrack helix = trkState.GetHelix() ;
+  
+  TMatrixD c0(trkState.GetCovMat());  
+  
+  this->ToLCIOTrackState( helix, c0, ts );
+
+}
