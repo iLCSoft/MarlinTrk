@@ -7,6 +7,7 @@
 #include <kaltest/TKalTrack.h>
 #include <kaltest/TKalTrackState.h>
 #include "kaltest/TKalTrackSite.h"
+#include "TKalFilterCond.h"
 
 #include <lcio.h>
 #include <EVENT/TrackerHit.h>
@@ -26,6 +27,36 @@
 #include "gear/BField.h"
 
 #include "streamlog/streamlog.h"
+
+
+/** Helper class for defining a filter condition based on the delta chi2 in the AddAndFilter step.
+ */
+class KalTrackFilter : public TKalFilterCond{
+
+public:
+  
+  /** C'tor - takes as optional argument the maximum allowed delta chi2 for adding the hit (in IsAccepted() )
+   */
+  KalTrackFilter(double maxDeltaChi2 = DBL_MAX) : _maxDeltaChi2( maxDeltaChi2 ) {
+  } 
+  virtual ~KalTrackFilter() {} 
+  
+  virtual Bool_t IsAccepted(const TKalTrackSite &site) {
+    
+    double deltaChi2 = site.GetDeltaChi2();
+    
+    streamlog_out( DEBUG0 ) << " KalTrackFilter::IsAccepted called  !  deltaChi2 = "  <<  deltaChi2  << std::endl;
+
+    return ( deltaChi2 < _maxDeltaChi2 )   ; 
+  }
+
+protected:
+
+  double _maxDeltaChi2 ;
+
+} ;
+//---------------------------------------------------------------------------------------------------------------
+
 
 
 MarlinKalTestTrack::MarlinKalTestTrack( MarlinKalTest* ktest) 
@@ -49,34 +80,35 @@ MarlinKalTestTrack::~MarlinKalTestTrack(){
 }
 
 
-void MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit) 
-{
- 
-  std::vector<ILDVMeasLayer*> meas_modules ;
-  _ktest->getSensitiveMeasurementModules( trkhit->getCellID0(), meas_modules ) ;
+const ILDVMeasLayer* MarlinKalTestTrack::findMeasLayer( EVENT::TrackerHit * trkhit) {
 
-  if( meas_modules.size() == 0 ) {
+  const ILDVMeasLayer* ml = NULL; // return value 
+
+  std::vector<ILDVMeasLayer*> meas_modules ;
+
+  // search for the list of measurement layers associated with this CellID
+  _ktest->getSensitiveMeasurementModules( trkhit->getCellID0(), meas_modules ) ; 
+  
+  if( meas_modules.size() == 0 ) { // no measurement layers found 
     
     std::stringstream errorMsg;
     errorMsg << "MarlinKalTestTrack::MarlinKalTestTrack hit module id unkown: moduleID = " << trkhit->getCellID0() << std::endl ; 
     throw MarlinTrk::Exception(errorMsg.str());
     
   } 
-  else if (meas_modules.size() == 1) {
-    
-    ILDVTrackHit* hit = meas_modules[0]->ConvertLCIOTrkHit(trkhit) ;
-    _kalhits->Add(hit ) ;  // Add hit and set surface found 
-    _lcio_hits_to_kaltest_hits[trkhit] = hit ; // add hit to map relating lcio and kaltest hits
-    _kaltest_hits_to_lcio_hits[hit] = trkhit ; // add hit to map relating kaltest and lcio hits
+  else if (meas_modules.size() == 1) { // one to one mapping 
+  
+    ml = meas_modules[0] ;
 
   }
   else { // layer has been split 
     
     bool surf_found(false);
 
+    // loop over the measurement layers associated with this CellID and find the correct one using the position of the hit
     for( unsigned int i=0; i < meas_modules.size(); ++i) {
      
-      const TVector3 hit( trkhit->getPosition()[0], trkhit->getPosition()[1], trkhit->getPosition()[2]) ;
+      const TVector3 hit_pos( trkhit->getPosition()[0], trkhit->getPosition()[1], trkhit->getPosition()[2]) ;
       
       TVSurface* surf = NULL;
 
@@ -86,15 +118,12 @@ void MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit)
 	throw MarlinTrk::Exception(errorMsg.str());
       }
       
-      bool hit_on_surface = surf->IsOnSurface(hit);
+      bool hit_on_surface = surf->IsOnSurface(hit_pos);
 
       if( (!surf_found) && hit_on_surface ){
 
-	ILDVTrackHit* hit = meas_modules[i]->ConvertLCIOTrkHit(trkhit) ;
-	_kalhits->Add(hit ) ;  // Add hit and set surface found 
+	ml = meas_modules[i] ;
 	surf_found = true ;
-	_lcio_hits_to_kaltest_hits[trkhit] = hit ; // add hit to map relating lcio and kaltest hits
-	_kaltest_hits_to_lcio_hits[hit] = trkhit ; // add hit to map relating kaltest and lcio hits
 
       }
       else if( surf_found && hit_on_surface ) {  // only one surface should be found, if not throw 
@@ -105,7 +134,7 @@ void MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit)
       }      
 
     }
-    if( ! surf_found ){
+    if( ! surf_found ){ // print out debug info
       streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack hit not found to be on any surface matching moduleID = "
 			    << trkhit->getCellID0()
 			    << ": x = " << trkhit->getPosition()[0]
@@ -113,24 +142,68 @@ void MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit)
 			    << " z = " << trkhit->getPosition()[2]
 			    << std::endl ;
     }
-
-    streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack hit found to be on surface matching moduleID = "
-			  << trkhit->getCellID0()
-			  << ": x = " << trkhit->getPosition()[0]
-			  << " y = " << trkhit->getPosition()[1]
-			  << " z = " << trkhit->getPosition()[2]
-			  << std::endl ;
+    else{
+      streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack hit found to be on surface matching moduleID = "
+			    << trkhit->getCellID0()
+			    << ": x = " << trkhit->getPosition()[0]
+			    << " y = " << trkhit->getPosition()[1]
+			    << " z = " << trkhit->getPosition()[2]
+			    << std::endl ;
+    }
   }
 
+  return ml ;
+
+}
+
+int MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit) 
+{
+
+  return this->addHit( trkhit, findMeasLayer( trkhit )) ;
+ 
+} 
+
+int MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit, const ILDVMeasLayer* ml) 
+{
+  if( trkhit && ml ) {
+    return this->addHit( trkhit, ml->ConvertLCIOTrkHit(trkhit), ml) ;
+  }
+  else {
+    return 1 ;
+  }
+
+}
+
+int MarlinKalTestTrack::addHit( EVENT::TrackerHit* trkhit, ILDVTrackHit* kalhit, const ILDVMeasLayer* ml) 
+{
+
+  if( kalhit && ml ) {
+    _kalhits->Add(kalhit ) ;  // Add hit and set surface found 
+    _lcio_hits_to_kaltest_hits[trkhit] = kalhit ; // add hit to map relating lcio and kaltest hits
+    _kaltest_hits_to_lcio_hits[kalhit] = trkhit ; // add hit to map relating kaltest and lcio hits
+  }
+  else{
+    return 1 ;
+  }
 
   streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack hit added " 
 			<< "number of hits for track = " << _kalhits->GetEntries() 
 			<< std::endl ;
 
-} 
+  return 0 ;
+
+}
 
 
 int MarlinKalTestTrack::initialise( bool direction ) {; 
+
+  //SJA:FIXME: check here if the track is already initialised, and for now don't allow it to be re-initialised
+  //           if the track is going to be re-initialised then we would need to do it directly on the first site
+  if ( _initialised ) {
+    
+    throw MarlinTrk::Exception("Track fit already initialised");   
+    
+  }
 
   if (_kalhits->GetEntries() < 3) {
     
@@ -238,7 +311,205 @@ int MarlinKalTestTrack::initialise( bool direction ) {;
 
 }
 
+int MarlinKalTestTrack::initialise( const IMPL::TrackStateImpl& ts, double bfield_z, bool initalise_at_end ) {
+
+  //SJA:FIXME: check here if the track is already initialised, and for now don't allow it to be re-initialised
+  //           if the track is going to be re-initialised then we would need to do it directly on the first site
+  if ( _initialised ) {
+    
+    throw MarlinTrk::Exception("Track fit already initialised");   
+    
+  }
+
+  if (_kalhits->GetEntries() < 3) {
+    
+    streamlog_out( ERROR) << "<<<<<< MarlinKalTestTrack::initialise: Shortage of Hits! nhits = "  
+			  << _kalhits->GetEntries() << " >>>>>>>" << std::endl;
+    return 1;
+    
+  }
+  
+  // for GeV, Tesla, R in mm  
+  double alpha = 2.99792458E-4 ;
+  double kappa = ts.getOmega() * bfield_z * alpha ;
+
+  THelicalTrack helix( ts.getD0(),
+		       ts.getPhi(),
+		       kappa,
+		       ts.getZ0(),
+		       ts.getTanLambda(),
+		       ts.getReferencePoint()[0],
+		       ts.getReferencePoint()[1],
+		       ts.getReferencePoint()[2],
+		       bfield_z );
+
+  TMatrixD cov(5,5) ;	
+  EVENT::FloatVec covLCIO( 15 )  ; 
+
+  cov( 0 , 0 )  =   covLCIO[ 0] ; //   d0,   d0
+      
+  cov( 1 , 0 )  = - covLCIO[ 1] ; //   phi0, d0
+  cov( 1 , 1 )  =   covLCIO[ 2] ; //   phi0, phi 
+      
+  cov( 2 , 0 ) = - covLCIO[ 3] / alpha ;           //   omega, d0
+  cov( 2 , 1 ) =   covLCIO[ 4] / alpha ;           //   omega, phi
+  cov( 2 , 2 ) =   covLCIO[ 5] / (alpha * alpha) ; //   omega, omega
+      
+  cov( 3 , 0 ) = - covLCIO[ 6] ;         //   z0  , d0
+  cov( 3 , 1 ) =   covLCIO[ 7] ;         //   z0  , phi
+  cov( 3 , 2 ) =   covLCIO[ 8] / alpha ; //   z0  , omega
+  cov( 3 , 3 ) =   covLCIO[ 9] ;         //   z0  , z0
+      
+  cov( 4 , 0 ) = - covLCIO[10] ;         //   tanl, d0 
+  cov( 4 , 1 ) =   covLCIO[11] ;         //   tanl, phi
+  cov( 4 , 2 ) =   covLCIO[12] / alpha ; //   tanl, omega    
+  cov( 4 , 3 ) =   covLCIO[13] ;         //   tanl, z0
+  cov( 4 , 4 ) =   covLCIO[14] ;         //   tanl, tanl
+
+  // move the helix to either the position of the last hit or the first depending on initalise_at_end
+
+  // default case initalise_at_end
+  int index = _kalhits->GetEntries() - 1 ;
+  // or initialise at start 
+  if( ! initalise_at_end ){
+    index = 0 ;
+  }
+
+  TVTrackHit* kalhit = dynamic_cast<TVTrackHit *>(_kalhits->At(index)); 
+
+  TVector3 initial_pivot = kalhit->GetMeasLayer().HitToXv(*kalhit);
+  
+  double dphi;
+  helix.MoveTo( initial_pivot, dphi, NULL, &cov );
+
+  // ---------------------------
+  //  Create an initial start site for the track using the  hit
+  // ---------------------------
+  // set up a dummy hit needed to create initial site  
+
+  TVTrackHit* pDummyHit = NULL;
+
+  if ( (pDummyHit = dynamic_cast<ILDCylinderHit *>( kalhit )) ) {
+    pDummyHit = (new ILDCylinderHit(*static_cast<ILDCylinderHit*>( kalhit )));
+  }
+  else if ( (pDummyHit = dynamic_cast<ILDPlanarHit *>( kalhit )) ) {
+    pDummyHit = (new ILDPlanarHit(*static_cast<ILDPlanarHit*>( kalhit )));
+  }
+  else {
+    streamlog_out( ERROR) << "<<<<<<<<< MarlinKalTestTrack::initialise: dynamic_cast failed for hit type >>>>>>>" << std::endl;
+    return false;
+  }
+
+  TVTrackHit& dummyHit = *pDummyHit;
+
+  //SJA:FIXME: this constants should go in a header file
+  // give the dummy hit huge errors so that it does not contribute to the fit
+  dummyHit(0,1) = 1.e6;   // give a huge error to d
+  dummyHit(1,1) = 1.e6;   // give a huge error to z   
+  
+  // use dummy hit to create initial site
+  TKalTrackSite& initialSite = *new TKalTrackSite(dummyHit);
+  
+  initialSite.SetHitOwner();// site owns hit
+  initialSite.SetOwner();   // site owns states
+
+  // ---------------------------
+  //  Set up initial track state 
+  // ---------------------------
+  
+  static TKalMatrix initialState(kSdim,1) ;
+  initialState(0,0) = helix.GetDrho() ;        // d0
+  initialState(1,0) = helix.GetPhi0() ;        // phi0
+  initialState(2,0) = helix.GetKappa() ;       // kappa
+  initialState(3,0) = helix.GetDz();           // dz
+  initialState(4,0) = helix.GetTanLambda() ;   // tan(lambda)
+  if (kSdim == 6) initialState(5,0) = 0.;      // t0
+
+
+  // ---------------------------
+  //  Set up initial Covariance Matrix
+  // ---------------------------
+  
+  TKalMatrix covK(kSdim,kSdim) ;  for(int i=0;i<5;++i) for(int j=0;j<5;++j) covK[i][j] = cov[i][j] ;
+  if (kSdim == 6) covK(5,5) = 1.e6; // t0
+  
+
+  // Add initial states to the site 
+  initialSite.Add(new TKalTrackState(initialState,covK,initialSite,TVKalSite::kPredicted));
+  initialSite.Add(new TKalTrackState(initialState,covK,initialSite,TVKalSite::kFiltered));
+
+  // add the initial site to the track: that is, give the track initial parameters and covariance 
+  // matrix at the starting measurement layer
+  _kaltrack->Add(&initialSite);
+  
+  _initialised = true ;
+  return 0 ;
+
+} 
+
+int MarlinKalTestTrack::addAndFit( ILDVTrackHit* kalhit, double& chi2increment, TKalTrackSite*& site, double maxChi2Increment) {
+
+  streamlog_out(DEBUG4) << "MarlinKalTestTrack::addAndFit called " << std::endl ;
+
+  if ( ! _initialised ) {
+    
+    throw MarlinTrk::Exception("Track fit not initialised");   
+    
+  }
+
+  TKalTrackSite* temp_site = new TKalTrackSite(*kalhit); // create new site for this hit
+
+  KalTrackFilter filter( maxChi2Increment );
+  
+  temp_site->SetFilterCond( &filter ) ;
+
+  if (!_kaltrack->AddAndFilter(*temp_site)) {        
+
+    chi2increment = temp_site->GetDeltaChi2() ;
+    // get the measurement layer of the current hit
+    const ILDVMeasLayer* ml =  dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) ) ;
+    streamlog_out( DEBUG4 )  << "Kaltrack::fit : site discarded! at index : " << ml->GetIndex() << " for type " << ml->GetMLName() << " layer ID " << ml->getLayerID() << std::endl ;
+    
+    delete temp_site;  // delete site if filter step failed      
+    
+    return 1 ;
+
+  }
+
+  site = temp_site;
+  chi2increment = site->GetDeltaChi2() ;
+  site->DebugPrint();
+  return 0 ;
+
+}
+
+int MarlinKalTestTrack::addAndFit( EVENT::TrackerHit* trkhit, double& chi2increment, double maxChi2Increment) {
+    
+  const ILDVMeasLayer* ml = this->findMeasLayer( trkhit ) ;
+  ILDVTrackHit* kalhit = ml->ConvertLCIOTrkHit(trkhit) ;
+
+  TKalTrackSite* site;
+  int error = this->addAndFit( kalhit, chi2increment, site, maxChi2Increment);
+
+  if( error != 0 ){
+    return 1 ;
+  }
+  else {
+    this->addHit( trkhit, kalhit, ml ) ; 
+    _hit_used_for_sites[trkhit] = site ;
+  }
+
+  return 0 ;
+
+}
+
 int MarlinKalTestTrack::fit( bool fitDirection ) {
+
+  // SJA:FIXME: what do we do about calling fit after we have already added hits and filtered
+  // I guess this would created new sites when addAndFit is called 
+  // one option would be to remove the sites 
+  // need to check where the sites are stored ...  probably in the KalTrackSystem
+  // 
 
   streamlog_out(DEBUG4) << "MarlinKalTestTrack::fit() called " << std::endl ;
   
@@ -260,58 +531,46 @@ int MarlinKalTestTrack::fit( bool fitDirection ) {
   //  Start Kalman Filter
   // ---------------------------
 
-  TVTrackHit *hitp = 0;
+  ILDVTrackHit *kalhit = 0;
   
-  while ( (hitp = dynamic_cast<TVTrackHit *>( next() ) ) ) {
-   
-    TKalTrackSite  &site = *new TKalTrackSite(*hitp); // create new site for this hit
+  while ( (kalhit = dynamic_cast<ILDVTrackHit *>( next() ) ) ) {
 
-    // get the measurement layer of the current hit
-    const ILDVMeasLayer* ml =  dynamic_cast<const ILDVMeasLayer*>( &(hitp->GetMeasLayer() ) ) ;
+    double chi2increment;
+    TKalTrackSite* site;
+    int error = this->addAndFit( kalhit, chi2increment, site);
     
-    streamlog_out( DEBUG3 )  << "Kaltrack::fit :  add site to track at index : " << ml->GetIndex() << " for type " << ml->GetMLName() << " layer ID " << ml->getLayerID() << std::endl ;
-    
-    // try to add the site and filter 
-    if (!_kaltrack->AddAndFilter(site)) {        
-      streamlog_out( DEBUG4 )  << "Kaltrack::fit : site discarded! at index : " << ml->GetIndex() << " for type " << ml->GetMLName() << " layer ID " << ml->getLayerID() << std::endl ;
+    // here do dynamic cast repeatedly in DEBUG statement as this will be stripped out any way for production code
+    // otherwise we have to do the cast outside of the DEBUG statement and it won't be stripped out 
+    streamlog_out( DEBUG3 )  << "Kaltrack::fit :  add site to track at index : " 
+			     << (dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) ))->GetIndex() 
+			     << " for type " 
+			     << dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) )->GetMLName() 
+			     << " layer ID " 
+			     << dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) )->getLayerID() 
+			     << " error = " << error 
+			     << std::endl ;
 
-      delete &site;                        // delete it if failed      
+    // find the lcio hit for this kaltest hit
+    std::map<ILDVTrackHit*,EVENT::TrackerHit*>::iterator it;
+    it = _kaltest_hits_to_lcio_hits.find(kalhit) ;
 
-      // find the lcio hit for this kaltest hit
-      std::map<ILDVTrackHit*,EVENT::TrackerHit*>::iterator it;
-      ILDVTrackHit* h  = dynamic_cast<ILDVTrackHit*>(hitp);
-      it = _kaltest_hits_to_lcio_hits.find(h) ;
-
-      if( it != _kaltest_hits_to_lcio_hits.end() ){
-	_hit_not_used_for_sites.push_back(it->second) ;
-      }
-
-      else {
+    if( it == _kaltest_hits_to_lcio_hits.end() ) { // something went wrong and this kalhit has no lcio trkhit associated
 	  
-	std::stringstream errorMsg;
-	errorMsg << "MarlinKalTestTrack::fit hit pointer " << h << " not stored in _kaltest_hits_to_lcio_hits map" << std::endl ; 
-	throw MarlinTrk::Exception(errorMsg.str());
+      std::stringstream errorMsg;
+      errorMsg << "MarlinKalTestTrack::fit hit pointer " << kalhit << " not stored in _kaltest_hits_to_lcio_hits map" << std::endl ; 
+      throw MarlinTrk::Exception(errorMsg.str());
 	
-      }
-    } 
-    else {
-
-      // get the LCIO hit pointer from hitp and add it to the map associating LCIO hit pointers with the TKalTrackSite
-      std::map<ILDVTrackHit*,EVENT::TrackerHit*>::iterator it;
-      ILDVTrackHit* h  = dynamic_cast<ILDVTrackHit*>(hitp);
-      it = _kaltest_hits_to_lcio_hits.find(h) ;
-
-      if( it == _kaltest_hits_to_lcio_hits.end() )  { 
-	streamlog_out( DEBUG4 )  << "MarlinKalTestTrack::kaltest hit: " << h 
-			       << " not found " 
-			       << std::endl ;
-      }
-      
-      _hit_used_for_sites[it->second] = &site;
-      streamlog_out( DEBUG4 )  << "MarlinKalTestTrack::fit adding lcio hit: " << it->second
-			       << " to site " << &site << " in map" 
-			       << std::endl ;
     }
+
+    EVENT::TrackerHit* trkhit = it->second;  
+    
+    if( error == 0 ){ // add trkhit to map associating trkhits and sites
+      _hit_used_for_sites[it->second] = site;
+    } 
+    else { // hit rejected by the filter, so store in the list of rejected hits
+      _hit_not_used_for_sites.push_back(trkhit) ;
+    }
+        
   } // end of Kalman filter
   
   return 0;
@@ -333,13 +592,13 @@ int  MarlinKalTestTrack::getTrackState( IMPL::TrackStateImpl& ts ) {
 }
 
 
-int MarlinKalTestTrack::getTrackState( EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts ) {
+int MarlinKalTestTrack::getTrackState( EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts ) {
 
-  streamlog_out( DEBUG4 )  << "MarlinKalTestTrack::getTrackState( EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts ) using hit: " << hit << std::endl ;
+  streamlog_out( DEBUG4 )  << "MarlinKalTestTrack::getTrackState( EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts ) using hit: " << trkhit << std::endl ;
 
   std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
 
-  int error = getSiteFromLCIOHit(hit, it);
+  int error = getSiteFromLCIOHit(trkhit, it);
 
   if( error != 0 ) return error;
 
@@ -358,10 +617,10 @@ int MarlinKalTestTrack::extrapolate( const gear::Vector3D& point, IMPL::TrackSta
 
 }
 
-int MarlinKalTestTrack::extrapolate( const gear::Vector3D& point, EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts) {
+int MarlinKalTestTrack::extrapolate( const gear::Vector3D& point, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts) {
 
   std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
-  int error = getSiteFromLCIOHit( hit, it ) ; 
+  int error = getSiteFromLCIOHit( trkhit, it ) ; 
   if( error !=0 ) return error;
 
   const TVKalSite& site = *(it->second);
@@ -411,10 +670,10 @@ int MarlinKalTestTrack::extrapolateToLayer( bool direction, int layerID, IMPL::T
 }
 
 
-int MarlinKalTestTrack::extrapolateToLayer( bool direction, int layerID, EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts) { 
+int MarlinKalTestTrack::extrapolateToLayer( bool direction, int layerID, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts) { 
 
  std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
- int error = getSiteFromLCIOHit( hit, it ) ; 
+ int error = getSiteFromLCIOHit( trkhit, it ) ; 
  if( error !=0 ) return error;
  
  const TVKalSite& site = *(it->second);
@@ -446,10 +705,10 @@ int MarlinKalTestTrack::propagate( const gear::Vector3D& point, IMPL::TrackState
 
 }
 
-int MarlinKalTestTrack::propagate( const gear::Vector3D& point, EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts ){
+int MarlinKalTestTrack::propagate( const gear::Vector3D& point, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts ){
 
   std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
-  int error = getSiteFromLCIOHit( hit, it ) ; 
+  int error = getSiteFromLCIOHit( trkhit, it ) ; 
   if( error !=0 ) return error;
 
   const TVKalSite& site = *(it->second);
@@ -533,10 +792,10 @@ int MarlinKalTestTrack::propagateToLayer( bool direction, int layerID, IMPL::Tra
 }
 
 
-int MarlinKalTestTrack::propagateToLayer( bool direction, int layerID, EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts) { 
+int MarlinKalTestTrack::propagateToLayer( bool direction, int layerID, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts) { 
 
  std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
- int error = getSiteFromLCIOHit( hit, it ) ; 
+ int error = getSiteFromLCIOHit( trkhit, it ) ; 
  if( error !=0 ) return error;
  
  const TVKalSite& site = *(it->second);
@@ -568,10 +827,10 @@ int MarlinKalTestTrack::intersectionWithLayer( bool direction, int layerID, gear
 
 }
 
-int MarlinKalTestTrack::intersectionWithLayer( bool direction, int layerID,  EVENT::TrackerHit* hit, gear::Vector3D& point) {  
+int MarlinKalTestTrack::intersectionWithLayer( bool direction, int layerID,  EVENT::TrackerHit* trkhit, gear::Vector3D& point) {  
 
   std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
-  int error = getSiteFromLCIOHit( hit, it ) ; 
+  int error = getSiteFromLCIOHit( trkhit, it ) ; 
   if( error !=0 ) return error;
   
   const TVKalSite& site = *(it->second);
@@ -732,16 +991,16 @@ void MarlinKalTestTrack::ToLCIOTrackState( const THelicalTrack& helix, const TMa
 
 }
 
-int MarlinKalTestTrack::getSiteFromLCIOHit( EVENT::TrackerHit* hit, std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator& it ){
+int MarlinKalTestTrack::getSiteFromLCIOHit( EVENT::TrackerHit* trkhit, std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator& it ){
 
-  it = _hit_used_for_sites.find(hit) ;
-  
+  it = _hit_used_for_sites.find(trkhit) ;  
+
   if( it == _hit_used_for_sites.end() ) { // hit not associated with any site
     
     bool found = false;
     
     for( unsigned int i = 0; i < _hit_not_used_for_sites.size(); ++i) {
-      if( hit == _hit_not_used_for_sites[i] ) found = true ;
+      if( trkhit == _hit_not_used_for_sites[i] ) found = true ;
     }
 
     if( found ) {
