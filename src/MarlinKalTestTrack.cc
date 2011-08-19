@@ -80,86 +80,11 @@ MarlinKalTestTrack::~MarlinKalTestTrack(){
 }
 
 
-const ILDVMeasLayer* MarlinKalTestTrack::findMeasLayer( EVENT::TrackerHit * trkhit) {
-
-  const ILDVMeasLayer* ml = NULL; // return value 
-
-  std::vector<ILDVMeasLayer*> meas_modules ;
-
-  // search for the list of measurement layers associated with this CellID
-  _ktest->getSensitiveMeasurementModules( trkhit->getCellID0(), meas_modules ) ; 
-  
-  if( meas_modules.size() == 0 ) { // no measurement layers found 
-    
-    std::stringstream errorMsg;
-    errorMsg << "MarlinKalTestTrack::MarlinKalTestTrack hit module id unkown: moduleID = " << trkhit->getCellID0() << std::endl ; 
-    throw MarlinTrk::Exception(errorMsg.str());
-    
-  } 
-  else if (meas_modules.size() == 1) { // one to one mapping 
-  
-    ml = meas_modules[0] ;
-
-  }
-  else { // layer has been split 
-    
-    bool surf_found(false);
-
-    // loop over the measurement layers associated with this CellID and find the correct one using the position of the hit
-    for( unsigned int i=0; i < meas_modules.size(); ++i) {
-     
-      const TVector3 hit_pos( trkhit->getPosition()[0], trkhit->getPosition()[1], trkhit->getPosition()[2]) ;
-      
-      TVSurface* surf = NULL;
-
-      if( ! (surf = dynamic_cast<TVSurface*> (  meas_modules[i] )) ) {
-	std::stringstream errorMsg;
-	errorMsg << "MarlinKalTestTrack::MarlinKalTestTrack dynamic_cast failed for surface type: moduleID = " << trkhit->getCellID0() << std::endl ; 
-	throw MarlinTrk::Exception(errorMsg.str());
-      }
-      
-      bool hit_on_surface = surf->IsOnSurface(hit_pos);
-
-      if( (!surf_found) && hit_on_surface ){
-
-	ml = meas_modules[i] ;
-	surf_found = true ;
-
-      }
-      else if( surf_found && hit_on_surface ) {  // only one surface should be found, if not throw 
-
-	std::stringstream errorMsg;
-	errorMsg << "MarlinKalTestTrack::MarlinKalTestTrack hit found to be on two surfaces: moduleID = " << trkhit->getCellID0() << std::endl ; 
-	throw MarlinTrk::Exception(errorMsg.str());
-      }      
-
-    }
-    if( ! surf_found ){ // print out debug info
-      streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack hit not found to be on any surface matching moduleID = "
-			    << trkhit->getCellID0()
-			    << ": x = " << trkhit->getPosition()[0]
-			    << " y = " << trkhit->getPosition()[1]
-			    << " z = " << trkhit->getPosition()[2]
-			    << std::endl ;
-    }
-    else{
-      streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack hit found to be on surface matching moduleID = "
-			    << trkhit->getCellID0()
-			    << ": x = " << trkhit->getPosition()[0]
-			    << " y = " << trkhit->getPosition()[1]
-			    << " z = " << trkhit->getPosition()[2]
-			    << std::endl ;
-    }
-  }
-
-  return ml ;
-
-}
 
 int MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit) 
 {
 
-  return this->addHit( trkhit, findMeasLayer( trkhit )) ;
+  return this->addHit( trkhit, _ktest->findMeasLayer( trkhit )) ;
  
 } 
 
@@ -485,7 +410,7 @@ int MarlinKalTestTrack::addAndFit( ILDVTrackHit* kalhit, double& chi2increment, 
 
 int MarlinKalTestTrack::addAndFit( EVENT::TrackerHit* trkhit, double& chi2increment, double maxChi2Increment) {
     
-  const ILDVMeasLayer* ml = this->findMeasLayer( trkhit ) ;
+  const ILDVMeasLayer* ml = _ktest->findMeasLayer( trkhit ) ;
   ILDVTrackHit* kalhit = ml->ConvertLCIOTrkHit(trkhit) ;
 
   TKalTrackSite* site;

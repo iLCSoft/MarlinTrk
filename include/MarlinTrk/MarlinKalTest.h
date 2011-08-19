@@ -27,6 +27,11 @@ class TKalDetCradle ;
 class TVKalDetector ;
 class ILDVMeasLayer ;
 class THelicalTrack ;
+class ILDVMeasLayer ;
+
+namespace EVENT{
+  class TrackerHit ;
+}
 
 /** Interface to KaltTest Kalman fitter - instantiates and holds the detector geometry.
  */
@@ -73,10 +78,12 @@ class MarlinKalTest : public MarlinTrk::IMarlinTrkSystem {
   void getSensitiveMeasurementModulesForLayer( int layerID, std::vector<ILDVMeasLayer*>& measmodules);
 
 
-
 protected:
 
   //  void init(bool MSOn, bool EnergyLossOn) ;
+
+ //** find the measurment layer for a given hit 
+  const ILDVMeasLayer* findMeasLayer( EVENT::TrackerHit * trkhit) ;
 
   // get the last layer crossed by the helix when extrapolating from the present position to the pca to point
   const ILDVMeasLayer* getLastMeasLayer(THelicalTrack const& helix, TVector3 const& point) ;

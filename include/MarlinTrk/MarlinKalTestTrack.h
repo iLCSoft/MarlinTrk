@@ -161,8 +161,7 @@ class MarlinKalTestTrack : public MarlinTrk::IMarlinTrack {
   //** get the measurement site which uses the lcio TrackerHit trkhit
   int getSiteFromLCIOHit( EVENT::TrackerHit* trkhit, std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator& it ) ;
   
-  //** find the measurment layer for a given hit 
-  const ILDVMeasLayer* findMeasLayer( EVENT::TrackerHit * trkhit) ;
+ 
 
   /** helper function to restrict the range of the azimuthal angle to ]-pi,pi]*/
   inline double toBaseRange( double phi){
