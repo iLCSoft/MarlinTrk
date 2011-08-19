@@ -20,6 +20,7 @@
 #include "gear/BField.h"
 #include "gear/TPCParameters.h"
 #include "gear/PadRowLayout2D.h"
+#include "gear/ILDCellIDs.h"
 
 #include <math.h>
 #include <cmath>
@@ -184,6 +185,8 @@ void MarlinKalTest::storeActiveMeasurementModuleIDs(TVKalDetector* detector){
   
   Int_t nLayers = detector->GetEntriesFast() ;
   
+  UTIL::BitField64 encoder( ILDCellID0::encoder_string ) ; 
+  
   for( int i=0; i < nLayers; ++i ){
     
     ILDVMeasLayer* ml = dynamic_cast<ILDVMeasLayer*>( detector->At( i ) ); 
@@ -198,12 +201,12 @@ void MarlinKalTest::storeActiveMeasurementModuleIDs(TVKalDetector* detector){
 
       this->_active_measurement_modules.insert(std::pair<int,ILDVMeasLayer*>(ml->getLayerID(),ml));
       
-      UTIL::BitField64 encoder( ILDCellIDEncoding::encoder_string ) ; 
-
-      encoder.setValue(ml->getLayerID());
+      
+      encoder.setValue( ml->getLayerID() );
 
       // set the module field value to 0 leaving only sub_det, side and layer set.
-      encoder[ILDCellIDEncoding::Fields::module] = 0 ;
+      encoder[ILDCellID0::module] = 0 ;
+      encoder[ILDCellID0::sensor] = 0 ;
 
       int subdet_layer_id = encoder.lowWord() ;
 
