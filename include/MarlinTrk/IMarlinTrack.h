@@ -23,14 +23,14 @@ namespace MarlinTrk{
     virtual ~IMarlinTrack() {};
 
     //** add hit to track
-    virtual void addHit(EVENT::TrackerHit* hit) = 0 ;
+    virtual int addHit(EVENT::TrackerHit* hit) = 0 ;
 
     //** initialise the fit using the supplied hits only, using the given order to determine the direction of the track
     // SJA::FIXME: replace bool with type specifying the order. For now direction determines if the the hits were added odered in time of in reverse time.
     virtual int initialise( bool direction ) = 0 ; 
 
-    //** initialise the fit with a track state 
-    virtual int initialise( const IMPL::TrackStateImpl& ts) = 0 ;
+    //** initialise the fit with a track state, and z component of the B field in Tesla. The default for initalise_at_end is set to true as it is expected that the most common case will be to fit backwards in time. If it is desired to fit in the opposite direction then initalise_at_end should be set to false and the intialisation will be done at the first hit. 
+    virtual int initialise( const IMPL::TrackStateImpl& ts, double bfield_z, bool initalise_at_end = true ) = 0 ;
 
     //** perform the fit of all current hits, return code via int
     virtual int fit( bool fitDirection ) = 0 ;
