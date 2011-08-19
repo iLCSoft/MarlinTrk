@@ -14,13 +14,12 @@
 
 //SJA:FIXME: only needed for storing the modules in the layers map
 #include <UTIL/BitField64.h>
-#include <ILDCellIDEncoding.h>
+#include "UTIL/ILDConf.h"
 
 #include "gear/GEAR.h"
 #include "gear/BField.h"
 #include "gear/TPCParameters.h"
 #include "gear/PadRowLayout2D.h"
-#include "gear/ILDCellIDs.h"
 
 #include <math.h>
 #include <cmath>
