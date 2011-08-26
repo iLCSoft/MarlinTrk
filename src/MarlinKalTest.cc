@@ -9,7 +9,8 @@
 
 #include "kaldet/ILDSupportKalDetector.h"
 #include "kaldet/ILDVXDKalDetector.h"
-//#include "kaldet/ILDSITKalDetector.h"
+#include "kaldet/ILDSITKalDetector.h"
+#include "kaldet/ILDFTDKalDetector.h"
 #include "kaldet/ILDTPCKalDetector.h"
 
 //SJA:FIXME: only needed for storing the modules in the layers map
@@ -59,35 +60,30 @@ MarlinKalTest::~MarlinKalTest(){
 void MarlinKalTest::init() {
   
 
-//  Double_t ip_radius  = 0.5     ; //mm
-//  Double_t ip_halfl   = 2500.0  ; //mm
-
-//  const Double_t bz = _gearMgr->getBField().at( gear::Vector3D( 0.,0.,0.)  ).z() ;
-
-  //  ILDIPKalDetector* ipdet = new ILDIPKalDetector( ip_radius, ip_halfl, bz )  ; 
-  //  now store the measurement layer id's for the active layers 
-  //  this->storeActiveMeasurementLayerIDs(ipdet);
 
   ILDSupportKalDetector* supportdet = new ILDSupportKalDetector( *_gearMgr )  ;  
 
   ILDVXDKalDetector* vxddet = new ILDVXDKalDetector( *_gearMgr )  ;
-  // now store the measurement layer id's for the active layers 
+  // store the measurement layer id's for the active layers 
   this->storeActiveMeasurementModuleIDs(vxddet);
-  
-//  ILDSITKalDetector* sitdet = new ILDSITKalDetector( *_gearMgr )  ;
-//  // now store the measurement layer id's for the active layers 
-//  this->storeActiveMeasurementLayerIDs(sitdet);
 
-  streamlog_out( DEBUG4 ) << "  MarlinKalTest - create an ILDTPCKalDetector " << std::endl ;
+  ILDSITKalDetector* sitdet = new ILDSITKalDetector( *_gearMgr )  ;
+  // store the measurement layer id's for the active layers 
+  this->storeActiveMeasurementModuleIDs(sitdet);
+
+  ILDFTDKalDetector* ftddet = new ILDFTDKalDetector( *_gearMgr )  ;
+  // store the measurement layer id's for the active layers 
+  this->storeActiveMeasurementModuleIDs(ftddet);
 
   ILDTPCKalDetector* tpcdet = new ILDTPCKalDetector( *_gearMgr )  ;
-  // now store the measurement layer id's for the active layers 
+  // store the measurement layer id's for the active layers 
   this->storeActiveMeasurementModuleIDs(tpcdet);
 
 
   _det->Install( *supportdet ) ;  
   _det->Install( *vxddet ) ;  
-//  _det->Install( *sitdet ) ;    
+  _det->Install( *sitdet ) ;  
+  _det->Install( *ftddet ) ;    
   _det->Install( *tpcdet ) ;  
 
   
@@ -211,10 +207,10 @@ void MarlinKalTest::storeActiveMeasurementModuleIDs(TVKalDetector* detector){
 
       this->_active_measurement_modules_by_layer.insert(std::pair<int,ILDVMeasLayer*>(subdet_layer_id,ml));
       
-      streamlog_out(DEBUG) << "MarlinKalTest::storeActiveMeasurementLayerIDs added active layer with "
-			   << " ModuleID = " << ml->getLayerID()
-			   << " LayerID = " << subdet_layer_id
-			   << std::endl ;
+      streamlog_out(DEBUG3) << "MarlinKalTest::storeActiveMeasurementLayerIDs added active layer with "
+			    << " ModuleID = " << ml->getLayerID()
+			    << " LayerID = " << subdet_layer_id
+			    << std::endl ;
 
       
 

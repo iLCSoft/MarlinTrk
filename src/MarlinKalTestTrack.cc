@@ -45,7 +45,7 @@ public:
     
     double deltaChi2 = site.GetDeltaChi2();
     
-    streamlog_out( DEBUG0 ) << " KalTrackFilter::IsAccepted called  !  deltaChi2 = "  <<  deltaChi2  << std::endl;
+    streamlog_out( DEBUG3 ) << " KalTrackFilter::IsAccepted called  !  deltaChi2 = "  <<  deltaChi2  << std::endl;
 
     return ( deltaChi2 < _maxDeltaChi2 )   ; 
   }
@@ -374,7 +374,7 @@ int MarlinKalTestTrack::initialise( const IMPL::TrackStateImpl& ts, double bfiel
 
 int MarlinKalTestTrack::addAndFit( ILDVTrackHit* kalhit, double& chi2increment, TKalTrackSite*& site, double maxChi2Increment) {
 
-  streamlog_out(DEBUG4) << "MarlinKalTestTrack::addAndFit called " << std::endl ;
+  streamlog_out(DEBUG3) << "MarlinKalTestTrack::addAndFit called " << std::endl ;
 
   if ( ! _initialised ) {
     
@@ -403,7 +403,7 @@ int MarlinKalTestTrack::addAndFit( ILDVTrackHit* kalhit, double& chi2increment, 
 
   site = temp_site;
   chi2increment = site->GetDeltaChi2() ;
-  site->DebugPrint();
+  //  site->DebugPrint();
   return 0 ;
 
 }
@@ -610,6 +610,8 @@ int MarlinKalTestTrack::extrapolateToLayer( bool direction, int layerID, EVENT::
 
 int MarlinKalTestTrack::extrapolateToLayer( bool direction, int layerID, const TVKalSite& site, IMPL::TrackStateImpl& ts) { 
 
+  streamlog_out(DEBUG4) << "MarlinKalTestTrack::extrapolateToLayer( bool direction, int layerID, IMPL::TrackStateImpl& ts ) called " << std::endl ;
+
   gear::Vector3D crossing_point ;
 
   int error = this->intersectionWithLayer( direction, layerID, site, crossing_point) ;
@@ -732,6 +734,8 @@ int MarlinKalTestTrack::propagateToLayer( bool direction, int layerID, EVENT::Tr
 
 int MarlinKalTestTrack::propagateToLayer( bool direction, int layerID, const TVKalSite& site, IMPL::TrackStateImpl& ts) { 
 
+  streamlog_out(DEBUG4) << "MarlinKalTestTrack::propagateToLayer( bool direction, int layerID, const TVKalSite& site, IMPL::TrackStateImpl& ts) called " << std::endl;
+
   gear::Vector3D crossing_point ;
 
   int error = this->intersectionWithLayer( direction, layerID, site, crossing_point) ;
@@ -765,6 +769,8 @@ int MarlinKalTestTrack::intersectionWithLayer( bool direction, int layerID,  EVE
 
 int MarlinKalTestTrack::intersectionWithLayer( bool direction, int layerID, const TVKalSite& site, gear::Vector3D& point) {  
 
+  streamlog_out(DEBUG4) << "MarlinKalTestTrack::intersectionWithLayer( bool direction, int layerID, const TVKalSite& site, gear::Vector3D& point) called " << std::endl;
+
   std::vector<ILDVMeasLayer*> meas_modules ;
   _ktest->getSensitiveMeasurementModulesForLayer( layerID, meas_modules ) ;  
 
@@ -785,7 +791,7 @@ int MarlinKalTestTrack::intersectionWithLayer( bool direction, int layerID, cons
 
     for( unsigned int i=0; i < meas_modules.size(); ++i) {
      
-      streamlog_out(DEBUG1) << "MarlinKalTestTrack::intersectionWithLayer try and find intersection for ModuleID = " << (meas_modules[i])->getLayerID() << " layerID " << layerID << std::endl ;
+      streamlog_out(DEBUG2) << "MarlinKalTestTrack::intersectionWithLayer try and find intersection for ModuleID = " << (meas_modules[i])->getLayerID() << " layerID " << layerID << std::endl ;
 
       if( ! (surf = dynamic_cast<TVSurface*> (  meas_modules[i] )) )   {
       
@@ -805,7 +811,7 @@ int MarlinKalTestTrack::intersectionWithLayer( bool direction, int layerID, cons
 
       int crossing_exist = surf->CalcXingPointWith(helix, xto, dphi, direction) ;
 
-      streamlog_out(DEBUG1) << "MarlinKalTestTrack::intersectionWithLayer crossing_exist = " << crossing_exist << " dphi " << dphi << std::endl ;
+      streamlog_out(DEBUG2) << "MarlinKalTestTrack::intersectionWithLayer crossing_exist = " << crossing_exist << " dphi " << dphi << std::endl ;
       
       // make sure we get the next crossing 
       if( crossing_exist > 0 && dphi < dphi_min ) { 
@@ -825,7 +831,7 @@ int MarlinKalTestTrack::intersectionWithLayer( bool direction, int layerID, cons
     }
    
 
-    streamlog_out(DEBUG1) << "MarlinKalTestTrack::intersectionWithLayer intersection with layerID = "
+    streamlog_out(DEBUG3) << "MarlinKalTestTrack::intersectionWithLayer intersection with layerID = "
 			  << layerID
 			  << ": at x = " << point.x()
 			  << " y = "     << point.y()
@@ -937,7 +943,7 @@ int MarlinKalTestTrack::getSiteFromLCIOHit( EVENT::TrackerHit* trkhit, std::map<
     }
   } 
 
-  streamlog_out( DEBUG4 )  << "MarlinKalTestTrack::getSiteFromLCIOHit: site found" << std::endl ;
+  streamlog_out( DEBUG3 )  << "MarlinKalTestTrack::getSiteFromLCIOHit: site found" << std::endl ;
   return 0 ;
   
 }
