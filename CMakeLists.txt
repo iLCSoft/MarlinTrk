@@ -91,7 +91,7 @@ ADD_DEFINITIONS( "-Wno-long-long" )
 # include directories
 INCLUDE_DIRECTORIES( ./include )
 INCLUDE_DIRECTORIES( ./temporary_utils )
-#INSTALL_DIRECTORY( ./include DESTINATION . FILES_MATCHING PATTERN "*.h" )
+INSTALL_DIRECTORY( ./include DESTINATION . FILES_MATCHING PATTERN "*.h" )
 
 # add library
 AUX_SOURCE_DIRECTORY( ./src library_sources )
