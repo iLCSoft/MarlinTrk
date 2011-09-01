@@ -827,6 +827,9 @@ int MarlinKalTestTrack::intersectionWithLayer( bool direction, int layerID, cons
     }
 
     if( ! surf_found ){
+      streamlog_out(DEBUG3) << "MarlinKalTestTrack::intersectionWithLayer no intersection found with layerID = "
+			    << layerID
+			    << std::endl ;
       return -1;
     }
    
