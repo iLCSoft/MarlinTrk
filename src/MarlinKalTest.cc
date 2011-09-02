@@ -11,6 +11,7 @@
 #include "kaldet/ILDVXDKalDetector.h"
 #include "kaldet/ILDSITKalDetector.h"
 #include "kaldet/ILDFTDKalDetector.h"
+#include "kaldet/ILDFTDDiscBasedKalDetector.h"
 #include "kaldet/ILDTPCKalDetector.h"
 
 //SJA:FIXME: only needed for storing the modules in the layers map
@@ -88,15 +89,29 @@ void MarlinKalTest::init() {
   catch( gear::UnknownParameterException& e){   
     streamlog_out( MESSAGE ) << "  MarlinKalTest - SIT missing in gear file: SIT Not Built " << std::endl ;  
   }
-  
+
+  bool FTD_found = false ;
   try{
     ILDFTDKalDetector* ftddet = new ILDFTDKalDetector( *_gearMgr )  ;
     // store the measurement layer id's for the active layers 
     this->storeActiveMeasurementModuleIDs(ftddet);
     _det->Install( *ftddet ) ;    
+    FTD_found = true ;
   }
   catch( gear::UnknownParameterException& e){   
-    streamlog_out( MESSAGE ) << "  MarlinKalTest - FTD missing in gear file: FTD Not Built " << std::endl ;
+    streamlog_out( MESSAGE ) << "  MarlinKalTest - Petal Based FTD missing in gear file: Petal Based FTD Not Built " << std::endl ;
+  }
+
+  if( ! FTD_found ){
+    try{
+      ILDFTDDiscBasedKalDetector* ftddet = new ILDFTDDiscBasedKalDetector( *_gearMgr )  ;
+      // store the measurement layer id's for the active layers 
+      this->storeActiveMeasurementModuleIDs(ftddet);
+      _det->Install( *ftddet ) ;    
+    }
+    catch( gear::UnknownParameterException& e){   
+      streamlog_out( MESSAGE ) << "  MarlinKalTest - Simple Disc Based FTD missing in gear file: Simple Disc Based FTD Not Built " << std::endl ;
+    }
   }
 
   try{
