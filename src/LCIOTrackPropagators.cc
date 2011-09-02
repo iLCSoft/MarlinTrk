@@ -339,10 +339,13 @@ namespace LCIOTrackPropagators{
 
 
   // Propagate track to a new reference point taken as its crossing point with a plane parallel to the z axis, containing points x1,x2 and y1,y2. Tolerance for intersection determined by epsilon.
-  // For direction== 0  the closest crossing point will be taken
-  // For direction== 1  the first crossing traversing in positive s will be taken
-  // For direction==-1  the first crossing traversing in negative s will be taken
+  // For direction ==  0  the closest crossing point will be taken
+  // For direction ==  1  the first crossing traversing in positive s will be taken
+  // For direction == -1  the first crossing traversing in negative s will be taken
   int PropagateLCIOToPlaneParralelToZ( IMPL::TrackStateImpl& ts, float x1, float y1, float x2, float y2, int direction, double epsilon) {
+
+    // check that direction has one of the correct values
+    if( !( direction == 0 || direction == 1 || direction == -1) ) return -1 ;
 
     // taken from http://paulbourke.net/geometry/sphereline/raysphere.c
 
@@ -428,7 +431,7 @@ namespace LCIOTrackPropagators{
     
     s_2 = atan2(-sin_delta_phi2,cos_delta_phi2) / omega ;
 
-    double x,y,z;
+    double x(0.0), y(0.0), z(0.0) ;
 
     if( direction == 0 ) { // take closest intersection
       if( fabs(s_1) < fabs(s_2) ) {
