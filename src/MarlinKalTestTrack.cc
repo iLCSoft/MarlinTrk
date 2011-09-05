@@ -404,7 +404,7 @@ int MarlinKalTestTrack::addAndFit( ILDVTrackHit* kalhit, double& chi2increment, 
 
   site = temp_site;
   chi2increment = site->GetDeltaChi2() ;
-  //  site->DebugPrint();
+
   return 0 ;
 
 }
