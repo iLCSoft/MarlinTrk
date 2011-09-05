@@ -20,4 +20,14 @@ namespace MarlinTrk{
     return ss.str() ;
   }
 
+  void IMarlinTrkSystem::registerOptions() {
+
+    _cfg.registerOption( IMarlinTrkSystem::CFG::useQMS,  "useMultipleScattering", true) ;
+    _cfg.registerOption( IMarlinTrkSystem::CFG::usedEdx, "useEnergyLoss", true) ;
+    _cfg.registerOption( IMarlinTrkSystem::CFG::useSmoothing, "useSmoothingInFit", false) ;
+
+
+  }
+
+
 }

@@ -31,7 +31,7 @@
 #include "streamlog/streamlog.h"
 
 
-MarlinKalTest::MarlinKalTest( const gear::GearMgr& gearMgr, bool MSOn, bool EnergyLossOn) :  
+MarlinKalTest::MarlinKalTest( const gear::GearMgr& gearMgr) :  
   _gearMgr( &gearMgr )  
 {
   
@@ -42,12 +42,9 @@ MarlinKalTest::MarlinKalTest( const gear::GearMgr& gearMgr, bool MSOn, bool Ener
   
   // this could be made a public init() method taking options ....
   streamlog_out( DEBUG4 ) << "  MarlinKalTest - call init " << std::endl ;
-  
-//  this->includeMultipleScattering(MSOn) ;  
-//  this->includeEnergyLoss(EnergyLossOn) ;  
-//
-//  init() ;
-  
+   
+  this->registerOptions() ;
+
   streamlog_out( DEBUG4 ) << "  MarlinKalTest - established " << std::endl ;
 
 }
@@ -129,10 +126,11 @@ void MarlinKalTest::init() {
 
   streamlog_out( DEBUG4 ) << "  MarlinKalTest - number of layers = " << _det->GetEntriesFast() << std::endl ;
 
-//  //  int ilayer =  _det->GetEntriesFast()-1 ;
-//  int ilayer = -1 ;
-//  const ILDVMeasLayer   &ml  = *dynamic_cast<ILDVMeasLayer *>(_det->At(ilayer)); 
-//  streamlog_out( DEBUG4 ) << "  MarlinKalTest - name of last layer = " << ml.GetMLName() << std::endl ;
+  streamlog_out( DEBUG4 ) << "Options: " << std::endl << this->getOptions() << std::endl ;
+
+  this->includeMultipleScattering( getOption(IMarlinTrkSystem::CFG::useQMS) ) ;  
+  this->includeEnergyLoss( getOption(IMarlinTrkSystem::CFG::usedEdx) ) ; 
+
 
 }
 

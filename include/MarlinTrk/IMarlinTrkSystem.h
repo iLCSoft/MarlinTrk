@@ -51,8 +51,11 @@ namespace MarlinTrk {
       static const unsigned  useQMS   = 1 ;
       /** Use multiple scattering in the track fits. */
       static const unsigned  usedEdx  = 2 ;
+      /** Use smoothing when calling fit( bool fitDirection ) */
+      static const unsigned  useSmoothing = 3 ;
       //---
-      static const unsigned  size     = 3 ;
+      static const unsigned  size     = 4 ;
+
     } ;
     
     
@@ -73,6 +76,7 @@ namespace MarlinTrk {
      */ 
     std::string getOptions() ;
 
+
     /** Initialise tracking system - to be called after configuration with setOption() -
      *  IMarlinTrkSystem cannot be used before a call to init().
      */
@@ -82,16 +86,22 @@ namespace MarlinTrk {
     /** Return an instance of IMarlinTrack corresponding to the current implementation.
      */
     virtual MarlinTrk::IMarlinTrack* createTrack() = 0 ;
-    
-    
+
+        
   protected:
 
     ConfigFlags _cfg ;
+
+    /** Register the possible configuration options
+     */ 
+    void registerOptions() ;
+
 
     
   private:
     
     IMarlinTrkSystem& operator=( const IMarlinTrkSystem&) ; // disallow assignment operator 
+
     
   } ;
   

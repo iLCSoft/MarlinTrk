@@ -2,6 +2,7 @@
 #include "MarlinTrk/MarlinKalTestTrack.h"
 
 #include "MarlinTrk/MarlinKalTest.h"
+#include "MarlinTrk/IMarlinTrkSystem.h"
 
 #include <kaltest/TKalDetCradle.h>
 #include <kaltest/TKalTrack.h>
@@ -498,6 +499,11 @@ int MarlinKalTestTrack::fit( bool fitDirection ) {
         
   } // end of Kalman filter
   
+  if( _ktest->getOption(  MarlinTrk::IMarlinTrkSystem::CFG::useSmoothing ) ){
+    streamlog_out( DEBUG3 )  << "Perform Smoothing for All Previous Measurement Sites " << std::endl ;
+    _kaltrack->SmoothAll() ;
+  }
+
   return 0;
 
 }

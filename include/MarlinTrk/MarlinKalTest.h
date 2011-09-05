@@ -1,8 +1,7 @@
 #ifndef INCLUDE_MarlinKalTest
 #define INCLUDE_MarlinKalTest 1
 
-//#include "IMarlinTrkFitter.h"
-#include "IMarlinTrkSystem.h"
+#include "MarlinTrk/IMarlinTrkSystem.h"
 
 
 #include "gear/GearMgr.h"
@@ -46,11 +45,10 @@ class MarlinKalTest : public MarlinTrk::IMarlinTrkSystem {
   static const bool FitForward    = kIterForward ;
   static const bool OrderOutgoing  = true ;
   static const bool OrderIncoming  = false ;
-  static const bool PropagateToIP  = true ;
   
 
   /** Default c'tor, initializes the geometry from GEAR. */
-  MarlinKalTest( const gear::GearMgr& gearMgr, bool MSOn=true, bool EnergyLossOn=true) ;
+  MarlinKalTest( const gear::GearMgr& gearMgr) ;
 
   //  MarlinKalTest( const gear::GearMgr& gearMgr ) ;
   
