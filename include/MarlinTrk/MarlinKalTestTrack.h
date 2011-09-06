@@ -70,93 +70,93 @@ class MarlinKalTestTrack : public MarlinTrk::IMarlinTrack {
 
 
   //** get track state, return code via int
-  int getTrackState( IMPL::TrackStateImpl& ts ) ;
+  int getTrackState( IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) ;
   
   //** get track state at measurement associated with the given hit, return code via int
-  int getTrackState( EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts ) ;
+  int getTrackState( EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) ;
   
 
   // PROPAGATORS 
   
-  //** propagate the fit to the point of closest approach to the given point. 
-  int propagate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts) ;
+  //** propagate the fit to the point of closest approach to the given point, returning TrackState, chi2 and ndf via reference    
+  int propagate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) ;
   
-  //** propagate track state at measurement associated with the given hit, the fit to the point of closest approach to the given point. 
-  int propagate( const gear::Vector3D& point, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts) ;
+  //** propagate track state at measurement associated with the given hit, the fit to the point of closest approach to the given point, returning TrackState, chi2 and ndf via reference 
+  int propagate( const gear::Vector3D& point, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) ;
 
-  //** propagate track state at site, to the point of closest approach to the given point. 
-  int propagate( const gear::Vector3D& point, const TVKalSite& site, IMPL::TrackStateImpl& ts) ;
+  //** propagate track state at site, to the point of closest approach to the given point, returning TrackState, chi2 and ndf via reference    
+  int propagate( const gear::Vector3D& point, const TVKalSite& site, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) ;
   
-  //** propagate to numbered sensitive layer, returning TrackState via provided reference 
-  int propagateToLayer( bool direction, int layerNumber, IMPL::TrackStateImpl& ts)  ;
+  //** propagate to numbered sensitive layer, returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference
+  int propagateToLayer( bool direction, int layerID, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID )  ;
 
-  //** propagate track state at measurement associated with the given hit, to numbered sensitive layer, returning TrackState via provided reference 
-  int propagateToLayer( bool direction, int layerNumber, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts)  ; 
+  //** propagate track state at measurement associated with the given hit, to numbered sensitive layer, returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference
+  int propagateToLayer( bool direction, int layerID, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID )  ; 
 
-  //** propagate track state at measurement site, to numbered sensitive layer, returning TrackState via provided reference 
-  int propagateToLayer( bool direction, int layerNumber, const TVKalSite& site, IMPL::TrackStateImpl& ts) ; 
+  //** propagate track state at measurement site, to numbered sensitive layer, returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference
+  int propagateToLayer( bool direction, int layerID, const TVKalSite& site, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID) ; 
 
 
-  //** propagate to next sensitive layer, returning TrackState via provided reference, layer number of sensitive layer returned via layerNumber reference 
-  int propagateToNextLayer( bool direction, IMPL::TrackStateImpl& ts, int& layerNumber) {  throw MarlinTrk::Exception("Function Not Implemented Yet "); } ;
+  //** propagate to next sensitive layer, returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference
+  int propagateToNextLayer( bool direction, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID) {  throw MarlinTrk::Exception("Function Not Implemented Yet "); } ;
 
-  //** propagate track state at measurement associated with the given hit, to next sensitive layer, returning TrackState via provided reference, layer number of sensitive layer returned via layerNumber reference 
-  int propagateToNextLayer( bool direction, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, int& layerNumber) {  throw MarlinTrk::Exception("Function Not Implemented Yet "); } ;
+  //** propagate track state at measurement associated with the given hit, to next sensitive layer, returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference
+  int propagateToNextLayer( bool direction, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID) {  throw MarlinTrk::Exception("Function Not Implemented Yet "); } ;
 
  
   // EXTRAPOLATORS
  
-  //** extrapolate the fit to the point of closest approach to the given point. 
-  int extrapolate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts) ;
+  //** extrapolate the fit to the point of closest approach to the given point, returning TrackState, chi2 and ndf via reference     
+  int extrapolate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) ;
   
-  //** extrapolate track state at measurement associated with the given hit, to the point of closest approach to the given point. 
-  int extrapolate( const gear::Vector3D& point, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts) ;
+  //** extrapolate track state at measurement associated with the given hit, to the point of closest approach to the given point, returning TrackState, chi2 and ndf via reference       
+  int extrapolate( const gear::Vector3D& point, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) ;
 
-  //** extrapolate track state at site, to the point of closest approach to the given point. 
-  int extrapolate( const gear::Vector3D& point, const TVKalSite& site, IMPL::TrackStateImpl& ts) ;
+  //** extrapolate track state at site, to the point of closest approach to the given point, returning TrackState, chi2 and ndf via reference     
+  int extrapolate( const gear::Vector3D& point, const TVKalSite& site, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) ;
   
-  //** extrapolate to numbered sensitive layer, returning TrackState via provided reference 
-  int extrapolateToLayer( bool direction, int layerNumber, IMPL::TrackStateImpl& ts) ;
+  //** extrapolate to numbered sensitive layer, returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference 
+  int extrapolateToLayer( bool direction, int layerID, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID ) ;
   
-  //** extrapolate track state at measurement associated with the given hit, to numbered sensitive layer, returning TrackState via provided reference 
-  int extrapolateToLayer( bool direction, int layerNumber, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts) ;
+  //** extrapolate track state at measurement associated with the given hit, to numbered sensitive layer,  returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference
+  int extrapolateToLayer( bool direction, int layerID, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID ) ;
 
-  //** extrapolate track state at measurement site, to numbered sensitive layer, returning TrackState via provided reference 
-  int extrapolateToLayer( bool direction, int layerNumber, const TVKalSite& site, IMPL::TrackStateImpl& ts)  ;
+  //** extrapolate track state at measurement site, to numbered sensitive layer, returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference 
+  int extrapolateToLayer( bool direction, int layerID, const TVKalSite& site, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID )  ;
 
-  //** extrapolate to next sensitive layer, returning TrackState via provided reference, layer number of sensitive layer returned via layerNumber reference 
-  int extrapolateToNextLayer( bool direction, IMPL::TrackStateImpl& ts, int& layerNumber) {  throw MarlinTrk::Exception("Function Not Implemented Yet "); } ;
+  //** extrapolate to next sensitive layer, returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference
+  int extrapolateToNextLayer( bool direction, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID) {  throw MarlinTrk::Exception("Function Not Implemented Yet "); } ;
 
-  //** extrapolate track state at measurement associated with the given hit, to next sensitive layer, returning TrackState via provided reference, layer number of sensitive layer returned via layerNumber reference 
-  int extrapolateToNextLayer( bool direction, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, int& layerNumber) {  throw MarlinTrk::Exception("Function Not Implemented Yet "); } ;
+  //** extrapolate track state at measurement associated with the given hit, to next sensitive layer, returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference
+  int extrapolateToNextLayer( bool direction, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID) {  throw MarlinTrk::Exception("Function Not Implemented Yet "); } ;
 
   
   
   // INTERSECTORS
 
-  //** extrapolate to numbered sensitive layer, returning intersection point in global coordinates 
-  int intersectionWithLayer( bool direction, int layerNumber, gear::Vector3D& point)  ;
+  //** extrapolate to numbered sensitive layer, returning intersection point in global coordinates and integer ID of the intersected sensitive detector element via reference 
+  int intersectionWithLayer( bool direction, int layerID, gear::Vector3D& point, int& detElementID )  ;
 
-  //** extrapolate track state at measurement associated with the given hit, to numbered sensitive layer, returning intersection point in global coordinates 
-  int intersectionWithLayer( bool direction, int layerNumber, EVENT::TrackerHit* trkhit, gear::Vector3D& point) ;
+  //** extrapolate track state at measurement associated with the given hit, to numbered sensitive layer, returning intersection point in global coordinates and integer ID of the intersected sensitive detector element via reference 
+  int intersectionWithLayer( bool direction, int layerID, EVENT::TrackerHit* trkhit, gear::Vector3D& point, int& detElementID ) ;
 
-  //** extrapolate track state at site, to numbered sensitive layer, returning intersection point in global coordinates 
-  int intersectionWithLayer( bool direction, int layerNumber, const TVKalSite& site, gear::Vector3D& point) ;
+  //** extrapolate track state at site, to numbered sensitive layer, returning intersection point in global coordinates and integer ID of the intersected sensitive detector element via reference 
+  int intersectionWithLayer( bool direction, int layerID, const TVKalSite& site, gear::Vector3D& point, int& detElementID ) ;
 
-  //** extrapolate to next sensitive layer, returning intersection point in global coordinates, layer number of sensitive layer returned via layerNumber reference 
-  int intersectionWithNextLayer( bool direction, int& layerNumber, gear::Vector3D& point) {  throw MarlinTrk::Exception("Function Not Implemented Yet "); } ;
+  //** extrapolate to next sensitive layer, returning intersection point in global coordinates and integer ID of the intersected sensitive detector element via reference 
+  int intersectionWithNextLayer( bool direction, gear::Vector3D& point, int& detElementID ) {  throw MarlinTrk::Exception("Function Not Implemented Yet "); } ;
   
-  //** extrapolate track state at measurement associated with the given hit, to next sensitive layer, returning intersection point in global coordinates, layer number of sensitive layer returned via layerNumber reference 
-  int intersectionWithNextLayer( bool direction, EVENT::TrackerHit* trkhit, int& layerNumber, gear::Vector3D& point) {  throw MarlinTrk::Exception("Function Not Implemented Yet "); } ;
+  //** extrapolate track state at measurement associated with the given hit, to next sensitive layer, returning intersection point in global coordinates and integer ID of the intersected sensitive detector element via reference
+  int intersectionWithNextLayer( bool direction, EVENT::TrackerHit* trkhit, gear::Vector3D& point, int& detElementID ) {  throw MarlinTrk::Exception("Function Not Implemented Yet "); } ;
 
 
   //** end of memeber functions from IMarlinTrack interface
 
   //** fill LCIO Track State with parameters from helix and cov matrix 
-  void ToLCIOTrackState( const TVKalSite& site,  IMPL::TrackStateImpl& ts ) ;
+  void ToLCIOTrackState( const TVKalSite& site,  IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) ;
   
   //** fill LCIO Track State with parameters from helix and cov matrix 
-  void ToLCIOTrackState( const THelicalTrack& helix, const TMatrixD& cov, IMPL::TrackStateImpl& ts ) ;
+  void ToLCIOTrackState( const THelicalTrack& helix, const TMatrixD& cov, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) ;
   
   //** get the measurement site which uses the lcio TrackerHit trkhit
   int getSiteFromLCIOHit( EVENT::TrackerHit* trkhit, std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator& it ) ;
