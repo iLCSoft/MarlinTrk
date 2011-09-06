@@ -20,7 +20,7 @@ namespace MarlinTrk{
    *  perform track finding and fitting. It is asssumed that the underlying implemetation will by 
    *  a Kalman Filter or a similar algorithm.
    *
-   * @version $Id:$
+   * @version $Id$
    * @author S.Aplin, F. Gaede DESY
    */
   

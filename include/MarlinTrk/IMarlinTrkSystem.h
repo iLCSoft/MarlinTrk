@@ -34,9 +34,9 @@ namespace MarlinTrk {
 
   //----------------------------------------------------------------------------------------------------
   
-  /** Base class for MarlinTrk implementations.
+  /** Base class for tracking system implementations in MarlinTrk.
    *
-   * @version $Id:$
+   * @version $Id$
    * @author S.Aplin, F. Gaede DESY
    */
 
