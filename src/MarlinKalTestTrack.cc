@@ -246,14 +246,6 @@ int MarlinKalTestTrack::initialise( const IMPL::TrackStateImpl& ts, double bfiel
     throw MarlinTrk::Exception("Track fit already initialised");   
     
   }
-
-  if (_kalhits->GetEntries() < 3) {
-    
-    streamlog_out( ERROR) << "<<<<<< MarlinKalTestTrack::initialise: Shortage of Hits! nhits = "  
-			  << _kalhits->GetEntries() << " >>>>>>>" << std::endl;
-    return 1;
-    
-  }
   
   // for GeV, Tesla, R in mm  
   double alpha = 2.99792458E-4 ;
