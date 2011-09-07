@@ -89,13 +89,13 @@ ADD_DEFINITIONS( "-Wall -ansi -pedantic" )
 ADD_DEFINITIONS( "-Wno-long-long" )
 
 # include directories
-INCLUDE_DIRECTORIES( ./include )
-INCLUDE_DIRECTORIES( ./temporary_utils )
+INCLUDE_DIRECTORIES( BEFORE ./include )
+#INCLUDE_DIRECTORIES( BEFORE ./temporary_utils )
 INSTALL_DIRECTORY( ./include DESTINATION . FILES_MATCHING PATTERN "*.h" )
 
 # add library
 AUX_SOURCE_DIRECTORY( ./src library_sources )
-AUX_SOURCE_DIRECTORY( ./temporary_utils library_sources )
+#AUX_SOURCE_DIRECTORY( ./temporary_utils library_sources )
 ADD_SHARED_LIBRARY( ${PROJECT_NAME} ${library_sources} )
 INSTALL_SHARED_LIBRARY( ${PROJECT_NAME} DESTINATION lib )
 
@@ -104,3 +104,4 @@ DISPLAY_STD_VARIABLES()
 
 # generate and install following configuration files
 GENERATE_PACKAGE_CONFIGURATION_FILES( MarlinTrkConfig.cmake MarlinTrkConfigVersion.cmake MarlinTrkLibDeps.cmake )
+
