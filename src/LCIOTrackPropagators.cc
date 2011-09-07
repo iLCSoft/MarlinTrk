@@ -254,7 +254,7 @@ namespace LCIOTrackPropagators{
     
     s_2 = atan2(-sin_delta_phi2,cos_delta_phi2) / omega ;
 
-    double x,y,z ;
+    double x=0, y=0, z=0 ;
     
     if( direction == 0 ) { // take closest intersection
       if( fabs(s_1) < fabs(s_2) ) {
