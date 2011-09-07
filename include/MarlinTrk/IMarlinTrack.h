@@ -28,54 +28,70 @@ namespace MarlinTrk{
     
   public:
     
-    /** boolean constant for defining backward direction - to be used for intitialize, fit, propagate etc. */
+    /** boolean constant for defining backward direction - to be used for intitialise */
     static const bool backward = false ;
     
-    /** boolean constant for defining backward direction - to be used for intitialize, fit, propagate etc. */
+    /** boolean constant for defining backward direction - to be used for intitialise */
     static const bool forward  = ! backward  ;
     
+
+   
+    static  const int modeBackward = - 1 ;
+    static  const int modeClosest  =   0 ;
+    static  const int modeForward  = + 1 ;
+
+
+    static const int success  = 0 ;  // no error
+    static const int error = 1 ;
+    static const int bad_intputs = 3 ;
+    static const int no_intersection = 4 ; // no intersection found
+
+
+
+
     /**default d'tor*/
     virtual ~IMarlinTrack() {};
     
-    /** add hit to track - hits have to be given ordered with in time (typically outgoing)
+    /** add hit to track - the hits have to be added ordered in time ( i.e. typically outgoing )
+     *  this order will define the direction of the energy loss used in the fit
      */
     virtual int addHit(EVENT::TrackerHit* hit) = 0 ;
 
-    /** initialise the fit using the supplied hits only - use IMarlinTrack::backward or IMarlinTrack::forward to specify the direction
-     *  with respect to the order used in addHit(EVENT::TrackerHit* hit).
+    /** initialise the fit using the hits added up to this point -
+     *  the fit direction has to be specified using IMarlinTrack::backward or IMarlinTrack::forward. 
+     *  this is the order  wrt the order used in addHit() that will be used in the fit() 
      */
-    virtual int initialise( bool direction ) = 0 ; 
+    virtual int initialise( bool fitDirection ) = 0 ; 
 
-    /** same as initialise( bool direction )*/
-    inline int  initialize( bool direction ) { return initialise( direction ) ; } ; 
-    
     /** initialise the fit with a track state, and z component of the B field in Tesla.
-     *  The default for initalise_at_end is set to true as it is expected that the most common case will be to fit backwards in time.
-     *  If it is desired to fit in the opposite direction then initalise_at_end should be set to false and the intialisation will be done at the first hit. 
+     *  the fit direction has to be specified using IMarlinTrack::backward or IMarlinTrack::forward. 
+     *  this is the order that will be used in the fit().
+     *  it is the users responsibility that the track state is consistent with the order
+     *  of the hits used in addHit() ( i.e. the direction of energy loss )
      */
-    virtual int initialise( const IMPL::TrackStateImpl& ts, double bfield_z, bool initalise_at_end = true ) = 0 ;
+    virtual int initialise( const IMPL::TrackStateImpl& ts, double bfield_z, bool fitDirection ) = 0 ;
 
-    /** same as initialise(const IMPL::TrackStateImpl& ts, double bfield_z, bool initalise_at_end = true ) */
-    inline int  initialize( const IMPL::TrackStateImpl& ts, double bfield_z, bool initalise_at_end = true ) { 
 
-      return initialise( ts, bfield_z, initalise_at_end ) ;
-    } ; 
-
-    /** perform the fit of all current hits, return code via int - use IMarlinTrack::backward or IMarlinTrack::forward to specify the direction
-     *  with respect to the order used in addHit(EVENT::TrackerHit* hit)
+    /** perform the fit of all current hits, returns error code ( IMarlinTrack::success if no error ) .
+     *  the fit will be performed  in the order specified at initialise() wrt the order used in addFit(), i.e.
+     *  IMarlinTrack::backward implies fitting from the outside to the inside for tracks comming from the IP.
      */
-    virtual int fit( bool fitDirection ) = 0 ;
+    virtual int fit() = 0 ;
     
+
     /** update the current fit using the supplied hit, return code via int. Provides the Chi2 increment to the fit from adding the hit via reference. 
+     *  the given hit will not be added if chi2increment > maxChi2Increment. 
      */
     virtual int addAndFit( EVENT::TrackerHit* hit, double& chi2increment, double maxChi2Increment=DBL_MAX ) = 0 ;
     
     
+
     // Track State Accessesors
     
     /** get track state, returning TrackState, chi2 and ndf via reference 
      */
     virtual int getTrackState( IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) = 0 ;
+
 
     /** get track state at measurement associated with the given hit, returning TrackState, chi2 and ndf via reference 
      */
@@ -88,28 +104,33 @@ namespace MarlinTrk{
      */
     virtual int propagate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) = 0 ;
 
+
     /** propagate track state at measurement associated with the given hit, the fit to the point of closest approach to the given point,
      *  returning TrackState, chi2 and ndf via reference   
      */
     virtual int propagate( const gear::Vector3D& point, EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) = 0 ;
     
-    /** propagate the fit to next sensitive layer, returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference 
-     */
-    virtual int propagateToNextLayer( bool direction, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& layerID ) = 0 ;
 
-    /** propagate track state at measurement associated with the given hit, to next sensitive layer, 
-     *	returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference
-     */
-    virtual int propagateToNextLayer( bool direction, EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& layerID ) = 0 ;
+
+    // /** propagate the fit to next sensitive layer, returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference 
+    //  */
+    // virtual int propagateToNextLayer( IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& layerID , mode = 0 ) = 0 ;
+
+
+    // /** propagate track state at measurement associated with the given hit, to next sensitive layer, 
+    //  *	returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference
+    //  / */
+    // virtual int propagateToNextLayer( EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& layerID, int mode=0 ) = 0  ;
     
+
     /** propagate fit to numbered sensitive layer, returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference 
      */
-    virtual int propagateToLayer( bool direction, int layerID, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID ) = 0 ;
+    virtual int propagateToLayer( int layerID, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID, int mode=0 ) = 0  ;
 
     /** propagate track state at measurement associated with the given hit, to numbered sensitive layer, 
      *  returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference 
      */
-    virtual int propagateToLayer( bool direction, int layerID, EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID ) = 0 ;
+    virtual int propagateToLayer( int layerID, EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID, int mode=0 ) = 0  ;
 
 
     // EXTRAPOLATORS
@@ -123,46 +144,47 @@ namespace MarlinTrk{
      */
     virtual int extrapolate( const gear::Vector3D& point, EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) = 0 ;
 
-    /** extrapolate the fit to next sensitive layer, returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference 
-     */
-    virtual int extrapolateToNextLayer( bool direction, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID ) = 0 ;
+    // /** extrapolate the fit to next sensitive layer, returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference 
+    //  */
+    // virtual int extrapolateToNextLayer( IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID, int mode=0 ) = 0  ;
 
-    /** extrapolate track state at measurement associated with the given hit, to next sensitive layer, 
-     *	returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference 
-     */
-    virtual int extrapolateToNextLayer( bool direction, EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID ) = 0 ;
+    // /** extrapolate track state at measurement associated with the given hit, to next sensitive layer, 
+    //  *	returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference 
+    //  */
+    // virtual int extrapolateToNextLayer( EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID, int mode=0 ) = 0  ;
 
     /** extrapolate the fit to numbered sensitive layer, returning TrackState via provided reference 
      */
-    virtual int extrapolateToLayer( bool direction, int layerID, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID ) = 0 ;
+    virtual int extrapolateToLayer( int layerID, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID, int mode=0 ) = 0  ;
 
     /** extrapolate track state at measurement associated with the given hit, to numbered sensitive layer, 
      *  returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference 
      */
-    virtual int extrapolateToLayer( bool direction, int layerID, EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID ) = 0 ;
+    virtual int extrapolateToLayer( int layerID, EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID, int mode=0 ) = 0  ;
 
 
     // INTERSECTORS
 
-    /** extrapolate the fit to next sensitive layer, returning intersection point in global 
-     *  coordinates and integer ID of the intersected sensitive detector element via reference 
-     */
-    virtual int intersectionWithNextLayer( bool direction, gear::Vector3D& point, int& detElementID ) = 0 ;
+    // /** extrapolate the fit to next sensitive layer, returning intersection point in global 
+    //  *  coordinates and integer ID of the intersected sensitive detector element via reference 
+    //  */
+    // virtual int intersectionWithNextLayer( gear::Vector3D& point, int& detElementID, int mode=0 ) = 0  ;
 
-    /** extrapolate track state at measurement associated with the given hit, to next sensitive layer, 
-     *  returning intersection point in global coordinates and integer ID of the intersected sensitive detector element via reference 
-     */
-    virtual int intersectionWithNextLayer( bool direction, EVENT::TrackerHit* hit, gear::Vector3D& point, int& detElementID ) = 0 ;
+    // /** extrapolate track state at measurement associated with the given hit, to next sensitive layer, 
+    //  *  returning intersection point in global coordinates and integer ID of the intersected sensitive detector element via reference 
+    //  */
+    // virtual int intersectionWithNextLayer( EVENT::TrackerHit* hit, gear::Vector3D& point, int& detElementID, int mode=0 ) = 0  ;
     
+
     /** extrapolate the fit to numbered sensitive layer, returning intersection point in global coordinates and integer ID of the 
      *  intersected sensitive detector element via reference 
      */
-    virtual int intersectionWithLayer( bool direction, int layerID, gear::Vector3D& point, int& detElementID ) = 0 ;
+    virtual int intersectionWithLayer( int layerID, gear::Vector3D& point, int& detElementID, int mode=0 ) = 0  ;
     
     /** extrapolate track state at measurement associated with the given hit, to numbered sensitive layer,
      *  returning intersection point in global coordinates and integer ID of the intersected sensitive detector element via reference 
      */
-    virtual int intersectionWithLayer( bool direction, int layerID, EVENT::TrackerHit* hit, gear::Vector3D& point, int& detElementID ) = 0 ;
+    virtual int intersectionWithLayer( int layerID, EVENT::TrackerHit* hit, gear::Vector3D& point, int& detElementID, int mode=0 ) = 0  ;
     
     
   protected:
