@@ -71,7 +71,7 @@ class MarlinKalTest : public MarlinTrk::IMarlinTrkSystem {
 
   void storeActiveMeasurementModuleIDs(TVKalDetector* detector);  
 
-  void getSensitiveMeasurementModules( int moduleID, std::vector<ILDVMeasLayer*>& measmodules);
+  void getSensitiveMeasurementModules( int detElementID, std::vector<ILDVMeasLayer*>& measmodules);
 
   void getSensitiveMeasurementModulesForLayer( int layerID, std::vector<ILDVMeasLayer*>& measmodules);
 

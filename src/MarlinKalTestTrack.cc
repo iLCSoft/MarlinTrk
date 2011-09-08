@@ -95,7 +95,7 @@ int MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit, const ILDVMeasLayer*
     return this->addHit( trkhit, ml->ConvertLCIOTrkHit(trkhit), ml) ;
   }
   else {
-    return 1 ;
+    return bad_intputs ;
   }
 
 }
@@ -109,14 +109,14 @@ int MarlinKalTestTrack::addHit( EVENT::TrackerHit* trkhit, ILDVTrackHit* kalhit,
     _kaltest_hits_to_lcio_hits[kalhit] = trkhit ; // add hit to map relating kaltest and lcio hits
   }
   else{
-    return 1 ;
+    return bad_intputs ;
   }
 
   streamlog_out(DEBUG3) << "MarlinKalTestTrack::MarlinKalTestTrack hit added " 
 			<< "number of hits for track = " << _kalhits->GetEntries() 
 			<< std::endl ;
 
-  return 0 ;
+  return success ;
 
 }
 
@@ -135,7 +135,7 @@ int MarlinKalTestTrack::initialise( bool fitDirection ) {;
     
     streamlog_out( ERROR) << "<<<<<< MarlinKalTestTrack::initialise: Shortage of Hits! nhits = "  
 			  << _kalhits->GetEntries() << " >>>>>>>" << std::endl;
-    return 1;
+    return error ;
 
   }
 
@@ -170,7 +170,7 @@ int MarlinKalTestTrack::initialise( bool fitDirection ) {;
   }
   else {
     streamlog_out( ERROR) << "<<<<<<<<< MarlinKalTestTrack::initialise: dynamic_cast failed for hit type >>>>>>>" << std::endl;
-    return false;
+    return error ;
   }
 
   TVTrackHit& dummyHit = *pDummyHit;
@@ -233,7 +233,7 @@ int MarlinKalTestTrack::initialise( bool fitDirection ) {;
 
   _initialised = true ;
 
-  return 0 ;
+  return success ;
 
 }
 
@@ -317,7 +317,7 @@ int MarlinKalTestTrack::initialise( const IMPL::TrackStateImpl& ts, double bfiel
   }
   else {
     streamlog_out( ERROR) << "<<<<<<<<< MarlinKalTestTrack::initialise: dynamic_cast failed for hit type >>>>>>>" << std::endl;
-    return false;
+    return error ;
   }
 
   TVTrackHit& dummyHit = *pDummyHit;
@@ -363,7 +363,7 @@ int MarlinKalTestTrack::initialise( const IMPL::TrackStateImpl& ts, double bfiel
   _kaltrack->Add(&initialSite);
   
   _initialised = true ;
-  return 0 ;
+  return success ;
 
 } 
 
@@ -392,34 +392,39 @@ int MarlinKalTestTrack::addAndFit( ILDVTrackHit* kalhit, double& chi2increment, 
     
     delete temp_site;  // delete site if filter step failed      
     
-    return 1 ;
+    return site_discarded ;
 
   }
 
   site = temp_site;
   chi2increment = site->GetDeltaChi2() ;
 
-  return 0 ;
+  return success ;
 
 }
 
 int MarlinKalTestTrack::addAndFit( EVENT::TrackerHit* trkhit, double& chi2increment, double maxChi2Increment) {
     
+  if( ! trkhit ) { 
+    streamlog_out( ERROR) << "MarlinKalTestTrack::addAndFit( EVENT::TrackerHit* trkhit, double& chi2increment, double maxChi2Increment): trkhit == NULL"  << std::endl;
+    return bad_intputs ; 
+  }
+
   const ILDVMeasLayer* ml = _ktest->findMeasLayer( trkhit ) ;
   ILDVTrackHit* kalhit = ml->ConvertLCIOTrkHit(trkhit) ;
 
   TKalTrackSite* site;
-  int error = this->addAndFit( kalhit, chi2increment, site, maxChi2Increment);
+  int error_code = this->addAndFit( kalhit, chi2increment, site, maxChi2Increment);
 
-  if( error != 0 ){
-    return 1 ;
+  if( error_code != success ){
+    return error_code ;
   }
   else {
     this->addHit( trkhit, kalhit, ml ) ; 
     _hit_used_for_sites[trkhit] = site ;
   }
 
-  return 0 ;
+  return success ;
 
 }
 
@@ -496,7 +501,7 @@ int MarlinKalTestTrack::fit() {
     _kaltrack->SmoothAll() ;
   }
 
-  return 0;
+  return success;
 
 }
 
@@ -510,7 +515,7 @@ int  MarlinKalTestTrack::getTrackState( IMPL::TrackStateImpl& ts, double& chi2, 
 
   this->ToLCIOTrackState( site, ts, chi2, ndf );
     
-  return 0 ;
+  return success ;
 
 }
 
@@ -521,15 +526,15 @@ int MarlinKalTestTrack::getTrackState( EVENT::TrackerHit* trkhit, IMPL::TrackSta
 
   std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
 
-  int error = getSiteFromLCIOHit(trkhit, it);
+  int error_code = getSiteFromLCIOHit(trkhit, it);
 
-  if( error != 0 ) return error;
+  if( error_code != success ) return error_code ;
 
   const TVKalSite& site = *(it->second) ; 
   
   this->ToLCIOTrackState( site, ts, chi2, ndf );
 
-  return 0 ;
+  return success ;
 }
 
 int MarlinKalTestTrack::extrapolate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ){  
@@ -543,8 +548,8 @@ int MarlinKalTestTrack::extrapolate( const gear::Vector3D& point, IMPL::TrackSta
 int MarlinKalTestTrack::extrapolate( const gear::Vector3D& point, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) {
 
   std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
-  int error = getSiteFromLCIOHit( trkhit, it ) ; 
-  if( error !=0 ) return error;
+  int error_code = getSiteFromLCIOHit( trkhit, it ) ; 
+  if( error_code != success ) return error_code;
 
   const TVKalSite& site = *(it->second);
 
@@ -579,7 +584,7 @@ int MarlinKalTestTrack::extrapolate( const gear::Vector3D& point, const TVKalSit
 
   this->ToLCIOTrackState( helix, c0, ts, chi2, ndf );
 
-  return 0;
+  return success;
   
 } 
 
@@ -596,8 +601,8 @@ int MarlinKalTestTrack::extrapolateToLayer( int layerID, IMPL::TrackStateImpl& t
 int MarlinKalTestTrack::extrapolateToLayer( int layerID, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID, int mode ) { 
 
  std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
- int error = getSiteFromLCIOHit( trkhit, it ) ; 
- if( error !=0 ) return error;
+ int error_code = getSiteFromLCIOHit( trkhit, it ) ; 
+ if( error_code != success ) return error_code ;
  
  const TVKalSite& site = *(it->second);
  
@@ -612,9 +617,46 @@ int MarlinKalTestTrack::extrapolateToLayer( int layerID, const TVKalSite& site, 
 
   gear::Vector3D crossing_point ;
 
-  int error = this->intersectionWithLayer( layerID, site, crossing_point, detElementID, mode ) ;
+  int error_code = this->intersectionWithLayer( layerID, site, crossing_point, detElementID, mode ) ;
   
-  if( error != 0 ) return error ;
+  if( error_code != 0 ) return error_code ;
+
+  return this->extrapolate( crossing_point, site, ts, chi2, ndf ) ;
+
+} 
+
+
+int MarlinKalTestTrack::extrapolateToDetElement( int detElementID, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int mode ) { 
+
+  const TVKalSite& site = *(dynamic_cast<const TVKalSite*>(_kaltrack->Last())) ;
+  
+  return this->extrapolateToDetElement( detElementID, site, ts, chi2, ndf, mode ) ;
+
+}
+
+
+int MarlinKalTestTrack::extrapolateToDetElement( int detElementID, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int mode ) { 
+
+ std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
+ int error_code = getSiteFromLCIOHit( trkhit, it ) ; 
+ if( error_code != success ) return error_code ;
+ 
+ const TVKalSite& site = *(it->second);
+ 
+ return this->extrapolateToDetElement( detElementID, site, ts, chi2, ndf, mode ) ;
+ 
+}
+
+
+int MarlinKalTestTrack::extrapolateToDetElement( int detElementID, const TVKalSite& site, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int mode ) { 
+
+  streamlog_out(DEBUG4) << "MarlinKalTestTrack::extrapolateToDetElement( int detElementID, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int mode ) called " << std::endl ;
+
+  gear::Vector3D crossing_point ;
+
+  int error_code = this->intersectionWithDetElement( detElementID, site, crossing_point, mode ) ;
+  
+  if( error_code != 0 ) return error_code ;
 
   return this->extrapolate( crossing_point, site, ts, chi2, ndf ) ;
 
@@ -633,8 +675,8 @@ int MarlinKalTestTrack::propagate( const gear::Vector3D& point, IMPL::TrackState
 int MarlinKalTestTrack::propagate( const gear::Vector3D& point, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ){
 
   std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
-  int error = getSiteFromLCIOHit( trkhit, it ) ; 
-  if( error !=0 ) return error;
+  int error_code = getSiteFromLCIOHit( trkhit, it ) ; 
+  if( error_code != success ) return error_code ;
 
   const TVKalSite& site = *(it->second);
 
@@ -703,7 +745,7 @@ int MarlinKalTestTrack::propagate( const gear::Vector3D& point, const TVKalSite&
 
   this->ToLCIOTrackState( helix, c0, ts, chi2, ndf );
 
-  return 0;
+  return success;
 
 }
 
@@ -720,8 +762,8 @@ int MarlinKalTestTrack::propagateToLayer( int layerID, IMPL::TrackStateImpl& ts,
 int MarlinKalTestTrack::propagateToLayer( int layerID, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID, int mode ) { 
 
  std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
- int error = getSiteFromLCIOHit( trkhit, it ) ; 
- if( error !=0 ) return error;
+ int error_code = getSiteFromLCIOHit( trkhit, it ) ; 
+ if( error_code != success ) return error_code ;
  
  const TVKalSite& site = *(it->second);
  
@@ -736,9 +778,46 @@ int MarlinKalTestTrack::propagateToLayer( int layerID, const TVKalSite& site, IM
 
   gear::Vector3D crossing_point ;
 
-  int error = this->intersectionWithLayer( layerID, site, crossing_point, detElementID) ;
+  int error_code = this->intersectionWithLayer( layerID, site, crossing_point, detElementID) ;
   
-  if( error != 0 ) return error ;
+  if( error_code != success ) return error_code ;
+
+  return this->propagate( crossing_point, site, ts, chi2, ndf ) ;
+
+} 
+
+
+int MarlinKalTestTrack::propagateToDetElement( int detElementID, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int mode ) { 
+
+  const TVKalSite& site = *(dynamic_cast<const TVKalSite*>(_kaltrack->Last())) ;
+  
+  return this->propagateToDetElement( detElementID, site, ts, chi2, ndf, mode ) ;
+
+}
+
+
+int MarlinKalTestTrack::propagateToDetElement( int detElementID, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int mode ) { 
+
+ std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
+ int error_code = getSiteFromLCIOHit( trkhit, it ) ; 
+ if( error_code != success ) return error_code ;
+ 
+ const TVKalSite& site = *(it->second);
+ 
+ return this->propagateToDetElement( detElementID, site, ts, chi2, ndf, mode ) ;
+ 
+}
+
+
+int MarlinKalTestTrack::propagateToDetElement( int detElementID, const TVKalSite& site, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int mode ) { 
+
+  streamlog_out(DEBUG4) << "MarlinKalTestTrack::propagateToDetElement( int detElementID, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int mode ) called " << std::endl ;
+
+  gear::Vector3D crossing_point ;
+
+  int error_code = this->intersectionWithDetElement( detElementID, site, crossing_point, mode ) ;
+  
+  if( error_code != 0 ) return error_code ;
 
   return this->propagate( crossing_point, site, ts, chi2, ndf ) ;
 
@@ -754,27 +833,83 @@ int MarlinKalTestTrack::intersectionWithLayer( int layerID, gear::Vector3D& poin
 
 }
 
+int MarlinKalTestTrack::intersectionWithDetElement( int detElementID, gear::Vector3D& point, int mode ) {  
+
+  const TVKalSite& site = *(dynamic_cast<const TVKalSite*>(_kaltrack->Last())) ;
+  return this->intersectionWithDetElement( detElementID, site, point, mode ) ;
+
+}
+
+
+int MarlinKalTestTrack::intersectionWithDetElement( int detElementID,  EVENT::TrackerHit* trkhit, gear::Vector3D& point, int mode ) {  
+
+  std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
+  int error_code = getSiteFromLCIOHit( trkhit, it ) ; 
+  if( error_code != success ) return error_code ;
+  
+  const TVKalSite& site = *(it->second);
+  return this->intersectionWithDetElement( detElementID, site, point, mode ) ;
+
+}
+
+int MarlinKalTestTrack::intersectionWithDetElement( int detElementID, const TVKalSite& site, gear::Vector3D& point, int mode ) {
+
+  streamlog_out(DEBUG4) << "MarlinKalTestTrack::intersectionWithDetElement( int detElementID, const TVKalSite& site, gear::Vector3D& point, int mode) called " << std::endl;
+  
+  std::vector<ILDVMeasLayer*> meas_modules ;
+  _ktest->getSensitiveMeasurementModules( detElementID, meas_modules ) ;  
+ 
+  if( meas_modules.size() == 0 ) {
+    
+    std::stringstream errorMsg;
+    errorMsg << "MarlinKalTestTrack::MarlinKalTestTrack detector element id unkown: detElementID = " << detElementID << std::endl ; 
+    throw MarlinTrk::Exception(errorMsg.str());
+    
+  } 
+
+  int index_of_intersected;
+  int error_code = this->findIntersection( meas_modules, site, point, index_of_intersected, mode ) ;
+  
+  if( error_code == success ){
+    
+    streamlog_out(DEBUG3) << "MarlinKalTestTrack::intersectionWithDetElement intersection with detElementID = "
+			  << detElementID
+			  << ": at x = " << point.x()
+			  << " y = "     << point.y()
+			  << " z = "     << point.z()
+			  << std::endl ;
+    
+  }
+  else if( error_code == no_intersection ) {
+    
+    streamlog_out(DEBUG3) << "MarlinKalTestTrack::intersectionWithDetElement No intersection with detElementID = "
+			  << detElementID
+			  << std::endl ;
+    
+  }
+  
+  return error_code ;
+  
+}
+
 int MarlinKalTestTrack::intersectionWithLayer( int layerID,  EVENT::TrackerHit* trkhit, gear::Vector3D& point, int& detElementID, int mode ) {  
 
   std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
-  int error = getSiteFromLCIOHit( trkhit, it ) ; 
-  if( error !=0 ) return error;
+  int error_code = getSiteFromLCIOHit( trkhit, it ) ; 
+  if( error_code != success ) return error_code ;
   
   const TVKalSite& site = *(it->second);
   return this->intersectionWithLayer( layerID, site, point, detElementID, mode ) ;
 
 }
 
+
 int MarlinKalTestTrack::intersectionWithLayer( int layerID, const TVKalSite& site, gear::Vector3D& point, int& detElementID, int mode ) {  
 
-  streamlog_out(DEBUG4) << "MarlinKalTestTrack::intersectionWithLayer( int layerID, const TVKalSite& site, gear::Vector3D& point, int& detElementID) called " << std::endl;
+  streamlog_out(DEBUG4) << "MarlinKalTestTrack::intersectionWithLayer( int layerID, const TVKalSite& site, gear::Vector3D& point, int& detElementID, int mode) called " << std::endl;
 
   std::vector<ILDVMeasLayer*> meas_modules ;
   _ktest->getSensitiveMeasurementModulesForLayer( layerID, meas_modules ) ;  
-
-  TVSurface* surf = NULL;
-  TVector3 xto;       // reference point at destination to be returned by CalcXinPointWith  
-  Double_t dphi_min = DBL_MAX;  // use to store the min deflection angle found so that can avoid the crossing on the far side of the layer
 
   if( meas_modules.size() == 0 ) {
     
@@ -783,68 +918,117 @@ int MarlinKalTestTrack::intersectionWithLayer( int layerID, const TVKalSite& sit
     throw MarlinTrk::Exception(errorMsg.str());
     
   } 
-  else { 
+  
+  int index_of_intersected;
+  int error_code = this->findIntersection( meas_modules, site, point, index_of_intersected, mode ) ;
     
-    bool surf_found(false);
+  if( error_code == success ){
 
-    for( unsigned int i=0; i < meas_modules.size(); ++i) {
-     
-      streamlog_out(DEBUG2) << "MarlinKalTestTrack::intersectionWithLayer try and find intersection for detElementID = " << (meas_modules[i])->getLayerID() << " layerID " << layerID << std::endl ;
-
-      if( ! (surf = dynamic_cast<TVSurface*> (  meas_modules[i] )) )   {
-      
-	std::stringstream errorMsg;
-	errorMsg << "MarlinKalTestTrack::MarlinKalTestTrack dynamic_cast failed for surface type: layerID = " << layerID << std::endl ; 
-	throw MarlinTrk::Exception(errorMsg.str());
-
-      }
-      
-      TKalTrackState& trkState = (TKalTrackState&) site.GetCurState(); // this segfaults if no hits are present
-      
-      THelicalTrack helix = trkState.GetHelix() ;
-           
-      TVector3 pivot = helix.GetPivot() ;
-
-      Double_t dphi = 0;  // deflection angle to destination to be returned by CalcXingPointWith
-
-      int crossing_exist = surf->CalcXingPointWith(helix, xto, dphi, mode) ;
-
-      streamlog_out(DEBUG2) << "MarlinKalTestTrack::intersectionWithLayer crossing_exist = " << crossing_exist << " dphi " << dphi << std::endl ;
-      
-      // make sure we get the next crossing 
-      if( crossing_exist > 0 && dphi < dphi_min ) { 
-	
-	surf_found = true ;
-	dphi_min = dphi ;
-	point[0] = xto.X();
-	point[1] = xto.Y();
-	point[2] = xto.Z();
-	detElementID = meas_modules[i]->getLayerID() ;
-      }
-
-    }
-
-    if( ! surf_found ){
-      streamlog_out(DEBUG3) << "MarlinKalTestTrack::intersectionWithLayer no intersection found with layerID = "
-			    << layerID
-			    << std::endl ;
-      return -1;
-    }
-   
-
+    detElementID = meas_modules[index_of_intersected]->getLayerID() ;
     streamlog_out(DEBUG3) << "MarlinKalTestTrack::intersectionWithLayer intersection with layerID = "
 			  << layerID
 			  << ": at x = " << point.x()
 			  << " y = "     << point.y()
 			  << " z = "     << point.z()
-			  << " detElementID = " << detElementID 
+			  << " detElementID = " << detElementID
+			  << std::endl ;
+    
+  }
+  else if( error_code == no_intersection ) {
+    
+    streamlog_out(DEBUG3) << "MarlinKalTestTrack::intersectionWithLayer No intersection with layerID = "
+			  << layerID
 			  << std::endl ;
 
   }
 
-  return 0;
+  return error_code ;
 
+  
 } 
+
+
+int MarlinKalTestTrack::findIntersection( const ILDVMeasLayer& meas_module, const TVKalSite& site, gear::Vector3D& point, double& dphi, int mode ) {
+
+  const TVSurface* surf = dynamic_cast<const TVSurface*>( &meas_module ) ;
+  if( ! surf ) {
+    
+    std::stringstream errorMsg;
+    errorMsg << "MarlinKalTestTrack::MarlinKalTestTrack dynamic_cast failed for surface :  detElementID = " << meas_module.getLayerID() << std::endl ; 
+    throw MarlinTrk::Exception(errorMsg.str());
+    
+  }
+      
+  TKalTrackState& trkState = (TKalTrackState&) site.GetCurState(); 
+  
+  THelicalTrack helix = trkState.GetHelix() ;
+         
+  TVector3 xto;       // reference point at destination to be returned by CalcXinPointWith  
+  int crossing_exist = surf->CalcXingPointWith(helix, xto, dphi, mode) ;
+
+  streamlog_out(DEBUG2) << "MarlinKalTestTrack::intersectionWithLayer crossing_exist = " << crossing_exist << " dphi " << dphi << " detElementID " << meas_module.getLayerID() << std::endl ;
+      
+  if( crossing_exist == 0 ) { 
+    return no_intersection ;
+  }
+  else {
+    
+    point[0] = xto.X();
+    point[1] = xto.Y();
+    point[2] = xto.Z();
+
+  }
+  
+  return success ;
+
+}
+
+
+
+int MarlinKalTestTrack::findIntersection( std::vector<ILDVMeasLayer*>& meas_modules, const TVKalSite& site, gear::Vector3D& point, int& indexOfIntersected, int mode ) {
+  
+  unsigned int n_modules = meas_modules.size() ;
+  
+  double dphi_min = DBL_MAX;  // use to store the min deflection angle found so that can avoid the crossing on the far side of the layer
+  bool surf_found(false);
+
+  for( unsigned int i = 0 ; i < n_modules ; ++i ){
+    
+    double dphi = 0;
+    // need to send a temporary point as we may get the crossing point with the layer on the oposite side of the layer 
+    gear::Vector3D point_temp ;
+    int error_code = findIntersection( *meas_modules[i], site, point_temp, dphi, mode ) ;
+    
+    if( error_code == success ) {
+      
+      // make sure we get the next crossing 
+      if( dphi < dphi_min ) { 	
+
+	dphi_min = dphi ;
+	surf_found = true ;
+	indexOfIntersected = i ;
+	point = point_temp ;
+      }
+
+    }
+    else if( error_code != no_intersection ) { // in which case error_code is an error rather than simply a lack of intersection, so return  
+
+      return error_code ;
+      
+    }
+   
+  }
+  
+  // check if the surface was found and return accordingly 
+  if ( surf_found ) {
+    return success ;
+  }
+  else {
+    return no_intersection ;
+  }
+
+  
+}
 
 
 
@@ -954,14 +1138,15 @@ int MarlinKalTestTrack::getSiteFromLCIOHit( EVENT::TrackerHit* trkhit, std::map<
 
     if( found ) {
       streamlog_out( DEBUG4 )  << "MarlinKalTestTrack::getSiteFromLCIOHit: hit was rejected during filtering" << std::endl ;
-      return 1 ;
+      return site_discarded ;
     }
     else {
-      return 2 ; // 1 hit was rejected by fit, 2 hit not associated with this track 
+      streamlog_out( DEBUG4 )  << "MarlinKalTestTrack::getSiteFromLCIOHit: hit not in list of supplied hits" << std::endl ;
+      return bad_intputs ; 
     }
   } 
 
   streamlog_out( DEBUG3 )  << "MarlinKalTestTrack::getSiteFromLCIOHit: site found" << std::endl ;
-  return 0 ;
+  return success ;
   
 }
