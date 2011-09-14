@@ -80,6 +80,16 @@ class MarlinKalTestTrack : public MarlinTrk::IMarlinTrack {
   int fit() ;
     
 
+	/** smooth all track states 
+	 */
+	int smooth() ;
+	
+	
+	/** smooth track states from the last filtered hit back to the measurement site associated with the given hit 
+	 */
+	int smooth( EVENT::TrackerHit* hit )  ;
+	
+	
   /** update the current fit using the supplied hit, return code via int. Provides the Chi2 increment to the fit from adding the hit via reference. 
    *  the given hit will not be added if chi2increment > maxChi2Increment. 
    */

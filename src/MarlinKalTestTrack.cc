@@ -505,11 +505,74 @@ int MarlinKalTestTrack::fit() {
   
   if( _ktest->getOption(  MarlinTrk::IMarlinTrkSystem::CFG::useSmoothing ) ){
     streamlog_out( DEBUG3 )  << "Perform Smoothing for All Previous Measurement Sites " << std::endl ;
-    _kaltrack->SmoothAll() ;
-  }
+		int error = this->smooth() ;
+		
+		if( error != success ) return error ;
+		
+	}
+	
+  return success ;
 
-  return success;
+}
 
+
+/** smooth all track states 
+ */
+int MarlinKalTestTrack::smooth(){
+
+	streamlog_out( DEBUG4 )  << "MarlinKalTestTrack::getTrackState() " << std::endl ;
+	_kaltrack->SmoothAll() ;
+	
+	return success ;
+
+}
+
+
+/** smooth track states from the last filtered hit back to the measurement site associated with the given hit 
+ */
+int MarlinKalTestTrack::smooth( EVENT::TrackerHit* hit ) {
+
+	if ( !hit ) {
+		return bad_intputs ;
+	}
+	
+	bool found = true ;
+
+	std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it = _hit_used_for_sites.begin() ;
+
+	int index = 0 ;
+	
+	for (/* it */ ; it!=_hit_used_for_sites.end(); ++it, ++index) {
+		if( hit == it->first ) {
+			found = true ;
+			break ;
+		}
+	}
+
+	
+	if ( found ) { 
+	  streamlog_out( DEBUG4 )  << "MarlinKalTestTrack::smooth( hit ) " << index << std::endl ;
+		_kaltrack->SmoothBackTo( index ) ;
+	} 
+	else { // check if the hit has previously been discarded by the fit
+
+		for (unsigned int i = 0 ; i < _hit_not_used_for_sites.size(); ++i) {
+
+			if (hit == _hit_not_used_for_sites[i]) {
+
+				return site_discarded ;
+
+			} else if( i == _hit_not_used_for_sites.size()-1 ) { // if we reach the end of the vector then this hit has never been supplied to the fitter
+
+				streamlog_out( DEBUG4 )  << "MarlinKalTestTrack::smooth(): hit never supplied" << std::endl ;
+				return bad_intputs ;
+
+			}
+		}
+	}
+	
+	return success ;
+	
 }
 
 
@@ -524,6 +587,7 @@ int  MarlinKalTestTrack::getTrackState( IMPL::TrackStateImpl& ts, double& chi2, 
     
   return success ;
 
+	
 }
 
 

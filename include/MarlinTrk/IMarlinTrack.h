@@ -45,7 +45,7 @@ namespace MarlinTrk{
     static const int error = 1 ;
     static const int bad_intputs = 3 ;
     static const int no_intersection = 4 ; // no intersection found
-    static const int site_discarded = 5 ; // no intersection found
+    static const int site_discarded = 5 ;  // measurement discarded by the fitter
 
 
 
@@ -84,9 +84,19 @@ namespace MarlinTrk{
      *  the given hit will not be added if chi2increment > maxChi2Increment. 
      */
     virtual int addAndFit( EVENT::TrackerHit* hit, double& chi2increment, double maxChi2Increment=DBL_MAX ) = 0 ;
-    
-    
 
+    
+		/** smooth all track states 
+     */
+    virtual int smooth() = 0 ;
+
+		
+    /** smooth track states from the last filtered hit back to the measurement site associated with the given hit 
+     */
+    virtual int smooth( EVENT::TrackerHit* hit ) = 0 ;
+    
+			
+		
     // Track State Accessesors
     
     /** get track state, returning TrackState, chi2 and ndf via reference 
