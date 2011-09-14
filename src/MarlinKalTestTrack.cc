@@ -520,7 +520,7 @@ int MarlinKalTestTrack::fit() {
  */
 int MarlinKalTestTrack::smooth(){
 
-	streamlog_out( DEBUG4 )  << "MarlinKalTestTrack::getTrackState() " << std::endl ;
+	streamlog_out( DEBUG4 )  << "MarlinKalTestTrack::smooth() " << std::endl ;
 	_kaltrack->SmoothAll() ;
 	
 	return success ;
