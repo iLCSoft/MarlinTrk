@@ -831,23 +831,6 @@ int MarlinKalTestTrack::propagateToDetElement( int detElementID, const TVKalSite
 } 
 
 
-
-int MarlinKalTestTrack::intersectionWithLayer( int layerID, gear::Vector3D& point, int& detElementID, int mode ) {  
-
-  const TVKalSite& site = *(dynamic_cast<const TVKalSite*>(_kaltrack->Last())) ;
-
-  return this->intersectionWithLayer( layerID, site, point, detElementID, mode ) ;
-
-}
-
-int MarlinKalTestTrack::intersectionWithDetElement( int detElementID, gear::Vector3D& point, int mode ) {  
-
-  const TVKalSite& site = *(dynamic_cast<const TVKalSite*>(_kaltrack->Last())) ;
-  return this->intersectionWithDetElement( detElementID, site, point, mode ) ;
-
-}
-
-
 int MarlinKalTestTrack::intersectionWithDetElement( int detElementID,  EVENT::TrackerHit* trkhit, gear::Vector3D& point, int mode ) {  
 
   std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
@@ -899,6 +882,21 @@ int MarlinKalTestTrack::intersectionWithDetElement( int detElementID, const TVKa
   
   return error_code ;
   
+}
+
+int MarlinKalTestTrack::intersectionWithLayer( int layerID, gear::Vector3D& point, int& detElementID, int mode ) {  
+	
+  const TVKalSite& site = *(dynamic_cast<const TVKalSite*>(_kaltrack->Last())) ;
+	
+  return this->intersectionWithLayer( layerID, site, point, detElementID, mode ) ;
+	
+}
+
+int MarlinKalTestTrack::intersectionWithDetElement( int detElementID, gear::Vector3D& point, int mode ) {  
+	
+  const TVKalSite& site = *(dynamic_cast<const TVKalSite*>(_kaltrack->Last())) ;
+  return this->intersectionWithDetElement( detElementID, site, point, mode ) ;
+	
 }
 
 int MarlinKalTestTrack::intersectionWithLayer( int layerID,  EVENT::TrackerHit* trkhit, gear::Vector3D& point, int& detElementID, int mode ) {  
