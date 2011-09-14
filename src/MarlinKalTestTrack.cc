@@ -1,4 +1,3 @@
-
 #include "MarlinTrk/MarlinKalTestTrack.h"
 
 #include "MarlinTrk/MarlinKalTest.h"
@@ -15,8 +14,8 @@
 #include <EVENT/TrackerHitPlane.h>
 
 #include <UTIL/BitField64.h>
-
-#include <ILDCellIDEncoding.h>
+#include <UTIL/ILDConf.h>
+//#include <ILDCellIDEncoding.h>
 
 #include "kaldet/ILDCylinderMeasLayer.h"
 #include "kaldet/ILDCylinderHit.h"
@@ -33,7 +32,7 @@
 /** Helper class for defining a filter condition based on the delta chi2 in the AddAndFilter step.
  */
 class KalTrackFilter : public TKalFilterCond{
-
+  
 public:
   
   /** C'tor - takes as optional argument the maximum allowed delta chi2 for adding the hit (in IsAccepted() )
@@ -47,17 +46,25 @@ public:
     double deltaChi2 = site.GetDeltaChi2();
     
     streamlog_out( DEBUG3 ) << " KalTrackFilter::IsAccepted called  !  deltaChi2 = "  <<  deltaChi2  << std::endl;
-
+    
     return ( deltaChi2 < _maxDeltaChi2 )   ; 
   }
-
+  
 protected:
-
+  
   double _maxDeltaChi2 ;
-
+  
 } ;
+
 //---------------------------------------------------------------------------------------------------------------
 
+std::string decodeILD( int detElementID ) {
+  lcio::BitField64 bf(  ILDCellID0::encoder_string ) ;
+  bf.setValue( detElementID ) ;
+  return bf.valueString() ;
+}
+
+//---------------------------------------------------------------------------------------------------------------
 
 
 MarlinKalTestTrack::MarlinKalTestTrack( MarlinKalTest* ktest) 
@@ -860,9 +867,11 @@ int MarlinKalTestTrack::intersectionWithDetElement( int detElementID, const TVKa
   _ktest->getSensitiveMeasurementModules( detElementID, meas_modules ) ;  
  
   if( meas_modules.size() == 0 ) {
-    
+
     std::stringstream errorMsg;
-    errorMsg << "MarlinKalTestTrack::MarlinKalTestTrack detector element id unkown: detElementID = " << detElementID << std::endl ; 
+    errorMsg << "MarlinKalTestTrack::MarlinKalTestTrack detector element id unkown: detElementID = " 
+	     << decodeILD( detElementID )  << std::endl ; 
+
     throw MarlinTrk::Exception(errorMsg.str());
     
   } 
@@ -873,17 +882,17 @@ int MarlinKalTestTrack::intersectionWithDetElement( int detElementID, const TVKa
   if( error_code == success ){
     
     streamlog_out(DEBUG3) << "MarlinKalTestTrack::intersectionWithDetElement intersection with detElementID = "
-			  << detElementID
+			  <<  decodeILD( detElementID ) 
 			  << ": at x = " << point.x()
 			  << " y = "     << point.y()
 			  << " z = "     << point.z()
 			  << std::endl ;
-    
   }
+
   else if( error_code == no_intersection ) {
     
     streamlog_out(DEBUG3) << "MarlinKalTestTrack::intersectionWithDetElement No intersection with detElementID = "
-			  << detElementID
+			  << decodeILD( detElementID )
 			  << std::endl ;
     
   }
@@ -925,19 +934,20 @@ int MarlinKalTestTrack::intersectionWithLayer( int layerID, const TVKalSite& sit
   if( error_code == success ){
 
     detElementID = meas_modules[index_of_intersected]->getLayerID() ;
+
     streamlog_out(DEBUG3) << "MarlinKalTestTrack::intersectionWithLayer intersection with layerID = "
 			  << layerID
 			  << ": at x = " << point.x()
 			  << " y = "     << point.y()
 			  << " z = "     << point.z()
-			  << " detElementID = " << detElementID
+			  << " detElementID = " << decodeILD( detElementID )
 			  << std::endl ;
     
   }
   else if( error_code == no_intersection ) {
     
     streamlog_out(DEBUG3) << "MarlinKalTestTrack::intersectionWithLayer No intersection with layerID = "
-			  << layerID
+			  << decodeILD( layerID )
 			  << std::endl ;
 
   }
