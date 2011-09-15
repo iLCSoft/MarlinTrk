@@ -521,7 +521,12 @@ int MarlinKalTestTrack::fit() {
 int MarlinKalTestTrack::smooth(){
 
 	streamlog_out( DEBUG4 )  << "MarlinKalTestTrack::smooth() " << std::endl ;
-	_kaltrack->SmoothAll() ;
+//	_kaltrack->SmoothAll() ;
+
+	//SJA:FIXME: in the current implementation it is only possible to smooth back to the 4th site.
+	// This is due to the fact that the covariance matrix is not well defined at the first 3 measurement sites filtered.
+
+	_kaltrack->SmoothBackTo( 4 ) ;
 	
 	return success ;
 
