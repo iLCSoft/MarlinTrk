@@ -259,7 +259,6 @@ const ILDVMeasLayer*  MarlinKalTest::getLastMeasLayer(THelicalTrack const& hel, 
 
   THelicalTrack helix = hel;
 
-  TMatrixD covK(5,5) ;
   double deflection_to_point = 0 ;
   helix.MoveTo(  point, deflection_to_point , 0 , 0) ;
 
@@ -293,24 +292,23 @@ const ILDVMeasLayer*  MarlinKalTest::getLastMeasLayer(THelicalTrack const& hel, 
       const double deflection = fabs( deflection_to_point - defection_angle ) ;
 
       if( deflection < min_deflection ) {
-
-//	streamlog_out( DEBUG4 ) << "  MarlinKalTest - crossing found for suface = " << ml.GetMLName() 
-//				<< std::endl
-//				<< "  min_deflection = " << min_deflection
-//				<< "  deflection = " << deflection
-//				<< "  deflection angle = " << defection_angle 
-//				<< std::endl 
-//				<< " x = " << crossing_point.X() 
-//				<< " y = " << crossing_point.Y() 
-//				<< " z = " << crossing_point.Z() 
-//				<< " r = " << crossing_point.Perp() 
-//				<< std::endl ;
-	
-	min_deflection = deflection ;
-	ml_retval = &ml ;
+				
+				//	streamlog_out( DEBUG4 ) << "  MarlinKalTest - crossing found for suface = " << ml.GetMLName() 
+				//				<< std::endl
+				//				<< "  min_deflection = " << min_deflection
+				//				<< "  deflection = " << deflection
+				//				<< "  deflection angle = " << defection_angle 
+				//				<< std::endl 
+				//				<< " x = " << crossing_point.X() 
+				//				<< " y = " << crossing_point.Y() 
+				//				<< " z = " << crossing_point.Z() 
+				//				<< " r = " << crossing_point.Perp() 
+				//				<< std::endl ;
+				
+				min_deflection = deflection ;
+				ml_retval = &ml ;
       }
-
-     
+			
     }
 
   }
