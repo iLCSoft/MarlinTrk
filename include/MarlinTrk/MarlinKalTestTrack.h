@@ -14,7 +14,6 @@
 class TKalTrack ;
 class THelicalTrack ;
 class TKalTrackSite ;
-class TVKalSite ;
 class ILDVTrackHit ;
 class ILDVMeasLayer ;
 
@@ -129,7 +128,7 @@ class MarlinKalTestTrack : public MarlinTrk::IMarlinTrack {
   /** propagate the fit at the provided measurement site, to the point of closest approach to the given point,
    *  returning TrackState, chi2 and ndf via reference   
    */    
-  int propagate( const gear::Vector3D& point, const TVKalSite& site, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) ;
+  int propagate( const gear::Vector3D& point, const TKalTrackSite& site, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) ;
 
 
   /** propagate the fit to the numbered sensitive layer, returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference 
@@ -144,7 +143,7 @@ class MarlinKalTestTrack : public MarlinTrk::IMarlinTrack {
   /** propagate the fit at the measurement site, to numbered sensitive layer, 
    *  returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference 
    */
-  int propagateToLayer( int layerID, const TVKalSite& site, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID, int mode=modeClosest ) ; 
+  int propagateToLayer( int layerID, const TKalTrackSite& site, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID, int mode=modeClosest ) ; 
 
   /** propagate the fit to sensitive detector element, returning TrackState, chi2 and ndf via reference
    */
@@ -158,7 +157,7 @@ class MarlinKalTestTrack : public MarlinTrk::IMarlinTrack {
   /** propagate the fit at the measurement site, to sensitive detector element, 
    *  returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference 
    */
-  int propagateToDetElement( int detEementID, const TVKalSite& site, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int mode=modeClosest ) ;
+  int propagateToDetElement( int detEementID, const TKalTrackSite& site, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int mode=modeClosest ) ;
 
 
 
@@ -176,7 +175,7 @@ class MarlinKalTestTrack : public MarlinTrk::IMarlinTrack {
   /** extrapolate the fit at the measurement site, to the point of closest approach to the given point, 
    *	returning TrackState, chi2 and ndf via reference   
    */
-  int extrapolate( const gear::Vector3D& point, const TVKalSite& site, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) ;
+  int extrapolate( const gear::Vector3D& point, const TKalTrackSite& site, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) ;
 
   /** extrapolate the fit to numbered sensitive layer, returning TrackState via provided reference 
    */
@@ -190,7 +189,7 @@ class MarlinKalTestTrack : public MarlinTrk::IMarlinTrack {
   /** extrapolate the fit at the measurement site, to numbered sensitive layer, 
    *  returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference 
    */
-  int extrapolateToLayer( int layerID, const TVKalSite& site, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID, int mode=modeClosest )  ;
+  int extrapolateToLayer( int layerID, const TKalTrackSite& site, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID, int mode=modeClosest )  ;
 
   /** extrapolate the fit to sensitive detector element, returning TrackState, chi2 and ndf via reference
    */
@@ -204,7 +203,7 @@ class MarlinKalTestTrack : public MarlinTrk::IMarlinTrack {
   /** extrapolate the fit at the measurement site, to sensitive detector element, 
    *  returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference 
    */
-  int extrapolateToDetElement( int detEementID, const TVKalSite& site, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int mode=modeClosest ) ;
+  int extrapolateToDetElement( int detEementID, const TKalTrackSite& site, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int mode=modeClosest ) ;
   
 
 
@@ -224,7 +223,7 @@ class MarlinKalTestTrack : public MarlinTrk::IMarlinTrack {
   /** extrapolate the fit at the measurement site, to numbered sensitive layer,
    *  returning intersection point in global coordinates and integer ID of the intersected sensitive detector element via reference 
    */
-  int intersectionWithLayer( int layerID, const TVKalSite& site, gear::Vector3D& point, int& detElementID, int mode=modeClosest ) ;
+  int intersectionWithLayer( int layerID, const TKalTrackSite& site, gear::Vector3D& point, int& detElementID, int mode=modeClosest ) ;
 
   
   /** extrapolate the fit to numbered sensitive detector element, returning intersection point in global coordinates via reference 
@@ -239,17 +238,17 @@ class MarlinKalTestTrack : public MarlinTrk::IMarlinTrack {
   /** extrapolate the fit at the measurement site, to sensitive detector element,
    *  returning intersection point in global coordinates via reference 
    */
-  int intersectionWithDetElement( int detElementID, const TVKalSite& site, gear::Vector3D& point, int mode=modeClosest ) ;
+  int intersectionWithDetElement( int detElementID, const TKalTrackSite& site, gear::Vector3D& point, int mode=modeClosest ) ;
 
   /** extrapolate the fit at the measurement site, to sensitive detector elements contained in the std::vector,
    *  and return intersection point in global coordinates via reference 
    */
-  int findIntersection( std::vector<ILDVMeasLayer*>& meas_modules, const TVKalSite& site, gear::Vector3D& point, int& indexOfIntersected, int mode=modeClosest ) ;
+  int findIntersection( std::vector<ILDVMeasLayer*>& meas_modules, const TKalTrackSite& site, gear::Vector3D& point, int& indexOfIntersected, int mode=modeClosest ) ;
 
   /** extrapolate the fit at the measurement site, to the ILDVMeasLayer,
    *  and return intersection point in global coordinates via reference 
    */
-  int findIntersection( const ILDVMeasLayer& meas_module, const TVKalSite& site, gear::Vector3D& point, double& dphi, int mode=modeClosest ) ;
+  int findIntersection( const ILDVMeasLayer& meas_module, const TKalTrackSite& site, gear::Vector3D& point, double& dphi, int mode=modeClosest ) ;
 
     
     
@@ -258,7 +257,7 @@ class MarlinKalTestTrack : public MarlinTrk::IMarlinTrack {
 
   /** fill LCIO Track State with parameters from helix and cov matrix 
    */
-  void ToLCIOTrackState( const TVKalSite& site,  IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) ;
+  void ToLCIOTrackState( const TKalTrackSite& site,  IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) ;
   
   /** fill LCIO Track State with parameters from helix and cov matrix 
    */
