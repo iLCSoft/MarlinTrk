@@ -530,49 +530,23 @@ int MarlinKalTestTrack::smooth(){
 
 /** smooth track states from the last filtered hit back to the measurement site associated with the given hit 
  */
-int MarlinKalTestTrack::smooth( EVENT::TrackerHit* hit ) {
+int MarlinKalTestTrack::smooth( EVENT::TrackerHit* trkhit ) {
 
-	if ( !hit ) {
+	if ( !trkhit ) {
 		return bad_intputs ;
 	}
 	
-	bool found = true ;
 
-	std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it = _hit_used_for_sites.begin() ;
-
-	int index = 0 ;
+	std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
 	
-	for (/* it */ ; it!=_hit_used_for_sites.end(); ++it, ++index) {
-		if( hit == it->first ) {
-			found = true ;
-			break ;
-		}
-	}
-
+  int error_code = getSiteFromLCIOHit(trkhit, it);
 	
-	if ( found ) { 
-	  streamlog_out( DEBUG4 )  << "MarlinKalTestTrack::smooth( hit ) " << index 
-				   <<  "    cellID: " <<  decodeILD( hit->getCellID0() )   << std::endl ;
-
-	  _kaltrack->SmoothBackTo( index ) ;
-	} 
-	else { // check if the hit has previously been discarded by the fit
-
-		for (unsigned int i = 0 ; i < _hit_not_used_for_sites.size(); ++i) {
-
-			if (hit == _hit_not_used_for_sites[i]) {
-
-				return site_discarded ;
-
-			} else if( i == _hit_not_used_for_sites.size()-1 ) { // if we reach the end of the vector then this hit has never been supplied to the fitter
-
-				streamlog_out( DEBUG4 )  << "MarlinKalTestTrack::smooth(): hit never supplied" << std::endl ;
-				return bad_intputs ;
-
-			}
-		}
-	}
+  if( error_code != success ) return error_code ;
 	
+	int index = _kaltrack->IndexOf( it->second );
+	
+	_kaltrack->SmoothBackTo( index ) ;
+		
 	return success ;
 	
 }
