@@ -67,10 +67,10 @@ namespace LCIOTrackPropagators{
     
     for(int irow=0; irow<5; ++irow ){
       for(int jcol=0; jcol<irow+1; ++jcol){
-	//	std::cout << "row = " << irow << " col = " << jcol << std::endl ;
-	//	std::cout << "cov["<< icov << "] = " << _cov[icov] << std::endl ;
-	cov0[irow][jcol] = ts.getCovMatrix()[icov] ;
-	++icov ;
+				//	std::cout << "row = " << irow << " col = " << jcol << std::endl ;
+				//	std::cout << "cov["<< icov << "] = " << _cov[icov] << std::endl ;
+				cov0[irow][jcol] = ts.getCovMatrix()[icov] ;
+				++icov ;
       }
     }
     
@@ -110,10 +110,10 @@ namespace LCIOTrackPropagators{
   
     for(int irow=0; irow<5; ++irow ){
       for(int jcol=0; jcol<irow+1; ++jcol){
-	//	std::cout << "row = " << irow << " col = " << jcol << std::endl ;
-	cov[icov] = covPrime[irow][jcol] ;
-	//	std::cout << "lcCov["<< icov << "] = " << lcCov[icov] << std::endl ;
-	++icov ;
+				//	std::cout << "row = " << irow << " col = " << jcol << std::endl ;
+				cov[icov] = covPrime[irow][jcol] ;
+				//	std::cout << "lcCov["<< icov << "] = " << lcCov[icov] << std::endl ;
+				++icov ;
       }
     }
   
