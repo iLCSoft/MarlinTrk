@@ -95,8 +95,15 @@ INSTALL_DIRECTORY( ./include DESTINATION . FILES_MATCHING PATTERN "*.h" )
 
 # add library
 AUX_SOURCE_DIRECTORY( ./src library_sources )
-#AUX_SOURCE_DIRECTORY( ./temporary_utils library_sources )
-ADD_SHARED_LIBRARY( ${PROJECT_NAME} ${library_sources} )
+
+# needed for adding header files to xcode project
+IF(CMAKE_GENERATOR MATCHES "Xcode")
+  FILE( GLOB_RECURSE library_headers "*.h" )
+  ADD_SHARED_LIBRARY( ${PROJECT_NAME} ${library_sources} ${library_headers})
+ELSE()
+  ADD_SHARED_LIBRARY( ${PROJECT_NAME} ${library_sources} )
+ENDIF()                
+
 INSTALL_SHARED_LIBRARY( ${PROJECT_NAME} DESTINATION lib )
 
 # display some variables and write them to cache
