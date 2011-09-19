@@ -12,22 +12,21 @@ class HelixTrack {
   {    
     while ( _phi0 < 0         ) _phi0 += 2.0*M_PI ;
     while ( _phi0 >= 2.0*M_PI ) _phi0 -= 2.0*M_PI;
-  } ;
+  } 
 
   HelixTrack( const double* position, const double* p, double charge, double Bz ) ;
 
   void moveRefPoint( double x, double y, double z) ;
   
-  double  getRefPointX() const { return _ref_point_x ; } ;	
-  double  getRefPointY() const { return _ref_point_y ; } ;	
-  double  getRefPointZ() const { return _ref_point_z ; } ;	
-  double  getD0() const { return _d0 ; } ;	
-  double  getZ0() const { return _z0 ; } ;	
-  double  getPhi0() const { return  _phi0; } ;	
-  double  getOmega() const { return _omega ; } ; 
-  double  getTanLambda() const { return _tanLambda ; } ;
-
-  
+  double  getRefPointX() const { return _ref_point_x ; } 	
+  double  getRefPointY() const { return _ref_point_y ; } 	
+  double  getRefPointZ() const { return _ref_point_z ; } 	
+  double  getD0() const { return _d0 ; } 	
+  double  getZ0() const { return _z0 ; } 	
+  double  getPhi0() const { return  _phi0; } 	
+  double  getOmega() const { return _omega ; }  
+  double  getTanLambda() const { return _tanLambda ; } 
+	
  private:
   
   double _ref_point_x ;
@@ -40,6 +39,8 @@ class HelixTrack {
   double _tanLambda ;
   
 } ;
+
+
 
 
 #endif
