@@ -225,7 +225,9 @@ int MarlinKalTestTrack::initialise( bool fitDirection ) {;
   
   static TKalMatrix Cov(kSdim,kSdim);
   for (Int_t i=0; i<kSdim; i++) {
-    Cov(i,i) = 1.e6;   // initialise diagonal elements of dummy error matrix
+    // fg: if the error is too large the initial helix parameters might be changed extremely by the first three (or so) hits,
+    //     such that the fit will not work because the helix curls away and does not hit the next layer !!!
+    Cov(i,i) = 1.e2 ;   // initialise diagonal elements of dummy error matrix
   }
 
 
@@ -519,14 +521,15 @@ int MarlinKalTestTrack::fit() {
  */
 int MarlinKalTestTrack::smooth(){
 
-	streamlog_out( DEBUG4 )  << "MarlinKalTestTrack::smooth() " << std::endl ;
+	streamlog_out( DEBUG2 )  << "MarlinKalTestTrack::smooth() " << std::endl ;
+
 //	_kaltrack->SmoothAll() ;
 
 	//SJA:FIXME: in the current implementation it is only possible to smooth back to the 4th site.
 	// This is due to the fact that the covariance matrix is not well defined at the first 3 measurement sites filtered.
 
 	_kaltrack->SmoothBackTo( 4 ) ;
-	
+
 	return success ;
 
 }
@@ -1010,18 +1013,16 @@ int MarlinKalTestTrack::findIntersection( const ILDVMeasLayer& meas_module, cons
 
 
   //--------- DEBUG --------------
-  TKalTrackState* tsSmoothed = (  &((TVKalSite&)site).GetState(TVKalSite::kSmoothed) != 0 ? 
-				  &(TKalTrackState&) ((TVKalSite&)site).GetState( TVKalSite::kSmoothed )  : 0 ) ;
+  // TKalTrackState* tsSmoothed = (  &((TVKalSite&)site).GetState(TVKalSite::kSmoothed) != 0 ? 
+  // 				  &(TKalTrackState&) ((TVKalSite&)site).GetState( TVKalSite::kSmoothed )  : 0 ) ;
+  // if( tsSmoothed == &trkState ) 
+  //   streamlog_out(DEBUG2) << "************ MarlinKalTestTrack::intersectionWithLayer : using smoothed TrackState !!!!! " << std::endl ;
   
-  if( tsSmoothed == &trkState ) 
-    streamlog_out(DEBUG4) << "************ MarlinKalTestTrack::intersectionWithLayer : using smoothed TrackState !!!!! " << std::endl ;
-  
-  TKalTrackState* tsFiltered = (  &((TVKalSite&)site).GetState(TVKalSite::kFiltered) != 0 ? 
-   				  &(TKalTrackState&) ((TVKalSite&)site).GetState( TVKalSite::kFiltered )  : 0 ) ;
-  
-  if( tsFiltered == &trkState ) 
-    streamlog_out(DEBUG4) << "************ MarlinKalTestTrack::intersectionWithLayer : using filtered TrackState !!!!! " << std::endl ;
-  //------------------------------
+  // TKalTrackState* tsFiltered = (  &((TVKalSite&)site).GetState(TVKalSite::kFiltered) != 0 ? 
+  //  				  &(TKalTrackState&) ((TVKalSite&)site).GetState( TVKalSite::kFiltered )  : 0 ) ;
+  // if( tsFiltered == &trkState ) 
+  //   streamlog_out(DEBUG2) << "************ MarlinKalTestTrack::intersectionWithLayer : using filtered TrackState !!!!! " << std::endl ;
+  // //------------------------------
   
 
   THelicalTrack helix = trkState.GetHelix() ;
