@@ -1,3 +1,5 @@
+#ifndef __HELIXFIT__
+#define __HELIXFIT__
 //
 //  HelixFit.h
 //  MarlinTrk
@@ -47,3 +49,5 @@ namespace MarlinTrk {
 	};
 
 }
+
+#endif
