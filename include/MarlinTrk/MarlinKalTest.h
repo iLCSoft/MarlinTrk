@@ -26,7 +26,8 @@ class TKalDetCradle ;
 class TVKalDetector ;
 class ILDVMeasLayer ;
 class THelicalTrack ;
-class ILDVMeasLayer ;
+//class ILDVMeasLayer ;
+class ILDCylinderMeasLayer;
 
 namespace EVENT{
   class TrackerHit ;
@@ -82,10 +83,16 @@ protected:
 
  //** find the measurment layer for a given hit 
   const ILDVMeasLayer* findMeasLayer( EVENT::TrackerHit * trkhit) ;
+	 //** find the measurment layer for a given det element ID and point in space 
+  const ILDVMeasLayer* findMeasLayer( int detElementID, const TVector3& point) ;
 
   // get the last layer crossed by the helix when extrapolating from the present position to the pca to point
   const ILDVMeasLayer* getLastMeasLayer(THelicalTrack const& helix, TVector3 const& point) ;
 
+	const ILDCylinderMeasLayer* getIPLayer() { return _ipLayer; }
+	
+	const ILDCylinderMeasLayer* _ipLayer ;
+	
   const gear::GearMgr* _gearMgr ;
 
   TKalDetCradle* _det ;            // the detector cradle
@@ -94,7 +101,7 @@ protected:
 
   std::multimap< Int_t, ILDVMeasLayer*> _active_measurement_modules_by_layer;
 
-
+	
 
 } ;
 

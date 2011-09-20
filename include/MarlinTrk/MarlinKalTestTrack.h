@@ -128,7 +128,7 @@ class MarlinKalTestTrack : public MarlinTrk::IMarlinTrack {
   /** propagate the fit at the provided measurement site, to the point of closest approach to the given point,
    *  returning TrackState, chi2 and ndf via reference   
    */    
-  int propagate( const gear::Vector3D& point, const TKalTrackSite& site, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) ;
+  int propagate( const gear::Vector3D& point, const TKalTrackSite& site, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, const ILDVMeasLayer* ml = NULL ) ;
 
 
   /** propagate the fit to the numbered sensitive layer, returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference 
@@ -223,7 +223,7 @@ class MarlinKalTestTrack : public MarlinTrk::IMarlinTrack {
   /** extrapolate the fit at the measurement site, to numbered sensitive layer,
    *  returning intersection point in global coordinates and integer ID of the intersected sensitive detector element via reference 
    */
-  int intersectionWithLayer( int layerID, const TKalTrackSite& site, gear::Vector3D& point, int& detElementID, int mode=modeClosest ) ;
+  int intersectionWithLayer( int layerID, const TKalTrackSite& site, gear::Vector3D& point, int& detElementID, const ILDVMeasLayer*& ml, int mode=modeClosest ) ;
 
   
   /** extrapolate the fit to numbered sensitive detector element, returning intersection point in global coordinates via reference 
@@ -238,7 +238,7 @@ class MarlinKalTestTrack : public MarlinTrk::IMarlinTrack {
   /** extrapolate the fit at the measurement site, to sensitive detector element,
    *  returning intersection point in global coordinates via reference 
    */
-  int intersectionWithDetElement( int detElementID, const TKalTrackSite& site, gear::Vector3D& point, int mode=modeClosest ) ;
+  int intersectionWithDetElement( int detElementID, const TKalTrackSite& site, gear::Vector3D& point, const ILDVMeasLayer*& ml, int mode=modeClosest ) ;
 
   /** extrapolate the fit at the measurement site, to sensitive detector elements contained in the std::vector,
    *  and return intersection point in global coordinates via reference 

@@ -61,6 +61,8 @@ void MarlinKalTest::init() {
 
   try{
     ILDSupportKalDetector* supportdet = new ILDSupportKalDetector( *_gearMgr )  ;   
+		// get the dedicated ip layer
+		_ipLayer = supportdet->getIPLayer() ; 
     _det->Install( *supportdet ) ;  
   }
   catch( gear::UnknownParameterException& e){   
@@ -290,7 +292,7 @@ const ILDVMeasLayer*  MarlinKalTest::getLastMeasLayer(THelicalTrack const& hel, 
     if( does_cross ) {
 
       const double deflection = fabs( deflection_to_point - defection_angle ) ;
-
+			
       if( deflection < min_deflection ) {
 				
 				//	streamlog_out( DEBUG4 ) << "  MarlinKalTest - crossing found for suface = " << ml.GetMLName() 
@@ -318,73 +320,81 @@ const ILDVMeasLayer*  MarlinKalTest::getLastMeasLayer(THelicalTrack const& hel, 
 
 const ILDVMeasLayer* MarlinKalTest::findMeasLayer( EVENT::TrackerHit * trkhit) {
 
+	const TVector3 hit_pos( trkhit->getPosition()[0], trkhit->getPosition()[1], trkhit->getPosition()[2]) ;
+	
+	return this->findMeasLayer( trkhit->getCellID0(), hit_pos ) ;
+	
+}
+
+const ILDVMeasLayer* MarlinKalTest::findMeasLayer( int detElementID, const TVector3& point) {
+	
   const ILDVMeasLayer* ml = NULL; // return value 
-
+	
   std::vector<ILDVMeasLayer*> meas_modules ;
-
+	
   // search for the list of measurement layers associated with this CellID
-  this->getSensitiveMeasurementModules( trkhit->getCellID0(), meas_modules ) ; 
+  this->getSensitiveMeasurementModules( detElementID, meas_modules ) ; 
   
   if( meas_modules.size() == 0 ) { // no measurement layers found 
     
     std::stringstream errorMsg;
-    errorMsg << "MarlinKalTest::findMeasLayer hit module id unkown: moduleID = " << trkhit->getCellID0() << std::endl ; 
+    errorMsg << "MarlinKalTest::findMeasLayer module id unkown: moduleID = " << detElementID << std::endl ; 
     throw MarlinTrk::Exception(errorMsg.str());
     
   } 
   else if (meas_modules.size() == 1) { // one to one mapping 
-  
+		
     ml = meas_modules[0] ;
-
+		
   }
   else { // layer has been split 
     
     bool surf_found(false);
-
+		
     // loop over the measurement layers associated with this CellID and find the correct one using the position of the hit
     for( unsigned int i=0; i < meas_modules.size(); ++i) {
-     
-      const TVector3 hit_pos( trkhit->getPosition()[0], trkhit->getPosition()[1], trkhit->getPosition()[2]) ;
+			
+
       
       TVSurface* surf = NULL;
-
+			
       if( ! (surf = dynamic_cast<TVSurface*> (  meas_modules[i] )) ) {
-	std::stringstream errorMsg;
-	errorMsg << "MarlinKalTest::findMeasLayer dynamic_cast failed for surface type: moduleID = " << trkhit->getCellID0() << std::endl ; 
-	throw MarlinTrk::Exception(errorMsg.str());
+				std::stringstream errorMsg;
+				errorMsg << "MarlinKalTest::findMeasLayer dynamic_cast failed for surface type: moduleID = " << detElementID << std::endl ; 
+				throw MarlinTrk::Exception(errorMsg.str());
       }
       
-      bool hit_on_surface = surf->IsOnSurface(hit_pos);
-
+      bool hit_on_surface = surf->IsOnSurface(point);
+			
       if( (!surf_found) && hit_on_surface ){
-
-	ml = meas_modules[i] ;
-	surf_found = true ;
-
+				
+				ml = meas_modules[i] ;
+				surf_found = true ;
+				
       }
       else if( surf_found && hit_on_surface ) {  // only one surface should be found, if not throw 
-
-	std::stringstream errorMsg;
-	errorMsg << "MarlinKalTest::findMeasLayer hit found to be on two surfaces: moduleID = " << trkhit->getCellID0() << std::endl ; 
-	throw MarlinTrk::Exception(errorMsg.str());
+				
+				std::stringstream errorMsg;
+				errorMsg << "MarlinKalTest::findMeasLayer point found to be on two surfaces: moduleID = " << detElementID << std::endl ; 
+				throw MarlinTrk::Exception(errorMsg.str());
       }      
-
+			
     }
     if( ! surf_found ){ // print out debug info
-      streamlog_out(DEBUG3) << "MarlinKalTest::findMeasLayer hit not found to be on any surface matching moduleID = "
-			    << trkhit->getCellID0()
-			    << ": x = " << trkhit->getPosition()[0]
-			    << " y = " << trkhit->getPosition()[1]
-			    << " z = " << trkhit->getPosition()[2]
-			    << std::endl ;
+      streamlog_out(DEBUG3) << "MarlinKalTest::findMeasLayer point not found to be on any surface matching moduleID = "
+			<< detElementID
+			<< ": x = " << point.x()
+			<< " y = " << point.y()
+			<< " z = " << point.z()
+			<< std::endl ;
     }
     else{
-      streamlog_out(DEBUG3) << "MarlinKalTest::findMeasLayer hit found to be on surface matching moduleID = "
-			    << trkhit->getCellID0()
-			    << ": x = " << trkhit->getPosition()[0]
-			    << " y = " << trkhit->getPosition()[1]
-			    << " z = " << trkhit->getPosition()[2]
-			    << std::endl ;
+      streamlog_out(DEBUG3) << "MarlinKalTest::findMeasLayer point found to be on surface matching moduleID = "
+			<< detElementID
+			<< ": x = " << point.x()
+			<< " y = " << point.y()
+			<< " z = " << point.z()
+			<< std::endl ;
     }
   }
 
