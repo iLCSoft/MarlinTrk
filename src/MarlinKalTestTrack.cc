@@ -384,7 +384,17 @@ int MarlinKalTestTrack::addAndFit( ILDVTrackHit* kalhit, double& chi2increment, 
     throw MarlinTrk::Exception("Track fit not initialised");   
     
   }
-
+	
+	// here do dynamic cast repeatedly in DEBUG statement as this will be stripped out any way for production code
+	// otherwise we have to do the cast outside of the DEBUG statement and it won't be stripped out 
+	streamlog_out( DEBUG1 )  << "Kaltrack::fit :  add site to track at index : " 
+	<< (dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) ))->GetIndex() 
+	<< " for type " 
+	<< dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) )->GetMLName() 
+	<< " layer ID " 
+	<< dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) )->getLayerID() 
+	<< std::endl ;
+	
   TKalTrackSite* temp_site = new TKalTrackSite(*kalhit); // create new site for this hit
 
   KalTrackFilter filter( maxChi2Increment );
@@ -396,8 +406,16 @@ int MarlinKalTestTrack::addAndFit( ILDVTrackHit* kalhit, double& chi2increment, 
     chi2increment = temp_site->GetDeltaChi2() ;
     // get the measurement layer of the current hit
     const ILDVMeasLayer* ml =  dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) ) ;
-    streamlog_out( DEBUG2 )  << "Kaltrack::fit : site discarded! at index : " << ml->GetIndex() << " for type " << ml->GetMLName() << " layer ID " << ml->getLayerID() << std::endl ;
-    
+		TVector3 pos = ml->HitToXv(*kalhit);
+    streamlog_out( DEBUG2 )  << "Kaltrack::fit : site discarded! at index : " << ml->GetIndex() 
+		<< " for type " << ml->GetMLName() 
+		<< " layer ID " << ml->getLayerID() 
+		<< " x = " << pos.x()
+		<< " y = " << pos.y()
+		<< " z = " << pos.z()
+		<< std::endl ;
+   
+		
     delete temp_site;  // delete site if filter step failed      
     
     return site_discarded ;
@@ -470,17 +488,6 @@ int MarlinKalTestTrack::fit() {
     TKalTrackSite* site;
     int error = this->addAndFit( kalhit, chi2increment, site);
     
-    // here do dynamic cast repeatedly in DEBUG statement as this will be stripped out any way for production code
-    // otherwise we have to do the cast outside of the DEBUG statement and it won't be stripped out 
-    streamlog_out( DEBUG1 )  << "Kaltrack::fit :  add site to track at index : " 
-			     << (dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) ))->GetIndex() 
-			     << " for type " 
-			     << dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) )->GetMLName() 
-			     << " layer ID " 
-			     << dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) )->getLayerID() 
-			     << " error = " << error 
-			     << std::endl ;
-
     // find the lcio hit for this kaltest hit
     std::map<ILDVTrackHit*,EVENT::TrackerHit*>::iterator it;
     it = _kaltest_hits_to_lcio_hits.find(kalhit) ;

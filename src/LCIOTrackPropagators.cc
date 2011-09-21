@@ -435,16 +435,16 @@ namespace LCIOTrackPropagators{
 
     if( direction == 0 ) { // take closest intersection
       if( fabs(s_1) < fabs(s_2) ) {
-	//	std::cout << "PropagateLCIOToPlaneParralelToZ: take 1st solution " << std::endl;
-	x = x_ins1 ;
-	y = y_ins1 ;
-	z = z_pca + s_1 * tanl ;
+				//	std::cout << "PropagateLCIOToPlaneParralelToZ: take 1st solution " << std::endl;
+				x = x_ins1 ;
+				y = y_ins1 ;
+				z = z_pca + s_1 * tanl ;
       }
       else {
-	//	std::cout << "PropagateLCIOToPlaneParralelToZ: take 2nd solution " << std::endl;
-	x = x_ins2 ;
-	y = y_ins2 ;
-	z = z_pca + s_2 * tanl ;	  
+				//	std::cout << "PropagateLCIOToPlaneParralelToZ: take 2nd solution " << std::endl;
+				x = x_ins2 ;
+				y = y_ins2 ;
+				z = z_pca + s_2 * tanl ;	  
       }
     }
     
@@ -454,37 +454,37 @@ namespace LCIOTrackPropagators{
       if ( s_2 < 0.0 ) s_2 +=  2.0*M_PI * fabs(rho) ;
       
       if( direction == 1 ){ // take the intersection with smallest s
-	if( s_1 < s_2 ) {
-	  //	  std::cout << "PropagateLCIOToPlaneParralelToZ: take 1st solution " << std::endl;
-	  x = x_ins1 ;
-	  y = y_ins1 ;
-	  z = z_pca + s_1 * tanl ;
-	}
-	else {
-	  //	  std::cout << "PropagateLCIOToPlaneParralelToZ: take 2nd solution " << std::endl;
-	  x = x_ins2 ;
-	  y = y_ins2 ;
-	  z = z_pca + s_2 * tanl ;	  
-	}
+				if( s_1 < s_2 ) {
+					//	  std::cout << "PropagateLCIOToPlaneParralelToZ: take 1st solution " << std::endl;
+					x = x_ins1 ;
+					y = y_ins1 ;
+					z = z_pca + s_1 * tanl ;
+				}
+				else {
+					//	  std::cout << "PropagateLCIOToPlaneParralelToZ: take 2nd solution " << std::endl;
+					x = x_ins2 ;
+					y = y_ins2 ;
+					z = z_pca + s_2 * tanl ;	  
+				}
       } 
       else if( direction == -1 ) {  // else take the intersection with largest s 
-	if( s_1 > s_2 ){
-	  //	  std::cout << "PropagateLCIOToPlaneParralelToZ: take 1st solution " << std::endl;
-	  x = x_ins1 ;
-	  y = y_ins1 ;
-	  z = z_pca + s_1 * tanl ;
-	}
-	else{
-	  //	  std::cout << "PropagateLCIOToPlaneParralelToZ: take 2nd solution " << std::endl;
-	  x = x_ins2 ;
-	  y = y_ins2 ;
-	  z = z_pca + s_2 * tanl ;
-	}
+				if( s_1 > s_2 ){
+					//	  std::cout << "PropagateLCIOToPlaneParralelToZ: take 1st solution " << std::endl;
+					x = x_ins1 ;
+					y = y_ins1 ;
+					z = z_pca + s_1 * tanl ;
+				}
+				else{
+					//	  std::cout << "PropagateLCIOToPlaneParralelToZ: take 2nd solution " << std::endl;
+					x = x_ins2 ;
+					y = y_ins2 ;
+					z = z_pca + s_2 * tanl ;
+				}
       }
     }
-
+		
     return PropagateLCIOToNewRef(ts,x,y,z);
-
+		
   }
 
 
