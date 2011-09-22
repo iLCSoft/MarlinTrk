@@ -80,7 +80,8 @@ class MarlinKalTest : public MarlinTrk::IMarlinTrkSystem {
 protected:
 
   //  void init(bool MSOn, bool EnergyLossOn) ;
-
+  bool is_initialised ;
+  
  //** find the measurment layer for a given hit 
   const ILDVMeasLayer* findMeasLayer( EVENT::TrackerHit * trkhit) ;
 	 //** find the measurment layer for a given det element ID and point in space 

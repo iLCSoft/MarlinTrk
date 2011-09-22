@@ -40,9 +40,8 @@ MarlinKalTest::MarlinKalTest( const gear::GearMgr& gearMgr) :
   _det = new TKalDetCradle ; // from kaltest. TKalDetCradle inherits from TObjArray ... 
   _det->SetOwner( true ) ; // takes care of deleting subdetector in the end ...
   
-  // this could be made a public init() method taking options ....
-  streamlog_out( DEBUG4 ) << "  MarlinKalTest - call init " << std::endl ;
-   
+  is_initialised = false; 
+  
   this->registerOptions() ;
 
   streamlog_out( DEBUG4 ) << "  MarlinKalTest - established " << std::endl ;
@@ -57,7 +56,7 @@ MarlinKalTest::~MarlinKalTest(){
 
 void MarlinKalTest::init() {
   
-
+  streamlog_out( DEBUG4 ) << "  MarlinKalTest - call init " << std::endl ;
 
   try{
     ILDSupportKalDetector* supportdet = new ILDSupportKalDetector( *_gearMgr )  ;   
@@ -134,10 +133,20 @@ void MarlinKalTest::init() {
   this->includeEnergyLoss( getOption(IMarlinTrkSystem::CFG::usedEdx) ) ; 
 
 
+  is_initialised = true; 
+  
 }
 
 MarlinTrk::IMarlinTrack* MarlinKalTest::createTrack()  {
 
+  if ( ! is_initialised ) {
+
+    std::stringstream errorMsg;
+    errorMsg << "MarlinKalTest::createTrack: Fitter not initialised. MarlinKalTest::init() must be called before MarlinKalTest::createTrack()" << std::endl ; 
+    throw MarlinTrk::Exception(errorMsg.str());
+
+  }
+  
   return new MarlinKalTestTrack(this) ;
 
 }
@@ -337,8 +346,17 @@ const ILDVMeasLayer* MarlinKalTest::findMeasLayer( int detElementID, const TVect
   
   if( meas_modules.size() == 0 ) { // no measurement layers found 
     
+    UTIL::BitField64 encoder( ILDCellID0::encoder_string ) ; 
+    encoder.setValue(detElementID) ;
+    
     std::stringstream errorMsg;
-    errorMsg << "MarlinKalTest::findMeasLayer module id unkown: moduleID = " << detElementID << std::endl ; 
+    errorMsg << "MarlinKalTest::findMeasLayer module id unkown: moduleID = " << detElementID 
+    << " subdet = " << encoder[ILDCellID0::subdet]
+    << " side = " << encoder[ILDCellID0::side]
+    << " layer = " << encoder[ILDCellID0::layer]
+    << " module = " << encoder[ILDCellID0::module]
+    << " sensor = " << encoder[ILDCellID0::sensor]
+    << std::endl ; 
     throw MarlinTrk::Exception(errorMsg.str());
     
   } 
