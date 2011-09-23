@@ -186,12 +186,12 @@ namespace MarlinTrk{
 		den2= 1.0/(x1*x1 + y1*y1 + gam*det*det);
 		
 		if(den2 <= 0.0) {
-			streamlog_out(ERROR) << "den2 less than or equal to zero" 
-			<< " x1 = " << x1 
-			<< " y1 = " << y1
-			<< " gam = " << gam  
-			<< " det = " << det  
-			<< std::endl;
+//			streamlog_out(ERROR) << "den2 less than or equal to zero" 
+//			<< " x1 = " << x1 
+//			<< " y1 = " << y1
+//			<< " gam = " << gam  
+//			<< " det = " << det  
+//			<< std::endl;
 			ch2ph = 1.0e30;
 			ch2z  = 1.0e30;
 			return 1;
@@ -220,7 +220,7 @@ namespace MarlinTrk{
 		rr0 = sst*cur;
 		
 		if( (alf*alf+bet*bet) <= 0.0 ){
-			streamlog_out(ERROR) << "(alf*alf+bet*bet) less than or equal to zero" << std::endl;
+//			streamlog_out(ERROR) << "(alf*alf+bet*bet) less than or equal to zero" << std::endl;
 			ch2ph = 1.0e30;
 			ch2z  = 1.0e30;
 			return 1;
@@ -238,7 +238,7 @@ namespace MarlinTrk{
 		phic = asin(aaa)+ M_PI_2;
 		
 		if( bet > 0 ) phic = 2*M_PI - phic;
-		std::cout << "phic = " <<  phic <<  std::endl; 
+
 		double ph0 = phic + M_PI_2;
 		
 		if(rr0 <= 0.0)   ph0=ph0-M_PI;
@@ -347,7 +347,7 @@ namespace MarlinTrk{
 		double denom = sumw*sumss - sums*sums;
 		
 		if (fabs(denom) < eps){
-			streamlog_out(ERROR) << "fabs(denom) less than or equal to zero" << std::endl;
+//			streamlog_out(ERROR) << "fabs(denom) less than or equal to zero" << std::endl;
 			ch2ph = 1.0e30;
 			ch2z  = 1.0e30;
 			return 1;
@@ -372,7 +372,7 @@ namespace MarlinTrk{
 		}
 		
 		if(chi2 > MAX_CHI2) {
-			streamlog_out(ERROR) << "Chi2 greater than " <<  MAX_CHI2 << "return 1 " << std::endl;
+//			streamlog_out(ERROR) << "Chi2 greater than " <<  MAX_CHI2 << "return 1 " << std::endl;
 			ch2ph = 1.0e30;
 			ch2z  = 1.0e30;
 			return 1;
