@@ -1,0 +1,44 @@
+############################################################################################################
+#
+#    MarlinTrk
+#
+#    Tracking Package based on LCIO and GEAR, primarily aimed at providing track fitting in Marlin
+#
+#    S. Aplin, F. Gaede DESY, 2011
+#
+#
+############################################################################################################
+
+  ==== This is still Work in Progress =======
+
+
+------------------------------------------------------------
+ 
+Examples of how to use MarlinTrk can be found in:
+
+https://svnsrv.desy.de/desy/marlinreco/MarlinTrkProcessors/trunk
+
+specifically RefitProcessor which takes a track collection and refits each track.
+
+
+ =============================================================================================================
+  --------
+ | v01-00 |
+  -------- 
+
+  IMarlinTrack:
+	Interface for generic tracks in MarlinTrk. The interface should provide the functionality to perform track finding and fitting.   
+
+  IMarlinTrkSystem:
+	Base class for tracking system implementations in MarlinTrk.
+
+  MarlinKalTestTrack:
+	Tracking System used to create a KaltTest Kalman fitter - instantiates and holds the detector geometry. 
+
+  LCIOTrackPropagators:
+	Functions to perform the geometric propagation of LCIO tracks, for closed solutions.
+
+  HelixFit:
+	C++ rewrite of the aleph Fortran routine TFITHL, which provides a fast helix fit
+
+	
