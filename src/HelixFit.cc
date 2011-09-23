@@ -3,7 +3,6 @@
 //  MarlinTrk
 //
 //  Created by Steve Aplin on 9/16/11.
-//  Copyright 2011 DESY. All rights reserved.
 //
 
 #include "MarlinTrk/IMarlinTrack.h"
