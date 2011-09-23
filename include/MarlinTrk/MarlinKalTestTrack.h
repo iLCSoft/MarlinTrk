@@ -24,6 +24,13 @@ namespace EVENT{
   class TrackerHit ;
 }
 
+/** Implementation of the IMarlinTrack interface, using KalTest and KalDet to provide 
+ *  the needed functionality for a Kalman Filter.
+ *
+ * @version $Id$
+ * @author S.Aplin, F. Gaede DESY
+ */
+
 
 class MarlinKalTestTrack : public MarlinTrk::IMarlinTrack {
 

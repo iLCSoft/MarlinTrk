@@ -4,6 +4,8 @@
 //  HelixFit.h
 //  MarlinTrk
 //
+
+/**
 //  Created by Steve Aplin on 9/16/11.
 //  DESY
 //
@@ -18,9 +20,11 @@
 //           zf       Array of Z-values of points to be fit
 //           wf       Array of 1/(sig(rphi))**2 for each point
 //           wzf      Array of 1/(sig(z))**2 for each point
+//           iopt     < 3 : error matrix calculated 
+//                    = 3 : 3-dimensional iteration
 //
-//  OUTPUT: HelixTrack returned
-//          cov    = INVERSE OF ERROR MATRIX IN TRIANG. FORM
+//  OUTPUT: vv0    = Helix parameter in perigee form
+//          ee0    = INVERSE OF ERROR MATRIX IN TRIANG. FORM
 //          chi2ph = CHI SQUARED = SUM (PHI DEVIATIONS/ERRORS)**2
 //          CH2Z  = CHI SQUARED = SUM (Z DEVIATIONS/ERRORS)**2
 //  NOTE: DEGREES OF FREEDOM = 2*NPT-5
@@ -34,7 +38,7 @@
 //                 Protect against arg SIN > 1.0
 //
 //-----------------------------------------------------------------
-
+*/
 
 namespace MarlinTrk {
 
