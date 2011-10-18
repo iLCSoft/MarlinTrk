@@ -70,7 +70,7 @@ namespace MarlinTrk{
      *  it is the users responsibility that the track state is consistent with the order
      *  of the hits used in addHit() ( i.e. the direction of energy loss )
      */
-    virtual int initialise( const IMPL::TrackStateImpl& ts, double bfield_z, bool fitDirection ) = 0 ;
+    virtual int initialise(  const EVENT::TrackState& ts, double bfield_z, bool fitDirection ) = 0 ;
 
 
     /** perform the fit of all current hits, returns error code ( IMarlinTrack::success if no error ) .

@@ -192,7 +192,7 @@ int MarlinKalTestTrack::initialise( bool fitDirection ) {;
   initialSite.SetHitOwner();// site owns hit
   initialSite.SetOwner();   // site owns states
 
- // ---------------------------
+  // ---------------------------
   //  Create initial helix
   // ---------------------------
 
@@ -245,7 +245,7 @@ int MarlinKalTestTrack::initialise( bool fitDirection ) {;
 
 }
 
-int MarlinKalTestTrack::initialise( const IMPL::TrackStateImpl& ts, double bfield_z, bool fitDirection ) {
+int MarlinKalTestTrack::initialise(  const EVENT::TrackState& ts, double bfield_z, bool fitDirection ) {
 
   //SJA:FIXME: check here if the track is already initialised, and for now don't allow it to be re-initialised
   //           if the track is going to be re-initialised then we would need to do it directly on the first site
@@ -262,7 +262,7 @@ int MarlinKalTestTrack::initialise( const IMPL::TrackStateImpl& ts, double bfiel
   double kappa = ts.getOmega() * bfield_z * alpha ;
 
   THelicalTrack helix( ts.getD0(),
-		       ts.getPhi(),
+		       toBaseRange( ts.getPhi() - M_PI/2. ) ,
 		       kappa,
 		       ts.getZ0(),
 		       ts.getTanLambda(),
@@ -302,14 +302,14 @@ int MarlinKalTestTrack::initialise( const IMPL::TrackStateImpl& ts, double bfiel
   if( _fitDirection == IMarlinTrack::forward ){
     index = 0 ;
   }
-
+  
   TVTrackHit* kalhit = dynamic_cast<TVTrackHit *>(_kalhits->At(index)); 
-
+  
   TVector3 initial_pivot = kalhit->GetMeasLayer().HitToXv(*kalhit);
   
   double dphi;
   helix.MoveTo( initial_pivot, dphi, NULL, &cov );
-
+  
   // ---------------------------
   //  Create an initial start site for the track using the  hit
   // ---------------------------
@@ -385,7 +385,7 @@ int MarlinKalTestTrack::addAndFit( ILDVTrackHit* kalhit, double& chi2increment, 
     
   }
 	
-	// here do dynamic cast repeatedly in DEBUG statement as this will be stripped out any way for production code
+  // here do dynamic cast repeatedly in DEBUG statement as this will be stripped out any way for production code
 	// otherwise we have to do the cast outside of the DEBUG statement and it won't be stripped out 
 	streamlog_out( DEBUG1 )  << "Kaltrack::fit :  add site to track at index : " 
 	<< (dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) ))->GetIndex() 
@@ -1066,7 +1066,7 @@ int MarlinKalTestTrack::findIntersection( const ILDVMeasLayer& meas_module, cons
   int crossing_exist = surf->CalcXingPointWith(helix, xto, dphi, mode) ;
 
   streamlog_out(DEBUG2) << "MarlinKalTestTrack::intersectionWithLayer crossing_exist = " << crossing_exist << " dphi " << dphi 
-			<< " detElementID " << meas_module.getLayerID() 
+			<< " detElementID " << decodeILD( meas_module.getLayerID() ) 
 			<< std::endl ;
       
   if( crossing_exist == 0 ) { 

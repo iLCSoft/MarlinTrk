@@ -76,7 +76,7 @@ class MarlinKalTestTrack : public MarlinTrk::IMarlinTrack {
    *  it is the users responsibility that the track state is consistent with the order
    *  of the hits used in addHit() ( i.e. the direction of energy loss )
    */
-  int initialise( const IMPL::TrackStateImpl& ts, double bfield_z, bool fitDirection ) ;
+  int initialise( const EVENT::TrackState& ts, double bfield_z, bool fitDirection ) ;
 
 
   /** perform the fit of all current hits, returns error code ( IMarlinTrack::success if no error ) .
