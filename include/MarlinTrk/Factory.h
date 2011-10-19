@@ -19,7 +19,7 @@ namespace MarlinTrk{
     
   public:
     
-    virtual ~Factory() {};
+    virtual ~Factory() {}
     
     /** Create the MarlinTrkSystem instance of the specified type:<br>
      *  KalTest, LEPTracking, GenFit,...<br>
@@ -27,9 +27,9 @@ namespace MarlinTrk{
      * 
      *  For now only KalTest.
      */
-    static IMarlinTrkSystem* createMarlinTrkSystem( const std::string& systemType,  
-						    const gear::GearMgr* mgr , 
-						    const std::string& options ) ;
+    static IMarlinTrkSystem* createMarlinTrkSystem(const std::string& systemType,  
+                                                   const gear::GearMgr* mgr , 
+                                                   const std::string& options ) ;
     
     
   } ;

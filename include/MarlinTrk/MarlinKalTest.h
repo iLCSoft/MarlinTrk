@@ -36,21 +36,21 @@ namespace EVENT{
 /** Interface to KaltTest Kalman fitter - instantiates and holds the detector geometry.
  */
 class MarlinKalTest : public MarlinTrk::IMarlinTrkSystem {
-
- public:
+  
+public:
   
   friend class MarlinKalTestTrack;
-
+  
   // define some configuration constants
   static const bool FitBackward   = kIterBackward ;
   static const bool FitForward    = kIterForward ;
   static const bool OrderOutgoing  = true ;
   static const bool OrderIncoming  = false ;
   
-
+  
   /** Default c'tor, initializes the geometry from GEAR. */
   MarlinKalTest( const gear::GearMgr& gearMgr) ;
-
+  
   //  MarlinKalTest( const gear::GearMgr& gearMgr ) ;
   
   ~MarlinKalTest() ;
@@ -61,49 +61,49 @@ class MarlinKalTest : public MarlinTrk::IMarlinTrkSystem {
   
   // instantiate its implementation of the IMarlinTrack 
   MarlinTrk::IMarlinTrack* createTrack()  ;
-
+  
   // take multiple scattering into account during the fit
   void includeMultipleScattering( bool on )  ;
-
+  
   // take energy loss into account during the fit
   void includeEnergyLoss( bool on )  ;
-
-
-
+  
+  
+  
   void storeActiveMeasurementModuleIDs(TVKalDetector* detector);  
-
+  
   void getSensitiveMeasurementModules( int detElementID, std::vector<ILDVMeasLayer*>& measmodules);
-
+  
   void getSensitiveMeasurementModulesForLayer( int layerID, std::vector<ILDVMeasLayer*>& measmodules);
-
-
+  
+  
 protected:
-
+  
   //  void init(bool MSOn, bool EnergyLossOn) ;
   bool is_initialised ;
   
- //** find the measurment layer for a given hit 
+  //** find the measurment layer for a given hit 
   const ILDVMeasLayer* findMeasLayer( EVENT::TrackerHit * trkhit) ;
 	 //** find the measurment layer for a given det element ID and point in space 
   const ILDVMeasLayer* findMeasLayer( int detElementID, const TVector3& point) ;
-
+  
   // get the last layer crossed by the helix when extrapolating from the present position to the pca to point
   const ILDVMeasLayer* getLastMeasLayer(THelicalTrack const& helix, TVector3 const& point) ;
-
-	const ILDCylinderMeasLayer* getIPLayer() { return _ipLayer; }
-	
-	const ILDCylinderMeasLayer* _ipLayer ;
-	
+  
+  const ILDCylinderMeasLayer* getIPLayer() { return _ipLayer; }
+  
+  const ILDCylinderMeasLayer* _ipLayer ;
+  
   const gear::GearMgr* _gearMgr ;
-
+  
   TKalDetCradle* _det ;            // the detector cradle
-
+  
   std::multimap< Int_t, ILDVMeasLayer*> _active_measurement_modules;
-
+  
   std::multimap< Int_t, ILDVMeasLayer*> _active_measurement_modules_by_layer;
-
-	
-
+  
+  
+  
 } ;
 
 #endif

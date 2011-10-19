@@ -27,7 +27,7 @@ namespace LCIOTrackPropagators{
   /** Propagate trackstate to a new reference point taken as its crossing point with an infinite plane located at z, perpendicular to the z axis 
    */
   int PropagateLCIOToZPlane( IMPL::TrackStateImpl& ts, float z) ;
-
+  
   /** Propagate trackstate to a new reference point taken as its crossing point with a plane parallel to the z axis, containing points x1,x2 and y1,y2. Tolerance for intersection determined by epsilon.
    For direction== 0  the closest crossing point will be taken
    For direction== 1  the first crossing traversing in positive s will be taken
@@ -36,7 +36,7 @@ namespace LCIOTrackPropagators{
   int PropagateLCIOToPlaneParralelToZ( IMPL::TrackStateImpl& ts, float x1, float y1, float x2, float y2, int direction=0, double epsilon=1.0e-8) ;
   
   
-
+  
 }
 
 #endif

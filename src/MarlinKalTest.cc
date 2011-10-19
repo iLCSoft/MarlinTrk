@@ -31,8 +31,8 @@
 #include "streamlog/streamlog.h"
 
 
-MarlinKalTest::MarlinKalTest( const gear::GearMgr& gearMgr) :  
-  _gearMgr( &gearMgr )  
+MarlinKalTest::MarlinKalTest( const gear::GearMgr& gearMgr) : 
+_gearMgr( &gearMgr )
 {
   
   streamlog_out( DEBUG4 ) << "  MarlinKalTest - initializing the detector ..." << std::endl ;
@@ -43,9 +43,9 @@ MarlinKalTest::MarlinKalTest( const gear::GearMgr& gearMgr) :
   is_initialised = false; 
   
   this->registerOptions() ;
-
+  
   streamlog_out( DEBUG4 ) << "  MarlinKalTest - established " << std::endl ;
-
+  
 }
 
 MarlinKalTest::~MarlinKalTest(){
@@ -57,17 +57,17 @@ MarlinKalTest::~MarlinKalTest(){
 void MarlinKalTest::init() {
   
   streamlog_out( DEBUG4 ) << "  MarlinKalTest - call init " << std::endl ;
-
+  
   try{
     ILDSupportKalDetector* supportdet = new ILDSupportKalDetector( *_gearMgr )  ;   
-		// get the dedicated ip layer
-		_ipLayer = supportdet->getIPLayer() ; 
+    // get the dedicated ip layer
+    _ipLayer = supportdet->getIPLayer() ; 
     _det->Install( *supportdet ) ;  
   }
   catch( gear::UnknownParameterException& e){   
     streamlog_out( MESSAGE ) << "  MarlinKalTest - Support Material missing in gear file: Support Material Not Built " << std::endl ;
   }
-
+  
   try{
     ILDVXDKalDetector* vxddet = new ILDVXDKalDetector( *_gearMgr )  ;
     // store the measurement layer id's for the active layers 
@@ -77,7 +77,7 @@ void MarlinKalTest::init() {
   catch( gear::UnknownParameterException& e){   
     streamlog_out( MESSAGE ) << "  MarlinKalTest - VXD missing in gear file: VXD Material Not Built " << std::endl ;
   }
-
+  
   try{
     ILDSITKalDetector* sitdet = new ILDSITKalDetector( *_gearMgr )  ;
     // store the measurement layer id's for the active layers 
@@ -87,7 +87,7 @@ void MarlinKalTest::init() {
   catch( gear::UnknownParameterException& e){   
     streamlog_out( MESSAGE ) << "  MarlinKalTest - SIT missing in gear file: SIT Not Built " << std::endl ;  
   }
-
+  
   bool FTD_found = false ;
   try{
     ILDFTDKalDetector* ftddet = new ILDFTDKalDetector( *_gearMgr )  ;
@@ -99,7 +99,7 @@ void MarlinKalTest::init() {
   catch( gear::UnknownParameterException& e){   
     streamlog_out( MESSAGE ) << "  MarlinKalTest - Petal Based FTD missing in gear file: Petal Based FTD Not Built " << std::endl ;
   }
-
+  
   if( ! FTD_found ){
     try{
       ILDFTDDiscBasedKalDetector* ftddet = new ILDFTDDiscBasedKalDetector( *_gearMgr )  ;
@@ -111,7 +111,7 @@ void MarlinKalTest::init() {
       streamlog_out( MESSAGE ) << "  MarlinKalTest - Simple Disc Based FTD missing in gear file: Simple Disc Based FTD Not Built " << std::endl ;
     }
   }
-
+  
   try{
     ILDTPCKalDetector* tpcdet = new ILDTPCKalDetector( *_gearMgr )  ;
     // store the measurement layer id's for the active layers 
@@ -121,34 +121,34 @@ void MarlinKalTest::init() {
   catch( gear::UnknownParameterException& e){   
     streamlog_out( MESSAGE ) << "  MarlinKalTest - TPC missing in gear file: TPC Not Built " << std::endl ;
   }
-
+  
   _det->Close() ;          // close the cradle
   _det->Sort() ;           // sort meas. layers from inside to outside
-
+  
   streamlog_out( DEBUG4 ) << "  MarlinKalTest - number of layers = " << _det->GetEntriesFast() << std::endl ;
-
+  
   streamlog_out( DEBUG4 ) << "Options: " << std::endl << this->getOptions() << std::endl ;
-
+  
   this->includeMultipleScattering( getOption(IMarlinTrkSystem::CFG::useQMS) ) ;  
   this->includeEnergyLoss( getOption(IMarlinTrkSystem::CFG::usedEdx) ) ; 
-
-
+  
+  
   is_initialised = true; 
   
 }
 
 MarlinTrk::IMarlinTrack* MarlinKalTest::createTrack()  {
-
+  
   if ( ! is_initialised ) {
-
+    
     std::stringstream errorMsg;
     errorMsg << "MarlinKalTest::createTrack: Fitter not initialised. MarlinKalTest::init() must be called before MarlinKalTest::createTrack()" << std::endl ; 
     throw MarlinTrk::Exception(errorMsg.str());
-
+    
   }
   
   return new MarlinKalTestTrack(this) ;
-
+  
 }
 
 void MarlinKalTest::includeMultipleScattering( bool msOn ) {
@@ -159,7 +159,7 @@ void MarlinKalTest::includeMultipleScattering( bool msOn ) {
   else{
     _det->SwitchOffMS();
   } 
-
+  
 } 
 
 void MarlinKalTest::includeEnergyLoss( bool energyLossOn ) {
@@ -170,11 +170,11 @@ void MarlinKalTest::includeEnergyLoss( bool energyLossOn ) {
   else{
     _det->SwitchOffDEDX();
   } 
-
+  
 } 
 
 void MarlinKalTest::getSensitiveMeasurementModulesForLayer( int layerID, std::vector<ILDVMeasLayer*>& measmodules){
-
+  
   if( ! measmodules.empty() ) {
     
     std::stringstream errorMsg;
@@ -185,162 +185,160 @@ void MarlinKalTest::getSensitiveMeasurementModulesForLayer( int layerID, std::ve
   
   std::pair<std::multimap<Int_t, ILDVMeasLayer*>::iterator, std::multimap<Int_t, ILDVMeasLayer*>::iterator> ii;
   ii = this->_active_measurement_modules_by_layer.equal_range(layerID); // set the first and last entry in ii;
-
+  
   std::multimap<Int_t, ILDVMeasLayer*>::iterator it; //Iterator to be used along with ii
-
-
+  
+  
   for(it = ii.first; it != ii.second; ++it)
     {
-      //      std::cout<<"Key = "<<it->first<<"    Value = "<<it->second << std::endl ;
-      measmodules.push_back( it->second ) ; 
+    //      std::cout<<"Key = "<<it->first<<"    Value = "<<it->second << std::endl ;
+    measmodules.push_back( it->second ) ; 
     }
-      
+  
 }
 
 void MarlinKalTest::getSensitiveMeasurementModules( int moduleID , std::vector<ILDVMeasLayer*>& measmodules ){
-
+  
   if( ! measmodules.empty() ) {
     
     std::stringstream errorMsg;
     errorMsg << "MarlinKalTest::getSensitiveMeasurementLayer vector passed as second argument is not empty " << std::endl ; 
     throw MarlinTrk::Exception(errorMsg.str());
-
+    
   }
-
+  
   std::pair<std::multimap<Int_t, ILDVMeasLayer*>::iterator, std::multimap<Int_t, ILDVMeasLayer*>::iterator> ii;
   ii = this->_active_measurement_modules.equal_range(moduleID); // set the first and last entry in ii;
-
+  
   std::multimap<Int_t, ILDVMeasLayer*>::iterator it; //Iterator to be used along with ii
-
-
-  for(it = ii.first; it != ii.second; ++it)
-    {
-      //      std::cout<<"Key = "<<it->first<<"    Value = "<<it->second << std::endl ;
-      measmodules.push_back( it->second ) ; 
-    }
-      
+  
+  
+  for(it = ii.first; it != ii.second; ++it) {
+    //      std::cout<<"Key = "<<it->first<<"    Value = "<<it->second << std::endl ;
+    measmodules.push_back( it->second ) ; 
+  }
 }
 
 
-void MarlinKalTest::storeActiveMeasurementModuleIDs(TVKalDetector* detector){
+void MarlinKalTest::storeActiveMeasurementModuleIDs(TVKalDetector* detector) {
   
   Int_t nLayers = detector->GetEntriesFast() ;
   
   UTIL::BitField64 encoder( ILDCellID0::encoder_string ) ; 
   
-  for( int i=0; i < nLayers; ++i ){
+  for( int i=0; i < nLayers; ++i ) {
     
     ILDVMeasLayer* ml = dynamic_cast<ILDVMeasLayer*>( detector->At( i ) ); 
-
+    
     if( ! ml ) {
       std::stringstream errorMsg;
       errorMsg << "MarlinKalTest::storeActiveMeasurementLayerIDs  dynamic_cast to ILDVMeasLayer* failed " << std::endl ; 
       throw MarlinTrk::Exception(errorMsg.str());
     }
-
+    
     if( ml->IsActive() ) {
-
+      
       this->_active_measurement_modules.insert(std::pair<int,ILDVMeasLayer*>(ml->getLayerID(),ml));
       
       
       encoder.setValue( ml->getLayerID() );
-
+      
       // set the module field value to 0 leaving only sub_det, side and layer set.
       encoder[ILDCellID0::module] = 0 ;
       encoder[ILDCellID0::sensor] = 0 ;
-
+      
       int subdet_layer_id = encoder.lowWord() ;
-
+      
       this->_active_measurement_modules_by_layer.insert(std::pair<int,ILDVMeasLayer*>(subdet_layer_id,ml));
       
       streamlog_out(DEBUG3) << "MarlinKalTest::storeActiveMeasurementLayerIDs added active layer with "
-			    << " ModuleID = " << ml->getLayerID()
-			    << " LayerID = " << subdet_layer_id
-			    << std::endl ;
-
+      << " ModuleID = " << ml->getLayerID()
+      << " LayerID = " << subdet_layer_id
+      << std::endl ;
       
-
+      
+      
     }
-
+    
   }
   
 }
 
 const ILDVMeasLayer*  MarlinKalTest::getLastMeasLayer(THelicalTrack const& hel, TVector3 const& point) {
-
+  
   THelicalTrack helix = hel;
-
+  
   double deflection_to_point = 0 ;
   helix.MoveTo(  point, deflection_to_point , 0 , 0) ;
-
+  
   bool isfwd = ((helix.GetKappa() > 0 && deflection_to_point < 0) || (helix.GetKappa() <= 0 && deflection_to_point > 0)) ? true : false;
   
   int mode = isfwd ? -1 : +1 ;
-
-//  streamlog_out( DEBUG4 ) << "  MarlinKalTest - getLastMeasLayer deflection to point = " << deflection_to_point << " kappa = " << helix.GetKappa()  << "  mode = " << mode << std::endl ;
-//  streamlog_out( DEBUG4 ) << " Point to move to:" << std::endl;
-//  point.Print();
-
+  
+  //  streamlog_out( DEBUG4 ) << "  MarlinKalTest - getLastMeasLayer deflection to point = " << deflection_to_point << " kappa = " << helix.GetKappa()  << "  mode = " << mode << std::endl ;
+  //  streamlog_out( DEBUG4 ) << " Point to move to:" << std::endl;
+  //  point.Print();
+  
   int nsufaces =  _det->GetEntriesFast();
-
+  
   const ILDVMeasLayer* ml_retval = NULL;
   double min_deflection = DBL_MAX;
-
-  for(int i=0; i<nsufaces; ++i){
-   
+  
+  for(int i=0; i<nsufaces; ++i) {
+    
     const ILDVMeasLayer   &ml  = *dynamic_cast<ILDVMeasLayer *>(_det->At(i)); 
-
+    
     double defection_angle = 0 ;
     TVector3 crossing_point ;   
-
+    
     const TVSurface *sfp = dynamic_cast<const TVSurface *>(&ml);  // surface at destination       
-
-
+    
+    
     int does_cross = sfp->CalcXingPointWith(helix, crossing_point, defection_angle, mode) ;
-
+    
     if( does_cross ) {
-
+      
       const double deflection = fabs( deflection_to_point - defection_angle ) ;
-			
+      
       if( deflection < min_deflection ) {
-				
-				//	streamlog_out( DEBUG4 ) << "  MarlinKalTest - crossing found for suface = " << ml.GetMLName() 
-				//				<< std::endl
-				//				<< "  min_deflection = " << min_deflection
-				//				<< "  deflection = " << deflection
-				//				<< "  deflection angle = " << defection_angle 
-				//				<< std::endl 
-				//				<< " x = " << crossing_point.X() 
-				//				<< " y = " << crossing_point.Y() 
-				//				<< " z = " << crossing_point.Z() 
-				//				<< " r = " << crossing_point.Perp() 
-				//				<< std::endl ;
-				
-				min_deflection = deflection ;
-				ml_retval = &ml ;
+        
+        //	streamlog_out( DEBUG4 ) << "  MarlinKalTest - crossing found for suface = " << ml.GetMLName() 
+        //				<< std::endl
+        //				<< "  min_deflection = " << min_deflection
+        //				<< "  deflection = " << deflection
+        //				<< "  deflection angle = " << defection_angle 
+        //				<< std::endl 
+        //				<< " x = " << crossing_point.X() 
+        //				<< " y = " << crossing_point.Y() 
+        //				<< " z = " << crossing_point.Z() 
+        //				<< " r = " << crossing_point.Perp() 
+        //				<< std::endl ;
+        
+        min_deflection = deflection ;
+        ml_retval = &ml ;
       }
-			
+      
     }
-
+    
   }
   
   return ml_retval;
 }
 
 const ILDVMeasLayer* MarlinKalTest::findMeasLayer( EVENT::TrackerHit * trkhit) {
-
-	const TVector3 hit_pos( trkhit->getPosition()[0], trkhit->getPosition()[1], trkhit->getPosition()[2]) ;
-	
-	return this->findMeasLayer( trkhit->getCellID0(), hit_pos ) ;
-	
+  
+  const TVector3 hit_pos( trkhit->getPosition()[0], trkhit->getPosition()[1], trkhit->getPosition()[2]) ;
+  
+  return this->findMeasLayer( trkhit->getCellID0(), hit_pos ) ;
+  
 }
 
 const ILDVMeasLayer* MarlinKalTest::findMeasLayer( int detElementID, const TVector3& point) {
-	
+  
   const ILDVMeasLayer* ml = NULL; // return value 
-	
+  
   std::vector<ILDVMeasLayer*> meas_modules ;
-	
+  
   // search for the list of measurement layers associated with this CellID
   this->getSensitiveMeasurementModules( detElementID, meas_modules ) ; 
   
@@ -361,61 +359,61 @@ const ILDVMeasLayer* MarlinKalTest::findMeasLayer( int detElementID, const TVect
     
   } 
   else if (meas_modules.size() == 1) { // one to one mapping 
-		
+    
     ml = meas_modules[0] ;
-		
+    
   }
   else { // layer has been split 
     
     bool surf_found(false);
-		
+    
     // loop over the measurement layers associated with this CellID and find the correct one using the position of the hit
     for( unsigned int i=0; i < meas_modules.size(); ++i) {
-			
-
+      
+      
       
       TVSurface* surf = NULL;
-			
+      
       if( ! (surf = dynamic_cast<TVSurface*> (  meas_modules[i] )) ) {
-				std::stringstream errorMsg;
-				errorMsg << "MarlinKalTest::findMeasLayer dynamic_cast failed for surface type: moduleID = " << detElementID << std::endl ; 
-				throw MarlinTrk::Exception(errorMsg.str());
+        std::stringstream errorMsg;
+        errorMsg << "MarlinKalTest::findMeasLayer dynamic_cast failed for surface type: moduleID = " << detElementID << std::endl ; 
+        throw MarlinTrk::Exception(errorMsg.str());
       }
       
       bool hit_on_surface = surf->IsOnSurface(point);
-			
+      
       if( (!surf_found) && hit_on_surface ){
-				
-				ml = meas_modules[i] ;
-				surf_found = true ;
-				
+        
+        ml = meas_modules[i] ;
+        surf_found = true ;
+        
       }
       else if( surf_found && hit_on_surface ) {  // only one surface should be found, if not throw 
-				
-				std::stringstream errorMsg;
-				errorMsg << "MarlinKalTest::findMeasLayer point found to be on two surfaces: moduleID = " << detElementID << std::endl ; 
-				throw MarlinTrk::Exception(errorMsg.str());
+        
+        std::stringstream errorMsg;
+        errorMsg << "MarlinKalTest::findMeasLayer point found to be on two surfaces: moduleID = " << detElementID << std::endl ; 
+        throw MarlinTrk::Exception(errorMsg.str());
       }      
-			
+      
     }
     if( ! surf_found ){ // print out debug info
       streamlog_out(DEBUG3) << "MarlinKalTest::findMeasLayer point not found to be on any surface matching moduleID = "
-			<< detElementID
-			<< ": x = " << point.x()
-			<< " y = " << point.y()
-			<< " z = " << point.z()
-			<< std::endl ;
+      << detElementID
+      << ": x = " << point.x()
+      << " y = " << point.y()
+      << " z = " << point.z()
+      << std::endl ;
     }
     else{
       streamlog_out(DEBUG3) << "MarlinKalTest::findMeasLayer point found to be on surface matching moduleID = "
-			<< detElementID
-			<< ": x = " << point.x()
-			<< " y = " << point.y()
-			<< " z = " << point.z()
-			<< std::endl ;
+      << detElementID
+      << ": x = " << point.x()
+      << " y = " << point.y()
+      << " z = " << point.z()
+      << std::endl ;
     }
   }
-
+  
   return ml ;
-
+  
 }
