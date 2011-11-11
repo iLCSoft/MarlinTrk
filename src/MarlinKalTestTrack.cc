@@ -258,8 +258,8 @@ int MarlinKalTestTrack::initialise(  const EVENT::TrackState& ts, double bfield_
   _fitDirection = fitDirection ;
   
   // for GeV, Tesla, R in mm  
-  double alpha = 2.99792458E-4 ;
-  double kappa = ts.getOmega() * bfield_z * alpha ;
+  double alpha = bfield_z * 2.99792458E-4 ;
+  double kappa = ts.getOmega() / alpha ;
   
   THelicalTrack helix( ts.getD0(),
                       toBaseRange( ts.getPhi() - M_PI/2. ) ,
@@ -279,18 +279,18 @@ int MarlinKalTestTrack::initialise(  const EVENT::TrackState& ts, double bfield_
   cov( 1 , 0 )  = - covLCIO[ 1] ; //   phi0, d0
   cov( 1 , 1 )  =   covLCIO[ 2] ; //   phi0, phi 
   
-  cov( 2 , 0 ) = - covLCIO[ 3] / alpha ;           //   omega, d0
-  cov( 2 , 1 ) =   covLCIO[ 4] / alpha ;           //   omega, phi
-  cov( 2 , 2 ) =   covLCIO[ 5] / (alpha * alpha) ; //   omega, omega
+  cov( 2 , 0 ) = - covLCIO[ 3] / alpha ;           //   kappa, d0
+  cov( 2 , 1 ) =   covLCIO[ 4] / alpha ;           //   kappa, phi
+  cov( 2 , 2 ) =   covLCIO[ 5] / (alpha * alpha) ; //   kappa, kappa
   
   cov( 3 , 0 ) = - covLCIO[ 6] ;         //   z0  , d0
   cov( 3 , 1 ) =   covLCIO[ 7] ;         //   z0  , phi
-  cov( 3 , 2 ) =   covLCIO[ 8] / alpha ; //   z0  , omega
+  cov( 3 , 2 ) =   covLCIO[ 8] / alpha ; //   z0  , kappa
   cov( 3 , 3 ) =   covLCIO[ 9] ;         //   z0  , z0
   
   cov( 4 , 0 ) = - covLCIO[10] ;         //   tanl, d0 
   cov( 4 , 1 ) =   covLCIO[11] ;         //   tanl, phi
-  cov( 4 , 2 ) =   covLCIO[12] / alpha ; //   tanl, omega    
+  cov( 4 , 2 ) =   covLCIO[12] / alpha ; //   tanl, kappa    
   cov( 4 , 3 ) =   covLCIO[13] ;         //   tanl, z0
   cov( 4 , 4 ) =   covLCIO[14] ;         //   tanl, tanl
   
