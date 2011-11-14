@@ -18,12 +18,12 @@ public:
   
   void moveRefPoint( double x, double y, double z) ;
   
-  double  getRefPointX() const { return _ref_point_x ; } 	
-  double  getRefPointY() const { return _ref_point_y ; } 	
-  double  getRefPointZ() const { return _ref_point_z ; } 	
-  double  getD0() const { return _d0 ; } 	
-  double  getZ0() const { return _z0 ; } 	
-  double  getPhi0() const { return  _phi0; } 	
+  double  getRefPointX() const { return _ref_point_x ; }        
+  double  getRefPointY() const { return _ref_point_y ; }        
+  double  getRefPointZ() const { return _ref_point_z ; }        
+  double  getD0() const { return _d0 ; }        
+  double  getZ0() const { return _z0 ; }        
+  double  getPhi0() const { return  _phi0; }    
   double  getOmega() const { return _omega ; }  
   double  getTanLambda() const { return _tanLambda ; } 
   

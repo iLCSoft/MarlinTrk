@@ -149,7 +149,7 @@ namespace MarlinTrk{
     virtual int extrapolate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) = 0 ;
     
     /** extrapolate the fit at the measurement site associated with the given hit, to the point of closest approach to the given point, 
-     *	returning TrackState, chi2 and ndf via reference   
+     *  returning TrackState, chi2 and ndf via reference   
      */
     virtual int extrapolate( const gear::Vector3D& point, EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) = 0 ;
     

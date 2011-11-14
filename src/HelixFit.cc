@@ -38,7 +38,7 @@ namespace MarlinTrk{
     del[MPT],deln[MPT],delzn[MPT],sxy[MPT],ss0[MPT],eee[MPT],
     delz[MPT],grad[5],cov[15],vv1[5],dv[5];
     
-    //	double xf[MPT],yf[MPT],wf[MPT],zf[MPT],wzf[MPT];
+    //  double xf[MPT],yf[MPT],wf[MPT],zf[MPT],wzf[MPT];
     
     double alf,a0,a1,a2,a22,bet,cur,
     dd,den,det,dy,d2,f,fact,fg,f1,g,gam,gam0,g1,
@@ -71,7 +71,7 @@ namespace MarlinTrk{
     
     //std::cout <<  "npt = " <<  npt << std::endl;
     
-    //	for(int i = 0; i<n; ++i){
+    //  for(int i = 0; i<n; ++i){
     //std::cout << "xf = " <<  xf[i] << " " <<  i << std::endl; 
     //std::cout << "yf = " <<  yf[i] << " " <<  i << std::endl; 
     //std::cout << "zf = " <<  zf[i] << " " <<  i << std::endl; 
@@ -153,7 +153,7 @@ namespace MarlinTrk{
     //std::cout << "a22 = " <<  a22 <<  std::endl; 
     
     
-    //	**                main iteration
+    //  **                main iteration
     
     for (int i = 0 ; i < ITMAX; ++i) {
       
@@ -172,7 +172,7 @@ namespace MarlinTrk{
       
     }
     
-    //  **	
+    //  **      
     
     
     root = xb;
@@ -185,12 +185,12 @@ namespace MarlinTrk{
     den2= 1.0/(x1*x1 + y1*y1 + gam*det*det);
     
     if(den2 <= 0.0) {
-      //			streamlog_out(ERROR) << "den2 less than or equal to zero" 
-      //			<< " x1 = " << x1 
-      //			<< " y1 = " << y1
-      //			<< " gam = " << gam  
-      //			<< " det = " << det  
-      //			<< std::endl;
+      //                        streamlog_out(ERROR) << "den2 less than or equal to zero" 
+      //                        << " x1 = " << x1 
+      //                        << " y1 = " << y1
+      //                        << " gam = " << gam  
+      //                        << " det = " << det  
+      //                        << std::endl;
       ch2ph = 1.0e30;
       ch2z  = 1.0e30;
       return 1;
@@ -204,9 +204,9 @@ namespace MarlinTrk{
     gam = ((rm-gam)*det + 2.0*(xm*x1 + ym*y1))*den*0.5;
     
     
-    //	
-    //	--------> calculation of standard circle parameters
-    //	          nb: cur is always positive
+    //  
+    //  --------> calculation of standard circle parameters
+    //            nb: cur is always positive
     
     double rr0=cur;
     double asym = bet*xm-alf*ym;
@@ -219,7 +219,7 @@ namespace MarlinTrk{
     rr0 = sst*cur;
     
     if( (alf*alf+bet*bet) <= 0.0 ){
-      //			streamlog_out(ERROR) << "(alf*alf+bet*bet) less than or equal to zero" << std::endl;
+      //                        streamlog_out(ERROR) << "(alf*alf+bet*bet) less than or equal to zero" << std::endl;
       ch2ph = 1.0e30;
       ch2z  = 1.0e30;
       return 1;
@@ -232,7 +232,7 @@ namespace MarlinTrk{
     if( aaa >  1.0 ) aaa = 1.0;
     if( aaa < -1.0 ) aaa =-1.0;
     
-    //	std::cout << std::setprecision(10) << "aaa = " <<  aaa <<  std::endl; 
+    //  std::cout << std::setprecision(10) << "aaa = " <<  aaa <<  std::endl; 
     
     phic = asin(aaa)+ M_PI_2;
     
@@ -248,21 +248,21 @@ namespace MarlinTrk{
     vv0[2] = ph0;
     vv0[3] = dd0;
     
-    //	std::cout << std::setprecision(10) << "rr0 = " <<  rr0 <<  std::endl; 
-    //	std::cout << "ph0 = " <<  ph0 <<  std::endl; 
-    //	std::cout << "dd0 = " <<  dd0 <<  std::endl; 
+    //  std::cout << std::setprecision(10) << "rr0 = " <<  rr0 <<  std::endl; 
+    //  std::cout << "ph0 = " <<  ph0 <<  std::endl; 
+    //  std::cout << "dd0 = " <<  dd0 <<  std::endl; 
     
     double check=sst*rr0*dd0;
-    //	std::cout << "check = " <<  check <<  std::endl; 
+    //  std::cout << "check = " <<  check <<  std::endl; 
     
     if(check > 1.0-eps && check < 1.0+eps) {
       dd0 = dd0 - 0.007;
       vv0[3]=dd0;
     }
     
-    //	
-    //	-----> calculate phi distances to measured points
-    //	
+    //  
+    //  -----> calculate phi distances to measured points
+    //  
     
     double aa0 = sst;
     double ome = rr0;
@@ -270,11 +270,11 @@ namespace MarlinTrk{
     
     double hh0 = 1.0/gg0;
     
-    //	std::cout << "dd0 = " <<  dd0 <<  std::endl; 
-    //	std::cout << "ome = " <<  ome <<  std::endl; 
-    //	std::cout << "aa0 = " <<  aa0 <<  std::endl; 
-    //	std::cout << "hh0 = " <<  hh0 <<  std::endl; 
-    //	std::cout << "gg0 = " <<  gg0 <<  std::endl; 
+    //  std::cout << "dd0 = " <<  dd0 <<  std::endl; 
+    //  std::cout << "ome = " <<  ome <<  std::endl; 
+    //  std::cout << "aa0 = " <<  aa0 <<  std::endl; 
+    //  std::cout << "hh0 = " <<  hh0 <<  std::endl; 
+    //  std::cout << "gg0 = " <<  gg0 <<  std::endl; 
     
     for (int i = 0 ; i < n ; ++i) {
       
@@ -290,16 +290,16 @@ namespace MarlinTrk{
       
       del[i]= ph0 + (ss0[i]-aa0)* M_PI_2 + ss0[i]*asin(ff0) - pf[i];
       
-      //		std::cout << "asin(ff0) = " << asin(ff0)  << " i = " << i <<  std::endl; 
-      //		std::cout << "aa0 = " <<  aa0 << " i = " << i <<  std::endl; 
-      //		std::cout << "M_PI_2 = " <<  M_PI_2 << " i = " << i <<  std::endl; 
-      //		std::cout << "pf[i] = " <<  pf[i] << " i = " << i <<  std::endl; 
-      //		std::cout << "ff0 = " <<  ff0 << " i = " << i <<  std::endl; 
-      //		std::cout << "ss0[i] = " <<  ss0[i] << " i = " << i <<  std::endl; 
-      //		std::cout << "ph0 + (ss0[i]-aa0)* M_PI_2 = " <<  ph0 + (ss0[i]-aa0)* M_PI_2  << " i = " << i <<  std::endl; 
-      //		std::cout << "ss0[i]*asin(ff0) = " <<  ss0[i]*asin(ff0)  << " i = " << i <<  std::endl; 
-      //		std::cout << "ph0 + (ss0[i]-aa0)* M_PI_2 + ss0[i]*asin(ff0) = " << ph0 + (ss0[i]-aa0)* M_PI_2 + ss0[i]*asin(ff0) << std::endl;
-      //		std::cout << "del[i] = " <<  del[i] << " i = " << i <<  std::endl; 
+      //                std::cout << "asin(ff0) = " << asin(ff0)  << " i = " << i <<  std::endl; 
+      //                std::cout << "aa0 = " <<  aa0 << " i = " << i <<  std::endl; 
+      //                std::cout << "M_PI_2 = " <<  M_PI_2 << " i = " << i <<  std::endl; 
+      //                std::cout << "pf[i] = " <<  pf[i] << " i = " << i <<  std::endl; 
+      //                std::cout << "ff0 = " <<  ff0 << " i = " << i <<  std::endl; 
+      //                std::cout << "ss0[i] = " <<  ss0[i] << " i = " << i <<  std::endl; 
+      //                std::cout << "ph0 + (ss0[i]-aa0)* M_PI_2 = " <<  ph0 + (ss0[i]-aa0)* M_PI_2  << " i = " << i <<  std::endl; 
+      //                std::cout << "ss0[i]*asin(ff0) = " <<  ss0[i]*asin(ff0)  << " i = " << i <<  std::endl; 
+      //                std::cout << "ph0 + (ss0[i]-aa0)* M_PI_2 + ss0[i]*asin(ff0) = " << ph0 + (ss0[i]-aa0)* M_PI_2 + ss0[i]*asin(ff0) << std::endl;
+      //                std::cout << "del[i] = " <<  del[i] << " i = " << i <<  std::endl; 
       
       if(del[i] >  M_PI) del[i] = del[i] - 2*M_PI;
       if(del[i] < -M_PI) del[i] = del[i] + 2*M_PI;
@@ -310,9 +310,9 @@ namespace MarlinTrk{
     
     
     
-    //	
-    //	-----> fit straight line in s-z
-    //	
+    //  
+    //  -----> fit straight line in s-z
+    //  
     
     
     for (int i = 0 ; i < n ; ++i) {
@@ -346,7 +346,7 @@ namespace MarlinTrk{
     double denom = sumw*sumss - sums*sums;
     
     if (fabs(denom) < eps){
-      //			streamlog_out(ERROR) << "fabs(denom) less than or equal to zero" << std::endl;
+      //                        streamlog_out(ERROR) << "fabs(denom) less than or equal to zero" << std::endl;
       ch2ph = 1.0e30;
       ch2z  = 1.0e30;
       return 1;
@@ -358,9 +358,9 @@ namespace MarlinTrk{
     vv0[1]= dzds;
     vv0[4]= zz0;
     
-    //	
-    //	-----> calculation chi**2
-    //	
+    //  
+    //  -----> calculation chi**2
+    //  
     for (int i = 0 ; i<n; ++i) {
       
       delz[i]= zz0+dzds*sxy[i]-zf[i];
@@ -371,7 +371,7 @@ namespace MarlinTrk{
     }
     
     if(chi2 > MAX_CHI2) {
-      //			streamlog_out(ERROR) << "Chi2 greater than " <<  MAX_CHI2 << "return 1 " << std::endl;
+      //                        streamlog_out(ERROR) << "Chi2 greater than " <<  MAX_CHI2 << "return 1 " << std::endl;
       ch2ph = 1.0e30;
       ch2z  = 1.0e30;
       return 1;
@@ -391,7 +391,7 @@ namespace MarlinTrk{
       double dpd = eta*dfd;
       double dpo = eta*dfo;
       
-      //	-----> derivatives of z component
+      //        -----> derivatives of z component
       double ggg = eee[i]/sqrt(fabs( (1.0+eee[i])*(1.0-eee[i])));
       double dza = sxy[i];
       check = rf[i]*rf[i]-vv0[3]*vv0[3];
@@ -420,7 +420,7 @@ namespace MarlinTrk{
       ee0[13]= ee0[13]                    + wzf[i] * dzd;
       ee0[14]= ee0[14]                    + wzf[i];
       
-      //	-----> gradient vector
+      //        -----> gradient vector
       grad[0]=grad[0] - del[i] *sp2[i]*dpo - delz[i]*wzf[i]*dzo;
       grad[1]=grad[1] -                      delz[i]*wzf[i]*dza;
       grad[2]=grad[2] - del[i] *sp2[i];
@@ -434,7 +434,7 @@ namespace MarlinTrk{
       return 0 ;
     }
     
-    // ------> NEWTONS NEXT GUESS	
+    // ------> NEWTONS NEXT GUESS       
     
     for (int i =0; i<15; ++i) {
       cov[i]=ee0[i];
@@ -447,8 +447,8 @@ namespace MarlinTrk{
     
     for(int irow=0; irow<5; ++irow ){
       for(int jcol=0; jcol<irow+1; ++jcol){
-        //	std::cout << "row = " << irow << " col = " << jcol << std::endl ;
-        //	std::cout << "cov["<< icov << "] = " << _cov[icov] << std::endl ;
+        //      std::cout << "row = " << irow << " col = " << jcol << std::endl ;
+        //      std::cout << "cov["<< icov << "] = " << _cov[icov] << std::endl ;
         cov0[irow][jcol] = ee0[icov] ;
         ++icov ;
       }
@@ -468,8 +468,8 @@ namespace MarlinTrk{
     
     for(int irow=0; irow<5; ++irow ){
       for(int jcol=0; jcol<irow+1; ++jcol){
-        //	std::cout << "row = " << irow << " col = " << jcol << std::endl ;
-        //	std::cout << "cov["<< icov << "] = " << _cov[icov] << std::endl ;
+        //      std::cout << "row = " << irow << " col = " << jcol << std::endl ;
+        //      std::cout << "cov["<< icov << "] = " << _cov[icov] << std::endl ;
         cov[icov] = cov0[irow][jcol];
         ++icov ;
       }
@@ -489,7 +489,7 @@ namespace MarlinTrk{
         else{
           index = (j*j-j)/2+i;
         }
-        dv[i] = dv[i] + cov[index] * grad[j]	;
+        dv[i] = dv[i] + cov[index] * grad[j]    ;
       }
     }
     
@@ -528,17 +528,17 @@ namespace MarlinTrk{
     for (int i =0; i<5; ++i) {
       chi1   = chi1  + sp2[i]*deln[i]*deln[i] + wzf[i]*delzn[i]*delzn[i];
       ch2ph  = ch2ph + sp2[i]*deln[i]*deln[i];
-      ch2z   = ch2z  + wzf[i]*delzn[i]*delzn[i];	
+      ch2z   = ch2z  + wzf[i]*delzn[i]*delzn[i];        
     }
     
     if (chi1<chi2) {
       for (int i =0; i<5; ++i) {
         vv0[i] = vv1[i];
       }
-      chi2 = chi1;	
+      chi2 = chi1;      
     }
     
-				
+                                
     return 0;
     
   }

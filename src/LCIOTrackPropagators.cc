@@ -67,8 +67,8 @@ namespace LCIOTrackPropagators{
     
     for(int irow=0; irow<5; ++irow ){
       for(int jcol=0; jcol<irow+1; ++jcol){
-        //	std::cout << "row = " << irow << " col = " << jcol << std::endl ;
-        //	std::cout << "cov["<< icov << "] = " << _cov[icov] << std::endl ;
+        //      std::cout << "row = " << irow << " col = " << jcol << std::endl ;
+        //      std::cout << "cov["<< icov << "] = " << _cov[icov] << std::endl ;
         cov0[irow][jcol] = ts.getCovMatrix()[icov] ;
         ++icov ;
       }
@@ -110,9 +110,9 @@ namespace LCIOTrackPropagators{
     
     for(int irow=0; irow<5; ++irow ){
       for(int jcol=0; jcol<irow+1; ++jcol){
-        //	std::cout << "row = " << irow << " col = " << jcol << std::endl ;
+        //      std::cout << "row = " << irow << " col = " << jcol << std::endl ;
         cov[icov] = covPrime[irow][jcol] ;
-        //	std::cout << "lcCov["<< icov << "] = " << lcCov[icov] << std::endl ;
+        //      std::cout << "lcCov["<< icov << "] = " << lcCov[icov] << std::endl ;
         ++icov ;
       }
     }
@@ -258,16 +258,16 @@ namespace LCIOTrackPropagators{
     
     if( direction == 0 ) { // take closest intersection
       if( fabs(s_1) < fabs(s_2) ) {
-        //	std::cout << "PropagateLCIOToCylinder: use 1st solution" << std::endl ;
+        //      std::cout << "PropagateLCIOToCylinder: use 1st solution" << std::endl ;
         x = x_ins1 ;
         y = y_ins1 ;
         z = z_pca + s_1 * tanl ;
       }
       else {
-        //	std::cout << "PropagateLCIOToCylinder: use 2nd solution" << std::endl ;
+        //      std::cout << "PropagateLCIOToCylinder: use 2nd solution" << std::endl ;
         x = x_ins2 ;
         y = y_ins2 ;
-        z = z_pca + s_2 * tanl ;	  
+        z = z_pca + s_2 * tanl ;          
       }
     }
     
@@ -285,7 +285,7 @@ namespace LCIOTrackPropagators{
         else {
           x = x_ins2 ;
           y = y_ins2 ;
-          z = z_pca + s_2 * tanl ;	  
+          z = z_pca + s_2 * tanl ;        
         }
       } 
       else if(direction == -1) {  // else take the intersection with largest s 
@@ -435,16 +435,16 @@ namespace LCIOTrackPropagators{
     
     if( direction == 0 ) { // take closest intersection
       if( fabs(s_1) < fabs(s_2) ) {
-        //	std::cout << "PropagateLCIOToPlaneParralelToZ: take 1st solution " << std::endl;
+        //      std::cout << "PropagateLCIOToPlaneParralelToZ: take 1st solution " << std::endl;
         x = x_ins1 ;
         y = y_ins1 ;
         z = z_pca + s_1 * tanl ;
       }
       else {
-        //	std::cout << "PropagateLCIOToPlaneParralelToZ: take 2nd solution " << std::endl;
+        //      std::cout << "PropagateLCIOToPlaneParralelToZ: take 2nd solution " << std::endl;
         x = x_ins2 ;
         y = y_ins2 ;
-        z = z_pca + s_2 * tanl ;	  
+        z = z_pca + s_2 * tanl ;          
       }
     }
     
@@ -455,27 +455,27 @@ namespace LCIOTrackPropagators{
       
       if( direction == 1 ){ // take the intersection with smallest s
         if( s_1 < s_2 ) {
-          //	  std::cout << "PropagateLCIOToPlaneParralelToZ: take 1st solution " << std::endl;
+          //      std::cout << "PropagateLCIOToPlaneParralelToZ: take 1st solution " << std::endl;
           x = x_ins1 ;
           y = y_ins1 ;
           z = z_pca + s_1 * tanl ;
         }
         else {
-          //	  std::cout << "PropagateLCIOToPlaneParralelToZ: take 2nd solution " << std::endl;
+          //      std::cout << "PropagateLCIOToPlaneParralelToZ: take 2nd solution " << std::endl;
           x = x_ins2 ;
           y = y_ins2 ;
-          z = z_pca + s_2 * tanl ;	  
+          z = z_pca + s_2 * tanl ;        
         }
       } 
       else if( direction == -1 ) {  // else take the intersection with largest s 
         if( s_1 > s_2 ){
-          //	  std::cout << "PropagateLCIOToPlaneParralelToZ: take 1st solution " << std::endl;
+          //      std::cout << "PropagateLCIOToPlaneParralelToZ: take 1st solution " << std::endl;
           x = x_ins1 ;
           y = y_ins1 ;
           z = z_pca + s_1 * tanl ;
         }
         else{
-          //	  std::cout << "PropagateLCIOToPlaneParralelToZ: take 2nd solution " << std::endl;
+          //      std::cout << "PropagateLCIOToPlaneParralelToZ: take 2nd solution " << std::endl;
           x = x_ins2 ;
           y = y_ins2 ;
           z = z_pca + s_2 * tanl ;
