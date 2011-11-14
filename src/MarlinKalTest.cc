@@ -199,7 +199,7 @@ void MarlinKalTest::getSensitiveMeasurementModulesForLayer( int layerID, std::ve
   ii = this->_active_measurement_modules_by_layer.equal_range(layerID); // set the first and last entry in ii;
   
   for(it = ii.first; it != ii.second; ++it) {
-    streamlog_out( DEBUG0 ) <<"Key = "<< it->first <<"    Value = "<<it->second << std::endl ;
+    //    streamlog_out( DEBUG0 ) <<"Key = "<< it->first <<"    Value = "<<it->second << std::endl ;
     measmodules.push_back( it->second ) ; 
   }
   
