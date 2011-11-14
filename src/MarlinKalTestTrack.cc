@@ -129,6 +129,7 @@ int MarlinKalTestTrack::addHit( EVENT::TrackerHit* trkhit, ILDVTrackHit* kalhit,
 
 int MarlinKalTestTrack::initialise( bool fitDirection ) {; 
   
+  
   //SJA:FIXME: check here if the track is already initialised, and for now don't allow it to be re-initialised
   //           if the track is going to be re-initialised then we would need to do it directly on the first site
   if ( _initialised ) {
@@ -158,6 +159,8 @@ int MarlinKalTestTrack::initialise( bool fitDirection ) {;
     i3 = _kalhits->GetEntries() - 1;
     i2 = i3 / 2;
   }
+  
+  
   
   TVTrackHit *startingHit = dynamic_cast<TVTrackHit *>(_kalhits->At(i1));
   
@@ -271,7 +274,7 @@ int MarlinKalTestTrack::initialise(  const EVENT::TrackState& ts, double bfield_
                       ts.getReferencePoint()[2],
                       bfield_z );
   
-  TMatrixD cov(5,5) ;	
+  TMatrixD cov(5,5) ;   
   EVENT::FloatVec covLCIO( 15 )  ; 
   
   cov( 0 , 0 )  =   covLCIO[ 0] ; //   d0,   d0
@@ -391,9 +394,13 @@ int MarlinKalTestTrack::addAndFit( ILDVTrackHit* kalhit, double& chi2increment, 
   << (dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) ))->GetIndex() 
   << " for type " 
   << dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) )->GetMLName() 
-  << " layer ID " 
-  << dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) )->getLayerID() 
-  << std::endl ;
+  << " with CellIDs: " << std::endl;
+  
+  for (int i = 0; i < (dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) )->getNCellIDs());++i) {
+    streamlog_out( DEBUG1 )  << " CellID = " 
+    << dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) )->getCellIDs()[i] 
+    << std::endl ;
+  }
   
   TKalTrackSite* temp_site = new TKalTrackSite(*kalhit); // create new site for this hit
   
@@ -409,11 +416,16 @@ int MarlinKalTestTrack::addAndFit( ILDVTrackHit* kalhit, double& chi2increment, 
     TVector3 pos = ml->HitToXv(*kalhit);
     streamlog_out( DEBUG2 )  << "Kaltrack::fit : site discarded! at index : " << ml->GetIndex() 
     << " for type " << ml->GetMLName() 
-    << " layer ID " << ml->getLayerID() 
     << " x = " << pos.x()
     << " y = " << pos.y()
     << " z = " << pos.z()
-    << std::endl ;
+    << " with CellIDs: " << std::endl;
+    
+    for (int i = 0; i < (dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) )->getNCellIDs());++i) {
+      streamlog_out( DEBUG1 )  << " CellID = " 
+      << dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) )->getCellIDs()[i] 
+      << std::endl ;
+    }
     
     
     delete temp_site;  // delete site if filter step failed      
@@ -530,7 +542,7 @@ int MarlinKalTestTrack::smooth(){
   
   streamlog_out( DEBUG2 )  << "MarlinKalTestTrack::smooth() " << std::endl ;
   
-  //	_kaltrack->SmoothAll() ;
+  //    _kaltrack->SmoothAll() ;
   
   //SJA:FIXME: in the current implementation it is only possible to smooth back to the 4th site.
   // This is due to the fact that the covariance matrix is not well defined at the first 3 measurement sites filtered.
@@ -988,7 +1000,7 @@ int MarlinKalTestTrack::intersectionWithLayer( int layerID,  EVENT::TrackerHit* 
 
 int MarlinKalTestTrack::intersectionWithLayer( int layerID, const TKalTrackSite& site, gear::Vector3D& point, int& detElementID, const ILDVMeasLayer*& ml, int mode ) {  
   
-  streamlog_out(DEBUG2) << "MarlinKalTestTrack::intersectionWithLayer( int layerID, const TKalTrackSite& site, gear::Vector3D& point, int& detElementID, int mode) called " << std::endl;
+  streamlog_out(DEBUG2) << "MarlinKalTestTrack::intersectionWithLayer( int layerID, const TKalTrackSite& site, gear::Vector3D& point, int& detElementID, int mode) called layerID = " << layerID << std::endl;
   
   std::vector<ILDVMeasLayer*> meas_modules ;
   _ktest->getSensitiveMeasurementModulesForLayer( layerID, meas_modules ) ;  
@@ -1006,8 +1018,15 @@ int MarlinKalTestTrack::intersectionWithLayer( int layerID, const TKalTrackSite&
   
   if( error_code == success ){
     
+    // SJA:FIXME: not sure why findIntersection cannot return the actual detElementID?
     ml = meas_modules[index_of_intersected];
-    detElementID = ml->getLayerID() ;
+    
+    if (ml->getNCellIDs() == 1 ) {
+      detElementID = ml->getCellIDs()[0];
+    }
+    else{ // now we have to find the 
+      throw Exception("Not yet implemeneted yet, the corrected CellID for a multilayer needs to be determined");
+    }
     
     streamlog_out(DEBUG1) << "MarlinKalTestTrack::intersectionWithLayer intersection with layerID = "
     << layerID
@@ -1039,7 +1058,14 @@ int MarlinKalTestTrack::findIntersection( const ILDVMeasLayer& meas_module, cons
   if( ! surf ) {
     
     std::stringstream errorMsg;
-    errorMsg << "MarlinKalTestTrack::findIntersection dynamic_cast failed for surface :  detElementID = " << meas_module.getLayerID() << std::endl ; 
+    errorMsg << "MarlinKalTestTrack::findIntersection dynamic_cast failed for surface :  with detElementIDs = " ;
+    
+    for (int i = 0; i < meas_module.getNCellIDs(); ++i) {
+      streamlog_out( DEBUG1 )  << " CellID = " 
+      << meas_module.getCellIDs()[i] 
+      << std::endl ;
+    }
+    
     throw MarlinTrk::Exception(errorMsg.str());
     
   }
@@ -1049,12 +1075,12 @@ int MarlinKalTestTrack::findIntersection( const ILDVMeasLayer& meas_module, cons
   
   //--------- DEBUG --------------
   // TKalTrackState* tsSmoothed = (  &((TVKalSite&)site).GetState(TVKalSite::kSmoothed) != 0 ? 
-  // 				  &(TKalTrackState&) ((TVKalSite&)site).GetState( TVKalSite::kSmoothed )  : 0 ) ;
+  //                              &(TKalTrackState&) ((TVKalSite&)site).GetState( TVKalSite::kSmoothed )  : 0 ) ;
   // if( tsSmoothed == &trkState ) 
   //   streamlog_out(DEBUG2) << "************ MarlinKalTestTrack::intersectionWithLayer : using smoothed TrackState !!!!! " << std::endl ;
   
   // TKalTrackState* tsFiltered = (  &((TVKalSite&)site).GetState(TVKalSite::kFiltered) != 0 ? 
-  //  				  &(TKalTrackState&) ((TVKalSite&)site).GetState( TVKalSite::kFiltered )  : 0 ) ;
+  //                              &(TKalTrackState&) ((TVKalSite&)site).GetState( TVKalSite::kFiltered )  : 0 ) ;
   // if( tsFiltered == &trkState ) 
   //   streamlog_out(DEBUG2) << "************ MarlinKalTestTrack::intersectionWithLayer : using filtered TrackState !!!!! " << std::endl ;
   // //------------------------------
@@ -1065,9 +1091,15 @@ int MarlinKalTestTrack::findIntersection( const ILDVMeasLayer& meas_module, cons
   TVector3 xto;       // reference point at destination to be returned by CalcXinPointWith  
   int crossing_exist = surf->CalcXingPointWith(helix, xto, dphi, mode) ;
   
-  streamlog_out(DEBUG2) << "MarlinKalTestTrack::intersectionWithLayer crossing_exist = " << crossing_exist << " dphi " << dphi 
-  << " detElementID " << decodeILD( meas_module.getLayerID() ) 
-  << std::endl ;
+  streamlog_out(DEBUG2) << "MarlinKalTestTrack::intersectionWithLayer crossing_exist = " << crossing_exist << " dphi " << dphi << " with detElementIDs: " ;
+  
+  for (int i = 0; i < meas_module.getNCellIDs(); ++i) {
+    streamlog_out( DEBUG1 ) << decodeILD(meas_module.getCellIDs()[i]) << " ##  " ;
+    
+  }
+  
+  streamlog_out(DEBUG2) << std::endl ;
+  
   
   if( crossing_exist == 0 ) { 
     return no_intersection ;
@@ -1103,9 +1135,9 @@ int MarlinKalTestTrack::findIntersection( std::vector<ILDVMeasLayer*>& meas_modu
     if( error_code == success ) {
       
       // make sure we get the next crossing 
-      if( dphi < dphi_min ) { 	
+      if( fabs(dphi) < dphi_min ) {     
         
-        dphi_min = dphi ;
+        dphi_min = fabs(dphi) ;
         surf_found = true ;
         indexOfIntersected = i ;
         point = point_temp ;

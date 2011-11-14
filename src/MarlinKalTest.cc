@@ -31,6 +31,7 @@
 #include "streamlog/streamlog.h"
 
 
+
 MarlinKalTest::MarlinKalTest( const gear::GearMgr& gearMgr) : 
 _gearMgr( &gearMgr )
 {
@@ -56,7 +57,7 @@ MarlinKalTest::~MarlinKalTest(){
 
 void MarlinKalTest::init() {
   
-  streamlog_out( DEBUG4 ) << "  MarlinKalTest - call init " << std::endl ;
+  streamlog_out( DEBUG4 ) << "  MarlinKalTest - call  this init " << std::endl ;
   
   try{
     ILDSupportKalDetector* supportdet = new ILDSupportKalDetector( *_gearMgr )  ;   
@@ -183,17 +184,24 @@ void MarlinKalTest::getSensitiveMeasurementModulesForLayer( int layerID, std::ve
     
   }
   
-  std::pair<std::multimap<Int_t, ILDVMeasLayer*>::iterator, std::multimap<Int_t, ILDVMeasLayer*>::iterator> ii;
-  ii = this->_active_measurement_modules_by_layer.equal_range(layerID); // set the first and last entry in ii;
+  streamlog_out( DEBUG0 ) << "MarlinKalTest::getSensitiveMeasurementModulesForLayer: layerID = " << layerID << std::endl;
   
   std::multimap<Int_t, ILDVMeasLayer*>::iterator it; //Iterator to be used along with ii
   
   
-  for(it = ii.first; it != ii.second; ++it)
-    {
-    //      std::cout<<"Key = "<<it->first<<"    Value = "<<it->second << std::endl ;
+  
+  //  for(it = _active_measurement_modules_by_layer.begin(); it != _active_measurement_modules_by_layer.end(); ++it) {
+  //    streamlog_out( DEBUG0 ) << "Key = "<< ttdecodeILD(it->first) <<"    Value = "<<it->second << std::endl ;
+  //  }
+  
+  
+  std::pair<std::multimap<Int_t, ILDVMeasLayer*>::iterator, std::multimap<Int_t, ILDVMeasLayer*>::iterator> ii;  
+  ii = this->_active_measurement_modules_by_layer.equal_range(layerID); // set the first and last entry in ii;
+  
+  for(it = ii.first; it != ii.second; ++it) {
+    streamlog_out( DEBUG0 ) <<"Key = "<< it->first <<"    Value = "<<it->second << std::endl ;
     measmodules.push_back( it->second ) ; 
-    }
+  }
   
 }
 
@@ -224,37 +232,44 @@ void MarlinKalTest::storeActiveMeasurementModuleIDs(TVKalDetector* detector) {
   
   Int_t nLayers = detector->GetEntriesFast() ;
   
-  UTIL::BitField64 encoder( ILDCellID0::encoder_string ) ; 
-  
   for( int i=0; i < nLayers; ++i ) {
     
     ILDVMeasLayer* ml = dynamic_cast<ILDVMeasLayer*>( detector->At( i ) ); 
     
     if( ! ml ) {
       std::stringstream errorMsg;
-      errorMsg << "MarlinKalTest::storeActiveMeasurementLayerIDs  dynamic_cast to ILDVMeasLayer* failed " << std::endl ; 
+      errorMsg << "MarlinKalTest::storeActiveMeasurementLayerIDs dynamic_cast to ILDVMeasLayer* failed " << std::endl ; 
       throw MarlinTrk::Exception(errorMsg.str());
     }
     
     if( ml->IsActive() ) {
       
-      this->_active_measurement_modules.insert(std::pair<int,ILDVMeasLayer*>(ml->getLayerID(),ml));
+      // then get all the sensitive element id's assosiated with this ILDVMeasLayer and store them in the map 
+      std::vector<int>::const_iterator it = ml->getCellIDs().begin();
       
+      while ( it!=ml->getCellIDs().end() ) {
+        
+        int sensitive_element_id = *it;
+        this->_active_measurement_modules.insert(std::pair<int,ILDVMeasLayer*>( sensitive_element_id, ml ));        
+        ++it;
+        
+      }
       
-      encoder.setValue( ml->getLayerID() );
-      
-      // set the module field value to 0 leaving only sub_det, side and layer set.
-      encoder[ILDCellID0::module] = 0 ;
-      encoder[ILDCellID0::sensor] = 0 ;
-      
-      int subdet_layer_id = encoder.lowWord() ;
+      int subdet_layer_id = ml->getLayerID() ;
       
       this->_active_measurement_modules_by_layer.insert(std::pair<int,ILDVMeasLayer*>(subdet_layer_id,ml));
       
       streamlog_out(DEBUG3) << "MarlinKalTest::storeActiveMeasurementLayerIDs added active layer with "
-      << " ModuleID = " << ml->getLayerID()
-      << " LayerID = " << subdet_layer_id
-      << std::endl ;
+      << " LayerID = " << subdet_layer_id << " and DetElementIDs  " ;
+      
+      for (it = ml->getCellIDs().begin(); it!=ml->getCellIDs().end(); ++it) {
+        
+        streamlog_out(DEBUG3) << " : " << *it ;
+        
+      }
+      
+      streamlog_out(DEBUG3) << std::endl;
+      
       
       
       
@@ -302,17 +317,17 @@ const ILDVMeasLayer*  MarlinKalTest::getLastMeasLayer(THelicalTrack const& hel, 
       
       if( deflection < min_deflection ) {
         
-        //	streamlog_out( DEBUG4 ) << "  MarlinKalTest - crossing found for suface = " << ml.GetMLName() 
-        //				<< std::endl
-        //				<< "  min_deflection = " << min_deflection
-        //				<< "  deflection = " << deflection
-        //				<< "  deflection angle = " << defection_angle 
-        //				<< std::endl 
-        //				<< " x = " << crossing_point.X() 
-        //				<< " y = " << crossing_point.Y() 
-        //				<< " z = " << crossing_point.Z() 
-        //				<< " r = " << crossing_point.Perp() 
-        //				<< std::endl ;
+        //      streamlog_out( DEBUG4 ) << "  MarlinKalTest - crossing found for suface = " << ml.GetMLName() 
+        //                              << std::endl
+        //                              << "  min_deflection = " << min_deflection
+        //                              << "  deflection = " << deflection
+        //                              << "  deflection angle = " << defection_angle 
+        //                              << std::endl 
+        //                              << " x = " << crossing_point.X() 
+        //                              << " y = " << crossing_point.Y() 
+        //                              << " z = " << crossing_point.Z() 
+        //                              << " r = " << crossing_point.Perp() 
+        //                              << std::endl ;
         
         min_deflection = deflection ;
         ml_retval = &ml ;
@@ -349,7 +364,7 @@ const ILDVMeasLayer* MarlinKalTest::findMeasLayer( int detElementID, const TVect
     
     std::stringstream errorMsg;
     errorMsg << "MarlinKalTest::findMeasLayer module id unkown: moduleID = " << detElementID 
-    << " subdet = " << encoder[ILDCellID0::subdet]
+    << " subdet = " << encoder[ILDCellID0::subdet] 
     << " side = " << encoder[ILDCellID0::side]
     << " layer = " << encoder[ILDCellID0::layer]
     << " module = " << encoder[ILDCellID0::module]
