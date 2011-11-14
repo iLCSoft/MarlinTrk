@@ -21,12 +21,11 @@
 #include <vector>
 
 
-
 class TKalDetCradle ;
 class TVKalDetector ;
 class ILDVMeasLayer ;
 class THelicalTrack ;
-//class ILDVMeasLayer ;
+
 class ILDCylinderMeasLayer;
 
 namespace EVENT{
@@ -51,40 +50,39 @@ public:
   /** Default c'tor, initializes the geometry from GEAR. */
   MarlinKalTest( const gear::GearMgr& gearMgr) ;
   
-  //  MarlinKalTest( const gear::GearMgr& gearMgr ) ;
-  
+  /** d'tor */
   ~MarlinKalTest() ;
   
-  
-  // initialise track fitter system
+  /** initialise track fitter system */
   void init() ; 
   
-  // instantiate its implementation of the IMarlinTrack 
+  /** instantiate its implementation of the IMarlinTrack */
   MarlinTrk::IMarlinTrack* createTrack()  ;
-  
-  // take multiple scattering into account during the fit
-  void includeMultipleScattering( bool on )  ;
-  
-  // take energy loss into account during the fit
-  void includeEnergyLoss( bool on )  ;
-  
-  
-  
-  void storeActiveMeasurementModuleIDs(TVKalDetector* detector);  
-  
-  void getSensitiveMeasurementModules( int detElementID, std::vector<ILDVMeasLayer*>& measmodules);
-  
-  void getSensitiveMeasurementModulesForLayer( int layerID, std::vector<ILDVMeasLayer*>& measmodules);
   
   
 protected:
+
+  /** take multiple scattering into account during the fit */
+  void includeMultipleScattering( bool on )  ;
+  
+  /** take energy loss into account during the fit */
+  void includeEnergyLoss( bool on )  ;
+  
+  /** Store active measurement module IDs for a given TVKalDetector needed for navigation  */
+  void storeActiveMeasurementModuleIDs(TVKalDetector* detector);  
+  
+  /** Store active measurement module IDs needed for navigation  */
+  void getSensitiveMeasurementModules( int detElementID, std::vector<ILDVMeasLayer*>& measmodules);
+  
+  /** Store active measurement module IDs needed for navigation  */
+  void getSensitiveMeasurementModulesForLayer( int layerID, std::vector<ILDVMeasLayer*>& measmodules);
   
   //  void init(bool MSOn, bool EnergyLossOn) ;
   bool is_initialised ;
   
   //** find the measurment layer for a given hit 
   const ILDVMeasLayer* findMeasLayer( EVENT::TrackerHit * trkhit) ;
-	 //** find the measurment layer for a given det element ID and point in space 
+  //** find the measurment layer for a given det element ID and point in space 
   const ILDVMeasLayer* findMeasLayer( int detElementID, const TVector3& point) ;
   
   // get the last layer crossed by the helix when extrapolating from the present position to the pca to point
