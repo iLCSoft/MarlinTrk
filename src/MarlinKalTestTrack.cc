@@ -451,6 +451,10 @@ int MarlinKalTestTrack::addAndFit( EVENT::TrackerHit* trkhit, double& chi2increm
   const ILDVMeasLayer* ml = _ktest->findMeasLayer( trkhit ) ;
   ILDVTrackHit* kalhit = ml->ConvertLCIOTrkHit(trkhit) ;
   
+  if( kalhit == 0 ){  //fg: ml->ConvertLCIOTrkHit returns NULL if hit not on surface !!!
+    return IMarlinTrack::site_discarded ;
+  }
+
   TKalTrackSite* site;
   int error_code = this->addAndFit( kalhit, chi2increment, site, maxChi2Increment);
   
@@ -1225,18 +1229,18 @@ void MarlinKalTestTrack::ToLCIOTrackState( const THelicalTrack& helix, const TMa
   ts.setReferencePoint( pivot ) ;
   
   streamlog_out( DEBUG2 ) << " kaltest track parameters: "
-  << " chi2/ndf " << chi2 / ndf  
-  << " chi2 " <<  chi2 << std::endl 
-  
-  << "\t D0 "          <<  d0         <<  "[+/-" << sqrt( covLCIO[0] ) << "] " 
-  << "\t Phi :"        <<  phi        <<  "[+/-" << sqrt( covLCIO[2] ) << "] " 
-  << "\t Omega "       <<  omega      <<  "[+/-" << sqrt( covLCIO[5] ) << "] " 
-  << "\t Z0 "          <<  z0         <<  "[+/-" << sqrt( covLCIO[9] ) << "] " 
-  << "\t tan(Lambda) " <<  tanLambda  <<  "[+/-" << sqrt( covLCIO[14]) << "] " 
-  
-  << "\t pivot : [" << pivot[0] << ", " << pivot[1] << ", "  << pivot[2] 
-  << " - r: " << std::sqrt( pivot[0]*pivot[0]+pivot[1]*pivot[1] ) << "]" 
-  << std::endl ;
+			  << " chi2/ndf " << chi2 / ndf  
+			  << " chi2 " <<  chi2 << std::endl 
+    
+			  << "\t D0 "          <<  d0         <<  "[+/-" << sqrt( covLCIO[0] ) << "] " 
+			  << "\t Phi :"        <<  phi        <<  "[+/-" << sqrt( covLCIO[2] ) << "] " 
+			  << "\t Omega "       <<  omega      <<  "[+/-" << sqrt( covLCIO[5] ) << "] " 
+			  << "\t Z0 "          <<  z0         <<  "[+/-" << sqrt( covLCIO[9] ) << "] " 
+			  << "\t tan(Lambda) " <<  tanLambda  <<  "[+/-" << sqrt( covLCIO[14]) << "] " 
+    
+			  << "\t pivot : [" << pivot[0] << ", " << pivot[1] << ", "  << pivot[2] 
+			  << " - r: " << std::sqrt( pivot[0]*pivot[0]+pivot[1]*pivot[1] ) << "]" 
+			  << std::endl ;
   
   
 }
