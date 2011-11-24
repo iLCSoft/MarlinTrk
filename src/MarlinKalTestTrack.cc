@@ -14,6 +14,7 @@
 #include <EVENT/TrackerHitPlane.h>
 
 #include <UTIL/BitField64.h>
+#include <UTIL/Operators.h>
 #include <UTIL/ILDConf.h>
 
 #include "kaldet/ILDCylinderMeasLayer.h"
@@ -74,6 +75,7 @@ MarlinKalTestTrack::MarlinKalTestTrack( MarlinKalTest* ktest)
   _kaltrack->SetOwner() ;
   
   _kalhits = new TObjArray() ;
+  _kalhits->SetOwner() ;
   
   _initialised = false ;
   _smoothed = false ;
@@ -449,6 +451,18 @@ int MarlinKalTestTrack::addAndFit( EVENT::TrackerHit* trkhit, double& chi2increm
   }
   
   const ILDVMeasLayer* ml = _ktest->findMeasLayer( trkhit ) ;
+
+  if( ml == 0 ){  
+    // fg: not sure if ml should ever be 0 - but it seems to happen, 
+    //     if point is not on surface and more than one surface exists ...
+
+    streamlog_out( ERROR ) << ">>>>>>>>>>>  no measurment layer found for trkhit cellid0 : " 
+			   << decodeILD( trkhit->getCellID0() ) << " at " 
+			   << gear::Vector3D( trkhit->getPosition() ) << std::endl ;
+    
+    return  IMarlinTrack::site_discarded ; 
+  }
+
   ILDVTrackHit* kalhit = ml->ConvertLCIOTrkHit(trkhit) ;
   
   if( kalhit == 0 ){  //fg: ml->ConvertLCIOTrkHit returns NULL if hit not on surface !!!
