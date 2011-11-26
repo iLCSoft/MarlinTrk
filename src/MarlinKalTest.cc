@@ -359,16 +359,16 @@ const ILDVMeasLayer* MarlinKalTest::findMeasLayer( int detElementID, const TVect
   
   if( meas_modules.size() == 0 ) { // no measurement layers found 
     
-    UTIL::BitField64 encoder( ILDCellID0::encoder_string ) ; 
+    UTIL::BitField64 encoder( UTIL::ILDCellID0::encoder_string ) ; 
     encoder.setValue(detElementID) ;
     
     std::stringstream errorMsg;
     errorMsg << "MarlinKalTest::findMeasLayer module id unkown: moduleID = " << detElementID 
-    << " subdet = " << encoder[ILDCellID0::subdet] 
-    << " side = " << encoder[ILDCellID0::side]
-    << " layer = " << encoder[ILDCellID0::layer]
-    << " module = " << encoder[ILDCellID0::module]
-    << " sensor = " << encoder[ILDCellID0::sensor]
+    << " subdet = " << encoder[UTIL::ILDCellID0::subdet] 
+    << " side = " << encoder[UTIL::ILDCellID0::side]
+    << " layer = " << encoder[UTIL::ILDCellID0::layer]
+    << " module = " << encoder[UTIL::ILDCellID0::module]
+    << " sensor = " << encoder[UTIL::ILDCellID0::sensor]
     << std::endl ; 
     throw MarlinTrk::Exception(errorMsg.str());
     

@@ -59,7 +59,7 @@ protected:
 //---------------------------------------------------------------------------------------------------------------
 
 std::string decodeILD( int detElementID ) {
-  lcio::BitField64 bf(  ILDCellID0::encoder_string ) ;
+  lcio::BitField64 bf(  UTIL::ILDCellID0::encoder_string ) ;
   bf.setValue( detElementID ) ;
   return bf.valueString() ;
 }
@@ -395,14 +395,16 @@ int MarlinKalTestTrack::addAndFit( ILDVTrackHit* kalhit, double& chi2increment, 
   streamlog_out( DEBUG1 )  << "Kaltrack::fit :  add site to track at index : " 
   << (dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) ))->GetIndex() 
   << " for type " 
-  << dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) )->GetMLName() 
-  << " with CellIDs: " << std::endl;
+  << dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) )->GetMLName() ;
+  streamlog_out( DEBUG0 ) << " with CellIDs:";
   
   for (int i = 0; i < (dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) )->getNCellIDs());++i) {
-    streamlog_out( DEBUG1 )  << " CellID = " 
-    << dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) )->getCellIDs()[i] 
-    << std::endl ;
+    streamlog_out( DEBUG0 )  << " : " 
+    << dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) )->getCellIDs()[i] ;
+
   }
+
+  streamlog_out( DEBUG1 ) << std::endl ;
   
   TKalTrackSite* temp_site = new TKalTrackSite(*kalhit); // create new site for this hit
   
@@ -1043,7 +1045,7 @@ int MarlinKalTestTrack::intersectionWithLayer( int layerID, const TKalTrackSite&
       detElementID = ml->getCellIDs()[0];
     }
     else{ // now we have to find the 
-      throw Exception("Not yet implemeneted yet, the corrected CellID for a multilayer needs to be determined");
+      throw lcio::Exception("Not yet implemeneted yet, the corrected CellID for a multilayer needs to be determined");
     }
     
     streamlog_out(DEBUG1) << "MarlinKalTestTrack::intersectionWithLayer intersection with layerID = "
