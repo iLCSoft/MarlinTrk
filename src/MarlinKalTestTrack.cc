@@ -188,8 +188,8 @@ int MarlinKalTestTrack::initialise( bool fitDirection ) {;
   
   //SJA:FIXME: this constants should go in a header file
   // give the dummy hit huge errors so that it does not contribute to the fit
-  dummyHit(0,1) = 1.e6;   // give a huge error to d
-  dummyHit(1,1) = 1.e6;   // give a huge error to z   
+  dummyHit(0,1) = 1.e16;   // give a huge error to d
+  dummyHit(1,1) = 1.e16;   // give a huge error to z   
   
   // use dummy hit to create initial site
   TKalTrackSite& initialSite = *new TKalTrackSite(dummyHit);

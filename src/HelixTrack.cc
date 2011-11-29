@@ -21,9 +21,9 @@ HelixTrack::HelixTrack( const double* position, const double* p, double charge, 
   
   _phi0 = atan2(p[1],p[0]);
   
-  while ( _phi0 < 0         ) _phi0 += 2.0*M_PI ;
-  while ( _phi0 >= 2.0*M_PI ) _phi0 -= 2.0*M_PI;
-  
+  while ( _phi0 < -M_PI ) _phi0 += 2.0*M_PI ;
+  while ( _phi0 >= M_PI ) _phi0 -= 2.0*M_PI;
+
 }
 
 void HelixTrack::moveRefPoint( double x, double y, double z){

@@ -62,7 +62,9 @@ void MarlinKalTest::init() {
   try{
     ILDSupportKalDetector* supportdet = new ILDSupportKalDetector( *_gearMgr )  ;   
     // get the dedicated ip layer
-    _ipLayer = supportdet->getIPLayer() ; 
+    _ipLayer = supportdet->getIPLayer() ;
+    // store the measurement layer id's for the active layers, Calo is defined as active
+    this->storeActiveMeasurementModuleIDs(supportdet);
     _det->Install( *supportdet ) ;  
   }
   catch( gear::UnknownParameterException& e){   
