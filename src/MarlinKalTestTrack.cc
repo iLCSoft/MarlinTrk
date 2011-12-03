@@ -395,7 +395,7 @@ int MarlinKalTestTrack::addAndFit( ILDVTrackHit* kalhit, double& chi2increment, 
   streamlog_out( DEBUG1 )  << "Kaltrack::fit :  add site to track at index : " 
   << (dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) ))->GetIndex() 
   << " for type " 
-  << dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) )->GetMLName() ;
+  << dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) )->GetName() ;
   streamlog_out( DEBUG0 ) << " with CellIDs:";
   
   for (int i = 0; i < (dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) )->getNCellIDs());++i) {
@@ -419,7 +419,7 @@ int MarlinKalTestTrack::addAndFit( ILDVTrackHit* kalhit, double& chi2increment, 
     const ILDVMeasLayer* ml =  dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) ) ;
     TVector3 pos = ml->HitToXv(*kalhit);
     streamlog_out( DEBUG2 )  << "Kaltrack::fit : site discarded! at index : " << ml->GetIndex() 
-    << " for type " << ml->GetMLName() 
+    << " for type " << ml->GetName() 
     << " x = " << pos.x()
     << " y = " << pos.y()
     << " z = " << pos.z()
