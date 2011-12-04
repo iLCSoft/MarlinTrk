@@ -583,7 +583,7 @@ int MarlinKalTestTrack::smooth( EVENT::TrackerHit* trkhit ) {
   }
   
   
-  std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
+  std::map<EVENT::TrackerHit*,TKalTrackSite*>::const_iterator it;
   
   int error_code = getSiteFromLCIOHit(trkhit, it);
   
@@ -617,7 +617,7 @@ int MarlinKalTestTrack::getTrackState( EVENT::TrackerHit* trkhit, IMPL::TrackSta
   
   streamlog_out( DEBUG2 )  << "MarlinKalTestTrack::getTrackState( EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts ) using hit: " << trkhit << std::endl ;
   
-  std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
+  std::map<EVENT::TrackerHit*,TKalTrackSite*>::const_iterator it;
   
   int error_code = getSiteFromLCIOHit(trkhit, it);
   
@@ -638,7 +638,7 @@ int MarlinKalTestTrack::extrapolate( const gear::Vector3D& point, IMPL::TrackSta
 
 int MarlinKalTestTrack::extrapolate( const gear::Vector3D& point, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) {
   
-  std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
+  std::map<EVENT::TrackerHit*,TKalTrackSite*>::const_iterator it;
   int error_code = getSiteFromLCIOHit( trkhit, it ) ; 
   if( error_code != success ) return error_code;
   
@@ -689,7 +689,7 @@ int MarlinKalTestTrack::extrapolateToLayer( int layerID, IMPL::TrackStateImpl& t
 
 int MarlinKalTestTrack::extrapolateToLayer( int layerID, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID, int mode ) { 
   
-  std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
+  std::map<EVENT::TrackerHit*,TKalTrackSite*>::const_iterator it;
   int error_code = getSiteFromLCIOHit( trkhit, it ) ; 
   if( error_code != success ) return error_code ;
   
@@ -725,7 +725,7 @@ int MarlinKalTestTrack::extrapolateToDetElement( int detElementID, IMPL::TrackSt
 
 int MarlinKalTestTrack::extrapolateToDetElement( int detElementID, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int mode ) { 
   
-  std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
+  std::map<EVENT::TrackerHit*,TKalTrackSite*>::const_iterator it;
   int error_code = getSiteFromLCIOHit( trkhit, it ) ; 
   if( error_code != success ) return error_code ;
   
@@ -765,7 +765,7 @@ int MarlinKalTestTrack::propagate( const gear::Vector3D& point, IMPL::TrackState
 
 int MarlinKalTestTrack::propagate( const gear::Vector3D& point, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ){
   
-  std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
+  std::map<EVENT::TrackerHit*,TKalTrackSite*>::const_iterator it;
   int error_code = getSiteFromLCIOHit( trkhit, it ) ; 
   if( error_code != success ) return error_code ;
   
@@ -868,7 +868,7 @@ int MarlinKalTestTrack::propagateToLayer( int layerID, IMPL::TrackStateImpl& ts,
 
 int MarlinKalTestTrack::propagateToLayer( int layerID, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID, int mode ) { 
   
-  std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
+  std::map<EVENT::TrackerHit*,TKalTrackSite*>::const_iterator it;
   int error_code = getSiteFromLCIOHit( trkhit, it ) ; 
   if( error_code != success ) return error_code ;
   
@@ -905,7 +905,7 @@ int MarlinKalTestTrack::propagateToDetElement( int detElementID, IMPL::TrackStat
 
 int MarlinKalTestTrack::propagateToDetElement( int detElementID, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int mode ) { 
   
-  std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
+  std::map<EVENT::TrackerHit*,TKalTrackSite*>::const_iterator it;
   int error_code = getSiteFromLCIOHit( trkhit, it ) ; 
   if( error_code != success ) return error_code ;
   
@@ -942,7 +942,7 @@ int MarlinKalTestTrack::intersectionWithDetElement( int detElementID, gear::Vect
 
 int MarlinKalTestTrack::intersectionWithDetElement( int detElementID,  EVENT::TrackerHit* trkhit, gear::Vector3D& point, int mode ) {  
   
-  std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
+  std::map<EVENT::TrackerHit*,TKalTrackSite*>::const_iterator it;
   int error_code = getSiteFromLCIOHit( trkhit, it ) ; 
   if( error_code != success ) return error_code ;
   
@@ -955,7 +955,7 @@ int MarlinKalTestTrack::intersectionWithDetElement( int detElementID, const TKal
   
   streamlog_out(DEBUG2) << "MarlinKalTestTrack::intersectionWithDetElement( int detElementID, const TKalTrackSite& site, gear::Vector3D& point, const ILDVMeasLayer*& ml, int mode) called " << std::endl;
   
-  std::vector<ILDVMeasLayer*> meas_modules ;
+  std::vector<const ILDVMeasLayer*> meas_modules ;
   _ktest->getSensitiveMeasurementModules( detElementID, meas_modules ) ;  
   
   if( meas_modules.size() == 0 ) {
@@ -968,12 +968,11 @@ int MarlinKalTestTrack::intersectionWithDetElement( int detElementID, const TKal
     
   } 
   
-  int index_of_intersected;
-  int error_code = this->findIntersection( meas_modules, site, point, index_of_intersected, mode ) ;
+  int dummy_detElementID; // not returned here as this is a single element as far as the outside world is concerned. Could check they are equal if we wanted ...
+  int error_code = this->findIntersection( meas_modules, site, point, dummy_detElementID, ml, mode ) ;
   
   if( error_code == success ){
     
-    ml = meas_modules[index_of_intersected];
     
     streamlog_out(DEBUG1) << "MarlinKalTestTrack::intersectionWithDetElement intersection with detElementID = "
     <<  decodeILD( detElementID ) 
@@ -1008,7 +1007,7 @@ int MarlinKalTestTrack::intersectionWithLayer( int layerID, gear::Vector3D& poin
 
 int MarlinKalTestTrack::intersectionWithLayer( int layerID,  EVENT::TrackerHit* trkhit, gear::Vector3D& point, int& detElementID, int mode ) {  
   
-  std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator it;
+  std::map<EVENT::TrackerHit*,TKalTrackSite*>::const_iterator it;
   int error_code = getSiteFromLCIOHit( trkhit, it ) ; 
   if( error_code != success ) return error_code ;
   
@@ -1022,7 +1021,7 @@ int MarlinKalTestTrack::intersectionWithLayer( int layerID, const TKalTrackSite&
   
   streamlog_out(DEBUG2) << "MarlinKalTestTrack::intersectionWithLayer( int layerID, const TKalTrackSite& site, gear::Vector3D& point, int& detElementID, int mode) called layerID = " << layerID << std::endl;
   
-  std::vector<ILDVMeasLayer*> meas_modules ;
+  std::vector<ILDVMeasLayer const*> meas_modules ;
   _ktest->getSensitiveMeasurementModulesForLayer( layerID, meas_modules ) ;  
   
   if( meas_modules.size() == 0 ) {
@@ -1033,26 +1032,18 @@ int MarlinKalTestTrack::intersectionWithLayer( int layerID, const TKalTrackSite&
     
   } 
   
-  int index_of_intersected;
-  int error_code = this->findIntersection( meas_modules, site, point, index_of_intersected, mode ) ;
+  //  int index_of_intersected;
+  int error_code = this->findIntersection( meas_modules, site, point, detElementID, ml, mode ) ;
   
   if( error_code == success ){
     
-    // SJA:FIXME: not sure why findIntersection cannot return the actual detElementID?
-    ml = meas_modules[index_of_intersected];
-    
-    if (ml->getNCellIDs() == 1 ) {
-      detElementID = ml->getCellIDs()[0];
-    }
-    else{ // now we have to find the 
-      throw lcio::Exception("Not yet implemeneted yet, the corrected CellID for a multilayer needs to be determined");
-    }
     
     streamlog_out(DEBUG1) << "MarlinKalTestTrack::intersectionWithLayer intersection with layerID = "
     << layerID
     << ": at x = " << point.x()
     << " y = "     << point.y()
     << " z = "     << point.z()
+    << " r = "     << point.rho()
     << " detElementID = " << decodeILD( detElementID )
     << std::endl ;
     
@@ -1072,23 +1063,8 @@ int MarlinKalTestTrack::intersectionWithLayer( int layerID, const TKalTrackSite&
 } 
 
 
-int MarlinKalTestTrack::findIntersection( const ILDVMeasLayer& meas_module, const TKalTrackSite& site, gear::Vector3D& point, double& dphi, int mode ) {
+int MarlinKalTestTrack::findIntersection( const ILDVMeasLayer& meas_module, const TKalTrackSite& site, gear::Vector3D& point, double& dphi, int& detElementID, int mode ) {
   
-  const TVSurface* surf = dynamic_cast<const TVSurface*>( &meas_module ) ;
-  if( ! surf ) {
-    
-    std::stringstream errorMsg;
-    errorMsg << "MarlinKalTestTrack::findIntersection dynamic_cast failed for surface :  with detElementIDs = " ;
-    
-    for (int i = 0; i < meas_module.getNCellIDs(); ++i) {
-      streamlog_out( DEBUG1 )  << " CellID = " 
-      << meas_module.getCellIDs()[i] 
-      << std::endl ;
-    }
-    
-    throw MarlinTrk::Exception(errorMsg.str());
-    
-  }
   
   TKalTrackState& trkState = (TKalTrackState&) site.GetCurState(); 
   
@@ -1109,14 +1085,11 @@ int MarlinKalTestTrack::findIntersection( const ILDVMeasLayer& meas_module, cons
   THelicalTrack helix = trkState.GetHelix() ;
   
   TVector3 xto;       // reference point at destination to be returned by CalcXinPointWith  
-  int crossing_exist = surf->CalcXingPointWith(helix, xto, dphi, mode) ;
   
-  streamlog_out(DEBUG2) << "MarlinKalTestTrack::intersectionWithLayer crossing_exist = " << crossing_exist << " dphi " << dphi << " with detElementIDs: " ;
+  int crossing_exist = meas_module.getIntersectionAndCellID(helix, xto, dphi, detElementID, mode);
+  //  int crossing_exist = surf->CalcXingPointWith(helix, xto, dphi, mode) ;
   
-  for (int i = 0; i < meas_module.getNCellIDs(); ++i) {
-    streamlog_out( DEBUG1 ) << decodeILD(meas_module.getCellIDs()[i]) << " ##  " ;
-    
-  }
+  streamlog_out(DEBUG2) << "MarlinKalTestTrack::intersectionWithLayer crossing_exist = " << crossing_exist << " dphi " << dphi << " with detElementIDs: " <<  detElementID ;
   
   streamlog_out(DEBUG2) << std::endl ;
   
@@ -1138,7 +1111,7 @@ int MarlinKalTestTrack::findIntersection( const ILDVMeasLayer& meas_module, cons
 
 
 
-int MarlinKalTestTrack::findIntersection( std::vector<ILDVMeasLayer*>& meas_modules, const TKalTrackSite& site, gear::Vector3D& point, int& indexOfIntersected, int mode ) {
+int MarlinKalTestTrack::findIntersection( std::vector<ILDVMeasLayer const*>& meas_modules, const TKalTrackSite& site, gear::Vector3D& point, int& detElementID, const ILDVMeasLayer*& ml, int mode ) {
   
   unsigned int n_modules = meas_modules.size() ;
   
@@ -1150,7 +1123,7 @@ int MarlinKalTestTrack::findIntersection( std::vector<ILDVMeasLayer*>& meas_modu
     double dphi = 0;
     // need to send a temporary point as we may get the crossing point with the layer on the oposite side of the layer 
     gear::Vector3D point_temp ;
-    int error_code = findIntersection( *meas_modules[i], site, point_temp, dphi, mode ) ;
+    int error_code = findIntersection( *meas_modules[i], site, point_temp, dphi, detElementID, mode ) ;
     
     if( error_code == success ) {
       
@@ -1159,7 +1132,7 @@ int MarlinKalTestTrack::findIntersection( std::vector<ILDVMeasLayer*>& meas_modu
         
         dphi_min = fabs(dphi) ;
         surf_found = true ;
-        indexOfIntersected = i ;
+        ml = meas_modules[i];
         point = point_temp ;
       }
       
@@ -1185,7 +1158,7 @@ int MarlinKalTestTrack::findIntersection( std::vector<ILDVMeasLayer*>& meas_modu
 
 
 
-void MarlinKalTestTrack::ToLCIOTrackState( const THelicalTrack& helix, const TMatrixD& cov, IMPL::TrackStateImpl& ts, double& chi2, int& ndf){
+void MarlinKalTestTrack::ToLCIOTrackState( const THelicalTrack& helix, const TMatrixD& cov, IMPL::TrackStateImpl& ts, double& chi2, int& ndf) const {
   
   chi2 = _kaltrack->GetChi2();
   ndf  = _kaltrack->GetNDF();
@@ -1262,7 +1235,7 @@ void MarlinKalTestTrack::ToLCIOTrackState( const THelicalTrack& helix, const TMa
 }
 
 
-void MarlinKalTestTrack::ToLCIOTrackState( const TKalTrackSite& site, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) {
+void MarlinKalTestTrack::ToLCIOTrackState( const TKalTrackSite& site, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) const {
   
   TKalTrackState& trkState = (TKalTrackState&) site.GetCurState(); // GetCutState will return the last added state to this site
                                                                    // Assuming everything has proceeded as expected 
@@ -1277,7 +1250,7 @@ void MarlinKalTestTrack::ToLCIOTrackState( const TKalTrackSite& site, IMPL::Trac
 }
 
 
-int MarlinKalTestTrack::getSiteFromLCIOHit( EVENT::TrackerHit* trkhit, std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator& it ){
+int MarlinKalTestTrack::getSiteFromLCIOHit( EVENT::TrackerHit* trkhit, std::map<EVENT::TrackerHit*,TKalTrackSite*>::const_iterator& it ) const {
   
   it = _hit_used_for_sites.find(trkhit) ;  
   

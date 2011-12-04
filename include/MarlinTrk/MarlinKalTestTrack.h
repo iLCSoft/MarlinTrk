@@ -250,12 +250,12 @@ private:
   /** extrapolate the fit at the measurement site, to sensitive detector elements contained in the std::vector,
    *  and return intersection point in global coordinates via reference 
    */
-  int findIntersection( std::vector<ILDVMeasLayer*>& meas_modules, const TKalTrackSite& site, gear::Vector3D& point, int& indexOfIntersected, int mode=modeClosest ) ;
+  int findIntersection( std::vector<ILDVMeasLayer const*>& meas_modules, const TKalTrackSite& site, gear::Vector3D& point, int& detElementID, const ILDVMeasLayer*& ml, int mode=modeClosest ) ;
   
   /** extrapolate the fit at the measurement site, to the ILDVMeasLayer,
    *  and return intersection point in global coordinates via reference 
    */
-  int findIntersection( const ILDVMeasLayer& meas_module, const TKalTrackSite& site, gear::Vector3D& point, double& dphi, int mode=modeClosest ) ;
+  int findIntersection( const ILDVMeasLayer& meas_module, const TKalTrackSite& site, gear::Vector3D& point, double& dphi, int& detElementIDconst, int mode=modeClosest ) ;
   
   
   
@@ -264,20 +264,20 @@ private:
   
   /** fill LCIO Track State with parameters from helix and cov matrix 
    */
-  void ToLCIOTrackState( const TKalTrackSite& site,  IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) ;
+  void ToLCIOTrackState( const TKalTrackSite& site,  IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) const ;
   
   /** fill LCIO Track State with parameters from helix and cov matrix 
    */
-  void ToLCIOTrackState( const THelicalTrack& helix, const TMatrixD& cov, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) ;
+  void ToLCIOTrackState( const THelicalTrack& helix, const TMatrixD& cov, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) const ;
   
   /** get the measurement site associated with the given lcio TrackerHit trkhit
    */
-  int getSiteFromLCIOHit( EVENT::TrackerHit* trkhit, std::map<EVENT::TrackerHit*,TKalTrackSite*>::iterator& it ) ;
+  int getSiteFromLCIOHit( EVENT::TrackerHit* trkhit, std::map<EVENT::TrackerHit*,TKalTrackSite*>::const_iterator& it ) const ;
   
   
   
   /** helper function to restrict the range of the azimuthal angle to ]-pi,pi]*/
-  inline double toBaseRange( double phi) {
+  inline double toBaseRange( double phi) const {
     while( phi <= -M_PI ){  phi += 2. * M_PI ; }
     while( phi >   M_PI ){  phi -= 2. * M_PI ; }
     return phi ;

@@ -179,7 +179,7 @@ void MarlinKalTest::includeEnergyLoss( bool energyLossOn ) {
   
 } 
 
-void MarlinKalTest::getSensitiveMeasurementModulesForLayer( int layerID, std::vector<ILDVMeasLayer*>& measmodules){
+void MarlinKalTest::getSensitiveMeasurementModulesForLayer( int layerID, std::vector< const ILDVMeasLayer *>& measmodules) const {
   
   if( ! measmodules.empty() ) {
     
@@ -191,7 +191,7 @@ void MarlinKalTest::getSensitiveMeasurementModulesForLayer( int layerID, std::ve
   
   streamlog_out( DEBUG0 ) << "MarlinKalTest::getSensitiveMeasurementModulesForLayer: layerID = " << layerID << std::endl;
   
-  std::multimap<Int_t, ILDVMeasLayer*>::iterator it; //Iterator to be used along with ii
+  std::multimap<Int_t, const ILDVMeasLayer *>::const_iterator it; //Iterator to be used along with ii
   
   
   
@@ -200,7 +200,15 @@ void MarlinKalTest::getSensitiveMeasurementModulesForLayer( int layerID, std::ve
   //  }
   
   
-  std::pair<std::multimap<Int_t, ILDVMeasLayer*>::iterator, std::multimap<Int_t, ILDVMeasLayer*>::iterator> ii;  
+  std::pair<std::multimap<Int_t, const ILDVMeasLayer *>::const_iterator, std::multimap<Int_t, const ILDVMeasLayer *>::const_iterator> ii;  
+
+  // set the module and sensor bit ranges to zero as these are not used in the map 
+  lcio::BitField64 bf(  UTIL::ILDCellID0::encoder_string ) ;
+  bf.setValue( layerID ) ;
+  bf[lcio::ILDCellID0::module] = 0 ;
+  bf[lcio::ILDCellID0::sensor] = 0 ;
+  layerID = bf.lowWord();
+  
   ii = this->_active_measurement_modules_by_layer.equal_range(layerID); // set the first and last entry in ii;
   
   for(it = ii.first; it != ii.second; ++it) {
@@ -210,7 +218,7 @@ void MarlinKalTest::getSensitiveMeasurementModulesForLayer( int layerID, std::ve
   
 }
 
-void MarlinKalTest::getSensitiveMeasurementModules( int moduleID , std::vector<ILDVMeasLayer*>& measmodules ){
+void MarlinKalTest::getSensitiveMeasurementModules( int moduleID , std::vector< const ILDVMeasLayer *>& measmodules ) const {
   
   if( ! measmodules.empty() ) {
     
@@ -220,10 +228,10 @@ void MarlinKalTest::getSensitiveMeasurementModules( int moduleID , std::vector<I
     
   }
   
-  std::pair<std::multimap<Int_t, ILDVMeasLayer*>::iterator, std::multimap<Int_t, ILDVMeasLayer*>::iterator> ii;
+  std::pair<std::multimap<int, const ILDVMeasLayer *>::const_iterator, std::multimap<Int_t, const ILDVMeasLayer *>::const_iterator> ii;
   ii = this->_active_measurement_modules.equal_range(moduleID); // set the first and last entry in ii;
   
-  std::multimap<Int_t, ILDVMeasLayer*>::iterator it; //Iterator to be used along with ii
+  std::multimap<int,const ILDVMeasLayer *>::const_iterator it; //Iterator to be used along with ii
   
   
   for(it = ii.first; it != ii.second; ++it) {
@@ -239,7 +247,7 @@ void MarlinKalTest::storeActiveMeasurementModuleIDs(TVKalDetector* detector) {
   
   for( int i=0; i < nLayers; ++i ) {
     
-    ILDVMeasLayer* ml = dynamic_cast<ILDVMeasLayer*>( detector->At( i ) ); 
+    const ILDVMeasLayer* ml = dynamic_cast<const ILDVMeasLayer*>( detector->At( i ) ); 
     
     if( ! ml ) {
       std::stringstream errorMsg;
@@ -255,14 +263,14 @@ void MarlinKalTest::storeActiveMeasurementModuleIDs(TVKalDetector* detector) {
       while ( it!=ml->getCellIDs().end() ) {
         
         int sensitive_element_id = *it;
-        this->_active_measurement_modules.insert(std::pair<int,ILDVMeasLayer*>( sensitive_element_id, ml ));        
+        this->_active_measurement_modules.insert(std::pair<int,const ILDVMeasLayer*>( sensitive_element_id, ml ));        
         ++it;
         
       }
       
       int subdet_layer_id = ml->getLayerID() ;
       
-      this->_active_measurement_modules_by_layer.insert(std::pair<int,ILDVMeasLayer*>(subdet_layer_id,ml));
+      this->_active_measurement_modules_by_layer.insert(std::pair<int ,const ILDVMeasLayer*>(subdet_layer_id,ml));
       
       streamlog_out(DEBUG3) << "MarlinKalTest::storeActiveMeasurementLayerIDs added active layer with "
       << " LayerID = " << subdet_layer_id << " and DetElementIDs  " ;
@@ -284,7 +292,7 @@ void MarlinKalTest::storeActiveMeasurementModuleIDs(TVKalDetector* detector) {
   
 }
 
-const ILDVMeasLayer*  MarlinKalTest::getLastMeasLayer(THelicalTrack const& hel, TVector3 const& point) {
+const ILDVMeasLayer*  MarlinKalTest::getLastMeasLayer(THelicalTrack const& hel, TVector3 const& point) const {
   
   THelicalTrack helix = hel;
   
@@ -306,7 +314,7 @@ const ILDVMeasLayer*  MarlinKalTest::getLastMeasLayer(THelicalTrack const& hel, 
   
   for(int i=0; i<nsufaces; ++i) {
     
-    const ILDVMeasLayer   &ml  = *dynamic_cast<ILDVMeasLayer *>(_det->At(i)); 
+    const ILDVMeasLayer   &ml  = *dynamic_cast< const ILDVMeasLayer *>(_det->At(i)); 
     
     double defection_angle = 0 ;
     TVector3 crossing_point ;   
@@ -345,7 +353,7 @@ const ILDVMeasLayer*  MarlinKalTest::getLastMeasLayer(THelicalTrack const& hel, 
   return ml_retval;
 }
 
-const ILDVMeasLayer* MarlinKalTest::findMeasLayer( EVENT::TrackerHit * trkhit) {
+const ILDVMeasLayer* MarlinKalTest::findMeasLayer( EVENT::TrackerHit * trkhit) const {
   
   const TVector3 hit_pos( trkhit->getPosition()[0], trkhit->getPosition()[1], trkhit->getPosition()[2]) ;
   
@@ -353,11 +361,11 @@ const ILDVMeasLayer* MarlinKalTest::findMeasLayer( EVENT::TrackerHit * trkhit) {
   
 }
 
-const ILDVMeasLayer* MarlinKalTest::findMeasLayer( int detElementID, const TVector3& point) {
+const ILDVMeasLayer* MarlinKalTest::findMeasLayer( int detElementID, const TVector3& point) const {
   
   const ILDVMeasLayer* ml = NULL; // return value 
   
-  std::vector<ILDVMeasLayer*> meas_modules ;
+  std::vector<const ILDVMeasLayer*> meas_modules ;
   
   // search for the list of measurement layers associated with this CellID
   this->getSensitiveMeasurementModules( detElementID, meas_modules ) ; 
@@ -392,9 +400,9 @@ const ILDVMeasLayer* MarlinKalTest::findMeasLayer( int detElementID, const TVect
       
       
       
-      TVSurface* surf = NULL;
+      const TVSurface* surf = NULL;
       
-      if( ! (surf = dynamic_cast<TVSurface*> (  meas_modules[i] )) ) {
+      if( ! (surf = dynamic_cast<const TVSurface*> (  meas_modules[i] )) ) {
         std::stringstream errorMsg;
         errorMsg << "MarlinKalTest::findMeasLayer dynamic_cast failed for surface type: moduleID = " << detElementID << std::endl ; 
         throw MarlinTrk::Exception(errorMsg.str());
