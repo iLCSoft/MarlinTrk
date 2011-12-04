@@ -68,7 +68,10 @@ void MarlinKalTest::init() {
     _det->Install( *supportdet ) ;  
   }
   catch( gear::UnknownParameterException& e){   
-    streamlog_out( MESSAGE ) << "  MarlinKalTest - Support Material missing in gear file: Support Material Not Built " << std::endl ;
+
+    streamlog_out( ERROR ) << "MarlinKalTest - Support Material missing in gear file: Cannot proceed as propagations and extrapolations for cannonical track states are impossible: exit(1) called" << std::endl ; 
+    exit(1);  
+
   }
   
   try{
