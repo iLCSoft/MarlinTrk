@@ -1044,7 +1044,8 @@ int MarlinKalTestTrack::intersectionWithLayer( int layerID, const TKalTrackSite&
     << " y = "     << point.y()
     << " z = "     << point.z()
     << " r = "     << point.rho()
-    << " detElementID = " << decodeILD( detElementID )
+    << " detElementID = " << detElementID 
+    << " " << decodeILD( detElementID )
     << std::endl ;
     
   }
@@ -1052,7 +1053,8 @@ int MarlinKalTestTrack::intersectionWithLayer( int layerID, const TKalTrackSite&
     
     ml = NULL;
     streamlog_out(DEBUG1) << "MarlinKalTestTrack::intersectionWithLayer No intersection with layerID = "
-    << decodeILD( layerID )
+    << " detElementID = " << detElementID 
+    << " " << decodeILD( detElementID )
     << std::endl ;
     
   }
@@ -1123,7 +1125,10 @@ int MarlinKalTestTrack::findIntersection( std::vector<ILDVMeasLayer const*>& mea
     double dphi = 0;
     // need to send a temporary point as we may get the crossing point with the layer on the oposite side of the layer 
     gear::Vector3D point_temp ;
-    int error_code = findIntersection( *meas_modules[i], site, point_temp, dphi, detElementID, mode ) ;
+    
+    int temp_detElementID;
+    
+    int error_code = findIntersection( *meas_modules[i], site, point_temp, dphi, temp_detElementID, mode ) ;
     
     if( error_code == success ) {
       
@@ -1133,6 +1138,7 @@ int MarlinKalTestTrack::findIntersection( std::vector<ILDVMeasLayer const*>& mea
         dphi_min = fabs(dphi) ;
         surf_found = true ;
         ml = meas_modules[i];
+        detElementID = temp_detElementID;
         point = point_temp ;
       }
       
