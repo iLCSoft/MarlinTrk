@@ -22,6 +22,24 @@ specifically RefitProcessor which takes a track collection and refits each track
 
 
  =============================================================================================================
+
+
+  --------
+ | v01-01 |
+  -------- 
+
+  	   - Support for KalDet Multilayer added
+	   - Added calo face to support detector
+	   - Made use of new method in  ILDVMeasLayer "getIntersectionAndCellID"
+	   - Change GetMLName to GetName in line with KalTest
+	   - Fixed phi range of helixtrack
+  	   - MarlinKalTestTrack fixed definition of phi0 in  initialise(TS& ts)
+	     corrected conversion from LCIO to KalTest track parameters in initialise
+
+
+
+
+
   --------
  | v01-00 |
   -------- 
