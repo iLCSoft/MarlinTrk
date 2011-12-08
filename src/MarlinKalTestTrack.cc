@@ -117,6 +117,7 @@ int MarlinKalTestTrack::addHit( EVENT::TrackerHit* trkhit, ILDVTrackHit* kalhit,
     _kaltest_hits_to_lcio_hits[kalhit] = trkhit ; // add hit to map relating kaltest and lcio hits
   }
   else{
+    delete kalhit;
     return bad_intputs ;
   }
   
