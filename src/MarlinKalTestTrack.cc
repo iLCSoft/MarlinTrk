@@ -475,6 +475,7 @@ int MarlinKalTestTrack::addAndFit( EVENT::TrackerHit* trkhit, double& chi2increm
   int error_code = this->addAndFit( kalhit, chi2increment, site, maxChi2Increment);
   
   if( error_code != success ){
+    delete kalhit;
     return error_code ;
   }
   else {
