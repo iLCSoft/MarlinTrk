@@ -23,6 +23,17 @@ specifically RefitProcessor which takes a track collection and refits each track
 
  =============================================================================================================
 
+  --------
+ | v01-02 |
+  -------- 
+
+  	   - To correctly determine the fits at the first hit and the last hit methods have be added to IMarlinTrk to 
+             get the list of pointers to EVENT::TrackerHit and the chi2 increment for both hits included in the fit 
+             as well as those rejected as outliers. 
+	   - To test the chi2 increment which would result from adding a hit to the fit the method  testChi2Increment 
+             has been added to IMarlinTrk. This method will not alter the fit, it simply provides a method to test 
+             the inclusion of a hit. 
+           - MarlinKalTestTrack has been adapted to use the pointer to LCIO TrackerHits in ILDVTrackHit.
 
   --------
  | v01-01 |

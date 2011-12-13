@@ -12,7 +12,7 @@ PROJECT( MarlinTrk )
 
 # project version
 SET( ${PROJECT_NAME}_VERSION_MAJOR 1 )
-SET( ${PROJECT_NAME}_VERSION_MINOR 1 )
+SET( ${PROJECT_NAME}_VERSION_MINOR 2 )
 SET( ${PROJECT_NAME}_VERSION_PATCH 0 )
 
 cmake_policy(SET CMP0008 NEW)
@@ -90,8 +90,9 @@ ADD_DEFINITIONS( "-Wno-long-long" )
 
 # include directories
 INCLUDE_DIRECTORIES( BEFORE ./include )
-#INCLUDE_DIRECTORIES( BEFORE ./temporary_utils )
+INCLUDE_DIRECTORIES( BEFORE ./temporary_utils )
 INSTALL_DIRECTORY( ./include DESTINATION . FILES_MATCHING PATTERN "*.h" )
+INSTALL_DIRECTORY( ./temporary_utils/ DESTINATION include/MarlinTrk FILES_MATCHING PATTERN "*.h" )
 
 # add library
 AUX_SOURCE_DIRECTORY( ./src library_sources )
