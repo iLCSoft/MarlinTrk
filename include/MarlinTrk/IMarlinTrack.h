@@ -46,6 +46,7 @@ namespace MarlinTrk{
     static const int bad_intputs = 3 ;
     static const int no_intersection = 4 ; // no intersection found
     static const int site_discarded = 5 ;  // measurement discarded by the fitter
+    static const int site_fails_chi2_cut = 6 ;  // measurement discarded by the fitter due to chi2 cut
     
     
     
@@ -74,7 +75,7 @@ namespace MarlinTrk{
     
     
     /** perform the fit of all current hits, returns error code ( IMarlinTrack::success if no error ) .
-     *  the fit will be performed  in the order specified at initialise() wrt the order used in addFit(), i.e.
+     *  the fit will be performed  in the order specified at initialise() wrt the order used in addHit(), i.e.
      *  IMarlinTrack::backward implies fitting from the outside to the inside for tracks comming from the IP.
      */
     virtual int fit() = 0 ;
@@ -84,7 +85,12 @@ namespace MarlinTrk{
      *  the given hit will not be added if chi2increment > maxChi2Increment. 
      */
     virtual int addAndFit( EVENT::TrackerHit* hit, double& chi2increment, double maxChi2Increment=DBL_MAX ) = 0 ;
+
     
+    /** obtain the chi2 increment which would result in adding the hit to the fit. This method will not alter the current fit, and the hit will not be stored in the list of hits or outliers
+     */
+    virtual int testChi2Increment( EVENT::TrackerHit* hit, double& chi2increment ) = 0 ;
+
     
     /** smooth all track states 
      */
@@ -108,6 +114,19 @@ namespace MarlinTrk{
      */
     virtual int getTrackState( EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) = 0 ;
     
+    /** get the list of hits included in the fit, together with the chi2 contributions of the hits. 
+     *  Pointers to the hits together with their chi2 contribution will be filled into a vector of 
+     *  pairs consitining of the pointer as the first part of the pair and the chi2 contribution as
+     *  the second.
+     */
+    virtual int getHitsInFit( std::vector<std::pair<EVENT::TrackerHit*, double> >& hits ) = 0 ;
+
+    /** get the list of hits which have been rejected by from the fit due to the a chi2 increment greater than threshold,
+     *  Pointers to the hits together with their chi2 contribution will be filled into a vector of 
+     *  pairs consitining of the pointer as the first part of the pair and the chi2 contribution as
+     *  the second.
+     */
+    virtual int getOutliers( std::vector<std::pair<EVENT::TrackerHit*, double> >& hits ) = 0 ;
     
     // PROPAGATORS 
     

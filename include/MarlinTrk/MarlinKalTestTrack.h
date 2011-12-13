@@ -80,7 +80,7 @@ private:
   
   
   /** perform the fit of all current hits, returns error code ( IMarlinTrack::success if no error ) .
-   *  the fit will be performed  in the order specified at initialise() wrt the order used in addFit(), i.e.
+   *  the fit will be performed  in the order specified at initialise() wrt the order used in addHit(), i.e.
    *  IMarlinTrack::backward implies fitting from the outside to the inside for tracks comming from the IP.
    */
   int fit() ;
@@ -105,7 +105,12 @@ private:
    *  the given hit will not be added if chi2increment > maxChi2Increment. 
    */
   int addAndFit( ILDVTrackHit* kalhit, double& chi2increment, TKalTrackSite*& site, double maxChi2Increment=DBL_MAX ) ;
+
   
+  /** obtain the chi2 increment which would result in adding the hit to the fit. This method will not alter the current fit, and the hit will not be stored in the list of hits or outliers
+   */
+  int testChi2Increment( EVENT::TrackerHit* hit, double& chi2increment ) ;
+
   
   // Track State Accessesors
   
@@ -118,6 +123,21 @@ private:
    */
   int getTrackState( EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) ;
   
+  
+  /** get the list of hits included in the fit, together with the chi2 contributions of the hits. 
+   *  Pointers to the hits together with their chi2 contribution will be filled into a vector of 
+   *  pairs consitining of the pointer as the first part of the pair and the chi2 contribution as
+   *  the second.
+   */
+  int getHitsInFit( std::vector<std::pair<EVENT::TrackerHit*, double> >& hits ) ;
+  
+  /** get the list of hits which have been rejected by from the fit due to the a chi2 increment greater than threshold,
+   *  Pointers to the hits together with their chi2 contribution will be filled into a vector of 
+   *  pairs consitining of the pointer as the first part of the pair and the chi2 contribution as
+   *  the second.
+   */
+  int getOutliers( std::vector<std::pair<EVENT::TrackerHit*, double> >& hits ) ;
+
   
   // PROPAGATORS 
   
@@ -314,14 +334,19 @@ private:
   /** map to store relation between lcio hits kaltest hits
    */
   std::map<EVENT::TrackerHit*,ILDVTrackHit*> _lcio_hits_to_kaltest_hits ;
-  
-  /** map to store relation between kaltest hits and lcio hits
-   */
-  std::map<ILDVTrackHit*,EVENT::TrackerHit*> _kaltest_hits_to_lcio_hits ;
-  
+   
   /** vector to store lcio hits rejected for measurement sites
    */
   std::vector<EVENT::TrackerHit*> _hit_not_used_for_sites ;
+
+  /** vector to store the chi-sqaure increment for measurement sites
+   */
+  std::vector< std::pair<EVENT::TrackerHit*, double> > _hit_chi2_values ;
+  
+  /** vector to store the chi-sqaure increment for measurement sites
+   */
+  std::vector< std::pair<EVENT::TrackerHit*, double> > _outlier_chi2_values ;
+
   
 } ;
 

@@ -37,7 +37,7 @@ public:
   
   /** C'tor - takes as optional argument the maximum allowed delta chi2 for adding the hit (in IsAccepted() )
    */
-  KalTrackFilter(double maxDeltaChi2 = DBL_MAX) : _maxDeltaChi2( maxDeltaChi2 ) {
+  KalTrackFilter(double maxDeltaChi2 = DBL_MAX) : _maxDeltaChi2( maxDeltaChi2 ), _used_for_last_filter_step(false) {
   } 
   virtual ~KalTrackFilter() {} 
   
@@ -46,13 +46,18 @@ public:
     double deltaChi2 = site.GetDeltaChi2();
     
     streamlog_out( DEBUG1 ) << " KalTrackFilter::IsAccepted called  !  deltaChi2 = "  <<  deltaChi2  << std::endl;
+    _used_for_last_filter_step = true;
     
     return ( deltaChi2 < _maxDeltaChi2 )   ; 
   }
   
+  void resetUsedStatus() { _used_for_last_filter_step = false; }
+  bool usedForLastFilterStep() const { return _used_for_last_filter_step; } 
+  
 protected:
   
   double _maxDeltaChi2 ;
+  bool _used_for_last_filter_step;
   
 } ;
 
@@ -110,11 +115,11 @@ int MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit, const ILDVMeasLayer*
 
 int MarlinKalTestTrack::addHit( EVENT::TrackerHit* trkhit, ILDVTrackHit* kalhit, const ILDVMeasLayer* ml) 
 {
-  
+    
   if( kalhit && ml ) {
     _kalhits->Add(kalhit ) ;  // Add hit and set surface found 
     _lcio_hits_to_kaltest_hits[trkhit] = kalhit ; // add hit to map relating lcio and kaltest hits
-    _kaltest_hits_to_lcio_hits[kalhit] = trkhit ; // add hit to map relating kaltest and lcio hits
+                                                  //    _kaltest_hits_to_lcio_hits[kalhit] = trkhit ; // add hit to map relating kaltest and lcio hits
   }
   else{
     delete kalhit;
@@ -413,14 +418,23 @@ int MarlinKalTestTrack::addAndFit( ILDVTrackHit* kalhit, double& chi2increment, 
   
   temp_site->SetFilterCond( &filter ) ;
   
+  
+  // this is the only point at which a hit is actually filtered 
+  // and it is here that we can get the GetDeltaChi2 vs the maxChi2Increment
+  // it will always be possible to get the delta chi2 so long as we have a link to the sites ...
+  // although calling smooth will natrually update delta chi2.
+  
+  
   if (!_kaltrack->AddAndFilter(*temp_site)) {        
-    
+  
     chi2increment = temp_site->GetDeltaChi2() ;
     // get the measurement layer of the current hit
     const ILDVMeasLayer* ml =  dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) ) ;
     TVector3 pos = ml->HitToXv(*kalhit);
     streamlog_out( DEBUG2 )  << "Kaltrack::fit : site discarded! at index : " << ml->GetIndex() 
     << " for type " << ml->GetName() 
+    << " chi2increment = " << chi2increment
+    << " maxChi2Increment = " << maxChi2Increment
     << " x = " << pos.x()
     << " y = " << pos.y()
     << " z = " << pos.z()
@@ -435,7 +449,7 @@ int MarlinKalTestTrack::addAndFit( ILDVTrackHit* kalhit, double& chi2increment, 
     
     delete temp_site;  // delete site if filter step failed      
     
-    return site_discarded ;
+    return filter.usedForLastFilterStep() ? site_fails_chi2_cut : site_discarded ;
     
   }
   
@@ -463,13 +477,13 @@ int MarlinKalTestTrack::addAndFit( EVENT::TrackerHit* trkhit, double& chi2increm
 			   << decodeILD( trkhit->getCellID0() ) << " at " 
 			   << gear::Vector3D( trkhit->getPosition() ) << std::endl ;
     
-    return  IMarlinTrack::site_discarded ; 
+    return  IMarlinTrack::bad_intputs ; 
   }
 
   ILDVTrackHit* kalhit = ml->ConvertLCIOTrkHit(trkhit) ;
   
   if( kalhit == 0 ){  //fg: ml->ConvertLCIOTrkHit returns NULL if hit not on surface !!!
-    return IMarlinTrack::site_discarded ;
+    return IMarlinTrack::bad_intputs ;
   }
 
   TKalTrackSite* site;
@@ -477,16 +491,59 @@ int MarlinKalTestTrack::addAndFit( EVENT::TrackerHit* trkhit, double& chi2increm
   
   if( error_code != success ){
     delete kalhit;
+    if( error_code == site_fails_chi2_cut ) _outlier_chi2_values.push_back(std::make_pair(trkhit, chi2increment));
     return error_code ;
   }
   else {
     this->addHit( trkhit, kalhit, ml ) ; 
     _hit_used_for_sites[trkhit] = site ;
+    _hit_chi2_values.push_back(std::make_pair(trkhit, chi2increment));
   }
   
   return success ;
   
 }
+
+
+
+int MarlinKalTestTrack::testChi2Increment( EVENT::TrackerHit* trkhit, double& chi2increment ) {
+  
+  if( ! trkhit ) { 
+    streamlog_out( ERROR) << "MarlinKalTestTrack::addAndFit( EVENT::TrackerHit* trkhit, double& chi2increment, double maxChi2Increment): trkhit == NULL"  << std::endl;
+    return IMarlinTrack::bad_intputs ; 
+  }
+  
+  const ILDVMeasLayer* ml = _ktest->findMeasLayer( trkhit ) ;
+  
+  if( ml == 0 ){  
+    // fg: not sure if ml should ever be 0 - but it seems to happen, 
+    //     if point is not on surface and more than one surface exists ...
+    
+    streamlog_out( ERROR ) << ">>>>>>>>>>>  no measurment layer found for trkhit cellid0 : " 
+    << decodeILD( trkhit->getCellID0() ) << " at " 
+    << gear::Vector3D( trkhit->getPosition() ) << std::endl ;
+    
+    return  IMarlinTrack::bad_intputs ; 
+    
+  }
+
+  ILDVTrackHit* kalhit = ml->ConvertLCIOTrkHit(trkhit) ;
+
+  if( kalhit == 0 ){  //fg: ml->ConvertLCIOTrkHit returns NULL if hit not on surface !!!
+    return IMarlinTrack::bad_intputs ;
+  }
+
+  
+  TKalTrackSite* site;
+  int error_code = this->addAndFit( kalhit, chi2increment, site, -DBL_MAX); // using -DBL_MAX here ensures the hit will never be added to the fit
+  
+  delete kalhit;  
+  
+  return error_code;
+  
+}
+
+
 
 int MarlinKalTestTrack::fit() {
   
@@ -520,27 +577,19 @@ int MarlinKalTestTrack::fit() {
     
     double chi2increment;
     TKalTrackSite* site;
-    int error = this->addAndFit( kalhit, chi2increment, site);
+    int error_code = this->addAndFit( kalhit, chi2increment, site);
     
-    // find the lcio hit for this kaltest hit
-    std::map<ILDVTrackHit*,EVENT::TrackerHit*>::iterator it;
-    it = _kaltest_hits_to_lcio_hits.find(kalhit) ;
     
-    if( it == _kaltest_hits_to_lcio_hits.end() ) { // something went wrong and this kalhit has no lcio trkhit associated
-      
-      std::stringstream errorMsg;
-      errorMsg << "MarlinKalTestTrack::fit hit pointer " << kalhit << " not stored in _kaltest_hits_to_lcio_hits map" << std::endl ; 
-      throw MarlinTrk::Exception(errorMsg.str());
-      
-    }
+    EVENT::TrackerHit* trkhit = kalhit->getLCIOTrackerHit();
     
-    EVENT::TrackerHit* trkhit = it->second;  
-    
-    if( error == 0 ){ // add trkhit to map associating trkhits and sites
-      _hit_used_for_sites[it->second] = site;
+    if( error_code == 0 ){ // add trkhit to map associating trkhits and sites
+      _hit_used_for_sites[trkhit] = site;
+      _hit_chi2_values.push_back(std::make_pair(trkhit, chi2increment));
     } 
     else { // hit rejected by the filter, so store in the list of rejected hits
+      if( error_code == site_fails_chi2_cut ) _outlier_chi2_values.push_back(std::make_pair(trkhit, chi2increment));
       _hit_not_used_for_sites.push_back(trkhit) ;
+      
     }
     
   } // end of Kalman filter
@@ -629,6 +678,26 @@ int MarlinKalTestTrack::getTrackState( EVENT::TrackerHit* trkhit, IMPL::TrackSta
   
   return success ;
 }
+
+
+int MarlinKalTestTrack::getHitsInFit( std::vector<std::pair<EVENT::TrackerHit*, double> >& hits ) {
+  
+  std::copy( _hit_chi2_values.begin() , _hit_chi2_values.end() , std::back_inserter(  hits  )  ) ;
+  
+  return success ;
+  
+}
+
+int MarlinKalTestTrack::getOutliers( std::vector<std::pair<EVENT::TrackerHit*, double> >& hits ) {
+
+  std::copy( _outlier_chi2_values.begin() , _outlier_chi2_values.end() , std::back_inserter(  hits  )  ) ;
+  
+  return success ;
+
+}
+
+
+
 
 int MarlinKalTestTrack::extrapolate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ){  
   
@@ -1055,8 +1124,8 @@ int MarlinKalTestTrack::intersectionWithLayer( int layerID, const TKalTrackSite&
     
     ml = NULL;
     streamlog_out(DEBUG1) << "MarlinKalTestTrack::intersectionWithLayer No intersection with layerID = "
-    << " detElementID = " << detElementID 
-    << " " << decodeILD( detElementID )
+    << layerID 
+    << " " << decodeILD( layerID )
     << std::endl ;
     
   }
