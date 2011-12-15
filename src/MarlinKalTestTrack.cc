@@ -449,8 +449,26 @@ int MarlinKalTestTrack::addAndFit( ILDVTrackHit* kalhit, double& chi2increment, 
     
     delete temp_site;  // delete site if filter step failed      
     
-    return filter.usedForLastFilterStep() ? site_fails_chi2_cut : site_discarded ;
+
+
+    // compiling the code below with the cmake option CMAKE_BUILD_TYPE=Debug
+    // and with LDFLAGS=-Wl,--no-undefined
+    // causes an undefined reference error
+    // the problem gets fixed using the if/else statement below
+
+    // this fails
+    //return filter.usedForLastFilterStep() ? site_fails_chi2_cut : site_discarded ;
     
+    // this also fails..
+    //bool rc = filter.usedForLastFilterStep() ;
+    //return (rc ? site_fails_chi2_cut : site_discarded);
+
+    // but this works ?!! 
+    //return ( true ? site_fails_chi2_cut : site_discarded);
+    
+    // and this also works..
+    if( filter.usedForLastFilterStep() ) { return site_fails_chi2_cut ; } else { return site_discarded ; }
+
   }
   
   site = temp_site;
