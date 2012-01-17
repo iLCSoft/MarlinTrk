@@ -17,12 +17,15 @@ class TKalTrackSite ;
 class ILDVTrackHit ;
 class ILDVMeasLayer ;
 
-class MarlinKalTest;
-
+namespace MarlinTrk {
+  class MarlinKalTest;
+}
 
 namespace EVENT{
   class TrackerHit ;
 }
+
+
 
 /** Implementation of the IMarlinTrack interface, using KalTest and KalDet to provide 
  *  the needed functionality for a Kalman Filter.
@@ -31,6 +34,7 @@ namespace EVENT{
  * @author S.Aplin, F. Gaede DESY
  */
 
+namespace MarlinTrk{
 
 class MarlinKalTestTrack : public MarlinTrk::IMarlinTrack {
   
@@ -350,4 +354,6 @@ private:
   
 } ;
 
+} // end of namespace MarlinTrk
+  
 #endif
