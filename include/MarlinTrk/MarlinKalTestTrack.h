@@ -296,8 +296,8 @@ private:
   
   /** get the measurement site associated with the given lcio TrackerHit trkhit
    */
-  int getSiteFromLCIOHit( EVENT::TrackerHit* trkhit, std::map<EVENT::TrackerHit*,TKalTrackSite*>::const_iterator& it ) const ;
-  
+  int getSiteFromLCIOHit( EVENT::TrackerHit* trkhit, TKalTrackSite& site ) const ;
+
   
   
   /** helper function to restrict the range of the azimuthal angle to ]-pi,pi]*/
