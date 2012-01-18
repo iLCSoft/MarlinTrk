@@ -691,7 +691,7 @@ return success ;
   
   int MarlinKalTestTrack::getTrackState( EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) {
     
-    streamlog_out( DEBUG2 )  << "MarlinKalTestTrack::getTrackState( EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts ) using hit: " << trkhit << std::endl ;
+    streamlog_out( DEBUG2 )  << "MarlinKalTestTrack::getTrackState( EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts ) using hit: " << trkhit << " with cellID0 = " << trkhit->getCellID0() << std::endl ;
     
     TKalTrackSite site = NULL ;
     int error_code = getSiteFromLCIOHit(trkhit, site);
@@ -1383,7 +1383,11 @@ return success ;
       }
     } 
     
-    streamlog_out( DEBUG1 )  << "MarlinKalTestTrack::getSiteFromLCIOHit: site found" << std::endl ;
+    TKalTrackSite* psite = it->second;
+    
+    site = *psite;
+    
+    streamlog_out( DEBUG1 )  << "MarlinKalTestTrack::getSiteFromLCIOHit: site " << &site << " found for hit " << trkhit << std::endl ;
     return success ;
     
   }
