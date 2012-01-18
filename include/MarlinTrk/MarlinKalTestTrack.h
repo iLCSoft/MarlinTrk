@@ -296,7 +296,7 @@ private:
   
   /** get the measurement site associated with the given lcio TrackerHit trkhit
    */
-  int getSiteFromLCIOHit( EVENT::TrackerHit* trkhit, TKalTrackSite& site ) const ;
+  int getSiteFromLCIOHit( EVENT::TrackerHit* trkhit, TKalTrackSite*& site ) const ;
 
   
   

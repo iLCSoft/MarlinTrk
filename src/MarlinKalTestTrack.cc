@@ -658,12 +658,12 @@ return success ;
     std::map<EVENT::TrackerHit*,TKalTrackSite*>::const_iterator it;
     
     
-    TKalTrackSite site = NULL ;
+    TKalTrackSite* site = NULL ;
     int error_code = getSiteFromLCIOHit(trkhit, site);
     
     if( error_code != success ) return error_code ;
     
-    int index = _kaltrack->IndexOf( &site );
+    int index = _kaltrack->IndexOf( site );
     
     _kaltrack->SmoothBackTo( index ) ;
     
@@ -693,12 +693,14 @@ return success ;
     
     streamlog_out( DEBUG2 )  << "MarlinKalTestTrack::getTrackState( EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts ) using hit: " << trkhit << " with cellID0 = " << trkhit->getCellID0() << std::endl ;
     
-    TKalTrackSite site = NULL ;
+    TKalTrackSite* site = NULL ;
     int error_code = getSiteFromLCIOHit(trkhit, site);
     
     if( error_code != success ) return error_code ;
     
-    this->ToLCIOTrackState( site, ts, chi2, ndf );
+    streamlog_out( DEBUG1 )  << "MarlinKalTestTrack::getTrackState: site " << site << std::endl;
+    
+    this->ToLCIOTrackState( *site, ts, chi2, ndf );
     
     return success ;
   }
@@ -733,12 +735,12 @@ return success ;
   
   int MarlinKalTestTrack::extrapolate( const gear::Vector3D& point, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) {
     
-    TKalTrackSite site = NULL ;
+    TKalTrackSite* site = NULL ;
     int error_code = getSiteFromLCIOHit(trkhit, site);
 
     if( error_code != success ) return error_code;
     
-    return this->extrapolate( point, site, ts, chi2, ndf ) ;
+    return this->extrapolate( point, *site, ts, chi2, ndf ) ;
     
   }
   
@@ -785,12 +787,12 @@ return success ;
   
   int MarlinKalTestTrack::extrapolateToLayer( int layerID, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID, int mode ) { 
     
-    TKalTrackSite site = NULL;
+    TKalTrackSite* site = NULL;
     int error_code = getSiteFromLCIOHit(trkhit, site);
     
     if( error_code != success ) return error_code ;
     
-    return this->extrapolateToLayer( layerID, site, ts, chi2, ndf, detElementID, mode ) ;
+    return this->extrapolateToLayer( layerID, *site, ts, chi2, ndf, detElementID, mode ) ;
     
   }
   
@@ -822,12 +824,12 @@ return success ;
   
   int MarlinKalTestTrack::extrapolateToDetElement( int detElementID, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int mode ) { 
     
-    TKalTrackSite site = NULL;
+    TKalTrackSite* site = NULL;
     int error_code = getSiteFromLCIOHit(trkhit, site);
 
     if( error_code != success ) return error_code ;
     
-    return this->extrapolateToDetElement( detElementID, site, ts, chi2, ndf, mode ) ;
+    return this->extrapolateToDetElement( detElementID, *site, ts, chi2, ndf, mode ) ;
     
   }
   
@@ -863,7 +865,7 @@ return success ;
   
   int MarlinKalTestTrack::propagate( const gear::Vector3D& point, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ){
     
-    TKalTrackSite site = NULL;
+    TKalTrackSite* site = NULL;
     int error_code = getSiteFromLCIOHit(trkhit, site);
 
     if( error_code != success ) return error_code ;
@@ -872,7 +874,7 @@ return success ;
     // SJA:FIXME: really we should also check if the PCA to the point is also less than R
     const ILDVMeasLayer* ml = (point.r() < _ktest->getIPLayer()->GetR()) ? _ktest->getIPLayer() : NULL;
     
-    return this->propagate( point, site, ts, chi2, ndf, ml ) ;
+    return this->propagate( point, *site, ts, chi2, ndf, ml ) ;
     
   }
   
@@ -967,12 +969,12 @@ return success ;
   
   int MarlinKalTestTrack::propagateToLayer( int layerID, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID, int mode ) { 
 
-    TKalTrackSite site = NULL;
+    TKalTrackSite* site = NULL;
     int error_code = getSiteFromLCIOHit(trkhit, site);
 
     if( error_code != success ) return error_code ;
     
-    return this->propagateToLayer( layerID, site, ts, chi2, ndf, detElementID, mode ) ;
+    return this->propagateToLayer( layerID, *site, ts, chi2, ndf, detElementID, mode ) ;
     
   }
   
@@ -1005,12 +1007,12 @@ return success ;
   
   int MarlinKalTestTrack::propagateToDetElement( int detElementID, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int mode ) { 
     
-    TKalTrackSite site = NULL;
+    TKalTrackSite* site = NULL;
     int error_code = getSiteFromLCIOHit(trkhit, site);
 
     if( error_code != success ) return error_code ;
     
-    return this->propagateToDetElement( detElementID, site, ts, chi2, ndf, mode ) ;
+    return this->propagateToDetElement( detElementID, *site, ts, chi2, ndf, mode ) ;
     
   }
   
@@ -1043,13 +1045,13 @@ return success ;
   
   int MarlinKalTestTrack::intersectionWithDetElement( int detElementID,  EVENT::TrackerHit* trkhit, gear::Vector3D& point, int mode ) {  
     
-    TKalTrackSite site = NULL;
+    TKalTrackSite* site = NULL;
     int error_code = getSiteFromLCIOHit(trkhit, site);
 
     if( error_code != success ) return error_code ;
     
     const ILDVMeasLayer* ml = NULL;
-    return this->intersectionWithDetElement( detElementID, site, point, ml, mode ) ;
+    return this->intersectionWithDetElement( detElementID, *site, point, ml, mode ) ;
     
   }
   
@@ -1109,13 +1111,13 @@ return success ;
   
   int MarlinKalTestTrack::intersectionWithLayer( int layerID,  EVENT::TrackerHit* trkhit, gear::Vector3D& point, int& detElementID, int mode ) {  
     
-    TKalTrackSite site = NULL;
+    TKalTrackSite* site = NULL;
     int error_code = getSiteFromLCIOHit(trkhit, site);
 
     if( error_code != success ) return error_code ;
     
     const ILDVMeasLayer* ml = NULL;
-    return this->intersectionWithLayer( layerID, site, point, detElementID, ml, mode ) ;
+    return this->intersectionWithLayer( layerID, *site, point, detElementID, ml, mode ) ;
     
   }
   
@@ -1359,7 +1361,7 @@ return success ;
   }
   
   
-  int MarlinKalTestTrack::getSiteFromLCIOHit( EVENT::TrackerHit* trkhit, TKalTrackSite& site ) const {
+  int MarlinKalTestTrack::getSiteFromLCIOHit( EVENT::TrackerHit* trkhit, TKalTrackSite*& site ) const {
     
     std::map<EVENT::TrackerHit*,TKalTrackSite*>::const_iterator it;
     
@@ -1383,11 +1385,10 @@ return success ;
       }
     } 
     
-    TKalTrackSite* psite = it->second;
+    site = it->second;
     
-    site = *psite;
     
-    streamlog_out( DEBUG1 )  << "MarlinKalTestTrack::getSiteFromLCIOHit: site " << &site << " found for hit " << trkhit << std::endl ;
+    streamlog_out( DEBUG1 )  << "MarlinKalTestTrack::getSiteFromLCIOHit: site " << site << " found for hit " << trkhit << std::endl ;
     return success ;
     
   }
