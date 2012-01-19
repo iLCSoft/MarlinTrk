@@ -10,6 +10,7 @@
 #include "kaldet/ILDSupportKalDetector.h"
 #include "kaldet/ILDVXDKalDetector.h"
 #include "kaldet/ILDSITKalDetector.h"
+#include "kaldet/ILDSITCylinderKalDetector.h"
 #include "kaldet/ILDFTDKalDetector.h"
 #include "kaldet/ILDFTDDiscBasedKalDetector.h"
 #include "kaldet/ILDTPCKalDetector.h"
@@ -85,14 +86,29 @@ streamlog_out( DEBUG4 ) << "  MarlinKalTest - established " << std::endl ;
       streamlog_out( MESSAGE ) << "  MarlinKalTest - VXD missing in gear file: VXD Material Not Built " << std::endl ;
     }
     
+    
+    bool SIT_found = false ;
     try{
       ILDSITKalDetector* sitdet = new ILDSITKalDetector( *_gearMgr )  ;
       // store the measurement layer id's for the active layers 
       this->storeActiveMeasurementModuleIDs(sitdet);
-      _det->Install( *sitdet ) ;  
+      _det->Install( *sitdet ) ; 
+      SIT_found = true ;
     }
     catch( gear::UnknownParameterException& e){   
       streamlog_out( MESSAGE ) << "  MarlinKalTest - SIT missing in gear file: SIT Not Built " << std::endl ;  
+    }
+    
+    if( ! SIT_found ){
+      try{
+        ILDSITCylinderKalDetector* sitdet = new ILDSITCylinderKalDetector( *_gearMgr )  ;
+        // store the measurement layer id's for the active layers 
+        this->storeActiveMeasurementModuleIDs(sitdet);
+        _det->Install( *sitdet ) ;    
+      }
+      catch( gear::UnknownParameterException& e){   
+        streamlog_out( MESSAGE ) << "  MarlinKalTest - Simple Cylinder Based SIT missing in gear file: Simple Cylinder Based SIT Not Built " << std::endl ;
+      }
     }
     
     bool FTD_found = false ;
