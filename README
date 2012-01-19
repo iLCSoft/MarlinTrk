@@ -23,6 +23,18 @@ specifically RefitProcessor which takes a track collection and refits each track
 
  =============================================================================================================
 
+
+  --------
+ | v01-03 |
+  -------- 
+
+  	   - Added cylindrical SIT for LOI data.
+	   - improve use of MarlinTrk namespace.
+	   - Fixed use of covariance matrix in initialise. 
+	   - Changed getSiteFromLCIOHit from taking an iterator to taking a pointer to a site. 
+	   - Corrected smoothed state when used.
+
+
   --------
  | v01-02 |
   -------- 
