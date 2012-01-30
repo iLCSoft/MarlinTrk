@@ -6,6 +6,8 @@
 #include <algorithm>
 
 #include "MeasurementSurface.h"
+#include "BoundaryRectangle.h"
+#include "BoundaryTrapezoid.h"
 
 #include <gear/ZPlanarParameters.h>
 #include <gear/ZPlanarLayerLayout.h>
@@ -135,8 +137,8 @@ namespace MarlinTrk {
         double deltaPhi            = ( 2 * M_PI ) / nLadders ; // the phi difference between two ladders
         double phi0                = layerLayout.getPhi0( layerNumber );
         double stripAngle = 0.; // TODO: implement
-        
-        
+        double sensitive_length  = layerLayout.getSensitiveLength(layerNumber) * 2.0 ; // note: gear for historical reasons uses the halflength 
+        double sensitive_width  = layerLayout.getSensitiveWidth(layerNumber);
         
         
         for( unsigned ladderNumber = 0; ladderNumber < nLadders; ladderNumber++ ){
@@ -150,8 +152,7 @@ namespace MarlinTrk {
           cellID[ lcio::ILDCellID0::sensor ] = 0 ;
           int cellID0 = cellID.lowWord();
           
-          streamlog_out(DEBUG1) << "layer = " << layerNumber << "\tladder = " << ladderNumber << "\n";
-          
+         
           // Let's start with the translation T: the new center of coordinates:
           // The center of the first ladder (when we ignore an offset and phi0 for now) is (R,0,0)
           // If we include the offset, the center gets shifted to (R,offset,0)
@@ -195,6 +196,7 @@ namespace MarlinTrk {
           
           
           MeasurementSurface* ms = new MeasurementSurface( cellID0, cartesian );
+          ms->addBoundary( new BoundaryRectangle( sensitive_width, sensitive_length, 1., -stripAngle ) );
           addMeasurementSurface( ms );
           
         }
@@ -218,8 +220,11 @@ namespace MarlinTrk {
         cellID[ lcio::ILDCellID0::layer  ] = layer ;
         
         unsigned nPetals = ftdLayers.getNPetals( layer );
-        double deltaPhi = ( 2 * M_PI ) / nPetals;
-        double phi0 = ftdLayers.getPhi0( layer );
+        double deltaPhi  = ( 2 * M_PI ) / nPetals;
+        double phi0      = ftdLayers.getPhi0( layer );
+        double lengthMin = ftdLayers.getSensitiveLengthMin( layer );
+        double lengthMax = ftdLayers.getSensitiveLengthMax( layer );
+        double width     = ftdLayers.getSensitiveWidth( layer );
         
         for( unsigned petal=0; petal< nPetals; petal++ ){
           
@@ -271,7 +276,10 @@ namespace MarlinTrk {
             
             CartesianCoordinateSystem* cartesian = new CartesianCoordinateSystem( T, R );
             MeasurementSurface* ms = new MeasurementSurface( cellID0, cartesian );
+            ms->addBoundary( new BoundaryTrapezoid( lengthMin, lengthMax, width, 1., -stripAngle) );
             addMeasurementSurface( ms );
+            
+            
             
             // Once more for the other side
             cellID[ lcio::ILDCellID0::side   ] = 1 ;   
@@ -289,6 +297,7 @@ namespace MarlinTrk {
             
             CartesianCoordinateSystem* cartesian2 = new CartesianCoordinateSystem( T, R );
             MeasurementSurface* ms2 = new MeasurementSurface( cellID0, cartesian2 );
+            ms2->addBoundary( new BoundaryTrapezoid( lengthMin, lengthMax, width, 1., -stripAngle) );
             addMeasurementSurface( ms2 );
             
             
