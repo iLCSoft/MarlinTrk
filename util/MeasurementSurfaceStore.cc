@@ -172,15 +172,15 @@ namespace GearExtensions{
         // we would just rotate by 90°, but with a strip angle by
         // 90°-stripAngle in clockwise direction. 
         CLHEP::HepRotation R;
-        prinCLHEP::HepRotation( R );        
-        R.RotateZ( stripAngle - M_PI/2. );
-        prinCLHEP::HepRotation( R );
+        printRotation( R );        
+        R.rotateZ( stripAngle - M_PI/2. );
+        printRotation( R );
         
         // Next we rotate 90° clockwise around y, so the strip now points in z direction (if strip angle == 0)
-        R.RotateY( -M_PI/2. );
+        R.rotateY( -M_PI/2. );
 
         // Finally we have to get the ladder in place w.r. to its number and the resulting phi angle
-        R.RotateZ( deltaPhi * ladderNumber + phi0 );
+        R.rotateZ( deltaPhi * ladderNumber + phi0 );
                 
         CartesianCoordinateSystem* cartesian = new CartesianCoordinateSystem( T, R );
         
@@ -248,13 +248,13 @@ namespace GearExtensions{
           
           // Now we only have to rotate the petal around the z-axis into its place
           CLHEP::HepRotation rot;
-          rot.RotateZ( petal * deltaPhi + phi0 );
+          rot.rotateZ( petal * deltaPhi + phi0 );
           T = rot * T;
           
           
           //On to the rotation matrix
           CLHEP::HepRotation R;
-          R.RotateZ( petal * deltaPhi + phi0 + stripAngle - M_PI/2. );
+          R.rotateZ( petal * deltaPhi + phi0 + stripAngle - M_PI/2. );
           
           
           CartesianCoordinateSystem* cartesian = new CartesianCoordinateSystem( T, R );
@@ -272,7 +272,7 @@ namespace GearExtensions{
           // So first we get the vector v
           CLHEP::Hep3Vector v = R*CLHEP::Hep3Vector(0,1,0);
           // Then we rotate around it
-          R.Rotate( M_PI , v );
+          R.rotate( M_PI , v );
           
           CartesianCoordinateSystem* cartesian2 = new CartesianCoordinateSystem( T, R );
           MeasurementSurface* ms2 = new MeasurementSurface( cellID0, cartesian2 );
