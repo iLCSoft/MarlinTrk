@@ -1,8 +1,7 @@
 #ifndef ICOORDINATESYSTEM_h
 #define ICOORDINATESYSTEM_h
 
-#include "TVector3.h"
-#include "TRotation.h"
+#include "CLHEP/Vector/ThreeVector.h"
 
 namespace GearExtensions{
   
@@ -16,13 +15,13 @@ namespace GearExtensions{
     virtual ~ICoordinateSystem() { /* no-op */ }
     
     /** @return the local coordinates of the point */
-    virtual TVector3 getLocalPoint( TVector3 globalPoint ) = 0;
+    virtual CLHEP::Hep3Vector getLocalPoint( CLHEP::Hep3Vector globalPoint ) = 0;
     
     /** @return the global coordinates of the point */
-    virtual TVector3 getGlobalPoint( TVector3 localPoint ) = 0;
+    virtual CLHEP::Hep3Vector getGlobalPoint( CLHEP::Hep3Vector localPoint ) = 0;
     
     /** @return the global coordinates of the origin of the coordinate system */
-    virtual TVector3 getOrigin() = 0;
+    virtual CLHEP::Hep3Vector getOrigin() = 0;
     
     
     

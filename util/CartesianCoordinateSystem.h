@@ -2,6 +2,8 @@
 #define CARTESIANCOORDINATESYSTEM_h
 
 #include "ICoordinateSystem.h"
+#include "CLHEP/Vector/Rotation.h"
+
 
 namespace GearExtensions{
    
@@ -11,30 +13,30 @@ class CartesianCoordinateSystem : public ICoordinateSystem{
    
 public:
    
-   CartesianCoordinateSystem( TVector3 T , TRotation R ): _T(T), _R(R){}
+   CartesianCoordinateSystem( CLHEP::Hep3Vector T , CLHEP::HepRotation R ): _T(T), _R(R){}
    
    /** @return the local coordinates of the point */
-   virtual TVector3 getLocalPoint( TVector3 globalPoint );
+   virtual CLHEP::Hep3Vector getLocalPoint( CLHEP::Hep3Vector globalPoint );
    
    /** @return the global coordinates of the point */
-   virtual TVector3 getGlobalPoint( TVector3 localPoint );
+   virtual CLHEP::Hep3Vector getGlobalPoint( CLHEP::Hep3Vector localPoint );
    
    /** @return the global coordinates of the origin of the coordinate system */
-   virtual TVector3 getOrigin(){ return _T; }
+   virtual CLHEP::Hep3Vector getOrigin(){ return _T; }
    
    /** @return a rotation Matrix. local = R*global (after the translation)
       */
-   TRotation getR(){ return _R;}
+   CLHEP::HepRotation getR(){ return _R;}
    
 private:
    
    /** The translation vector (= the origin of the Coordinate System ) */
-   TVector3 _T;
+   CLHEP::Hep3Vector _T;
    
    /** Rotation Matrix
     * Definition: global = R* local
     */
-   TRotation _R;
+   CLHEP::HepRotation _R;
    
 };
    

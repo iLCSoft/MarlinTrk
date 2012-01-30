@@ -2,19 +2,19 @@
 
 using namespace GearExtensions;
 
-TVector3 CartesianCoordinateSystem::getLocalPoint( TVector3 globalPoint ){
+CLHEP::Hep3Vector CartesianCoordinateSystem::getLocalPoint( CLHEP::Hep3Vector globalPoint ){
    
    // First we get us a new origin via translation
-   TVector3 x = globalPoint  - _T;
+   CLHEP::Hep3Vector x = globalPoint  - _T;
    
    // Then we do the rotation
-   TRotation R_inv = _R.Inverse();
+   CLHEP::HepRotation R_inv = _R.inverse();
    
    return R_inv*x;   
    
 }
 
-TVector3 CartesianCoordinateSystem::getGlobalPoint( TVector3 localPoint ){
+CLHEP::Hep3Vector CartesianCoordinateSystem::getGlobalPoint( CLHEP::Hep3Vector localPoint ){
    
    
    // The point in global coordinates is the place of the origin in gloabl coordinates (=T) plus

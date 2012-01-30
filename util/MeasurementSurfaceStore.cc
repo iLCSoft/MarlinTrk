@@ -16,8 +16,6 @@
 
 #include "UTIL/ILDConf.h"
 
-#include "TVector3.h"
-#include "TRotation.h"
 #include "CartesianCoordinateSystem.h"
 
 #include "streamlog/streamlog.h"
@@ -25,14 +23,14 @@
 namespace GearExtensions{
 
   
-  void printRotation( const TRotation& R ){
+  void printRotation( const CLHEP::HepRotation& R ){
     
     streamlog_out(DEBUG4).precision(2);
     streamlog_out(DEBUG4).setf( std::ios::fixed , std::ios::floatfield );
     streamlog_out(DEBUG4) << "R:\n"
-                          << "| " << R.XX() << "  " << R.XY() << "  " << R.XZ() << " |\n"
-                          << "| " << R.YX() << "  " << R.YY() << "  " << R.YZ() << " |\n"
-                          << "| " << R.ZX() << "  " << R.ZY() << "  " << R.ZZ() << " |\n";
+                          << "| " << R.xx() << "  " << R.xy() << "  " << R.xz() << " |\n"
+                          << "| " << R.yx() << "  " << R.yy() << "  " << R.yz() << " |\n"
+                          << "| " << R.zx() << "  " << R.zy() << "  " << R.zz() << " |\n";
   }
   
   bool MeasurementSurfaceStore::_isInitialised = false ;
@@ -148,14 +146,13 @@ namespace GearExtensions{
         // Let's start with the translation T: the new center of coordinates:
         // The center of the first ladder (when we ignore an offset and phi0 for now) is (R,0,0)
         // If we include the offset, the center gets shifted to (R,offset,0)
-        TVector3 T( ladder_r, sensitive_offset, 0 );
+        CLHEP::Hep3Vector T( ladder_r, sensitive_offset, 0 );
         // Now we have to take into account phi0 and that the number of the ladder.
         // Together the center is rotated by phi0 + ladderNumber*deltaPhi around the z axis
-        TRotation rot;
-        rot.RotateZ( deltaPhi * ladderNumber + phi0 );
+        CLHEP::HepRotation rot;
+        rot.rotateZ( deltaPhi * ladderNumber + phi0 );
         
         T = rot * T;
-        T.Print();
         
         // Next, we want to determinte the rotation matrix R
         // We start with u,v,w alligned with x,y,z.
@@ -174,10 +171,10 @@ namespace GearExtensions{
         // First we'll rotate around the z axis. With a strip angle of 0,
         // we would just rotate by 90°, but with a strip angle by
         // 90°-stripAngle in clockwise direction. 
-        TRotation R;
-        printRotation( R );        
+        CLHEP::HepRotation R;
+        prinCLHEP::HepRotation( R );        
         R.RotateZ( stripAngle - M_PI/2. );
-        printRotation( R );
+        prinCLHEP::HepRotation( R );
         
         // Next we rotate 90° clockwise around y, so the strip now points in z direction (if strip angle == 0)
         R.RotateY( -M_PI/2. );
@@ -247,16 +244,16 @@ namespace GearExtensions{
           double x = (xmin+xmax) / 2.;
           double y = 0.;
           double z = -ftdLayers.getSensitiveZposition( layer, petal, sensor );
-          TVector3 T( x , y, z);
+          CLHEP::Hep3Vector T( x , y, z);
           
           // Now we only have to rotate the petal around the z-axis into its place
-          TRotation rot;
+          CLHEP::HepRotation rot;
           rot.RotateZ( petal * deltaPhi + phi0 );
           T = rot * T;
           
           
           //On to the rotation matrix
-          TRotation R;
+          CLHEP::HepRotation R;
           R.RotateZ( petal * deltaPhi + phi0 + stripAngle - M_PI/2. );
           
           
@@ -273,7 +270,7 @@ namespace GearExtensions{
           // but as (by chosen definition) w should point towards the IP,
           // we have to flip u around. So we acutally have to rotate 180° around v
           // So first we get the vector v
-          TVector3 v = R*TVector3(0,1,0);
+          CLHEP::Hep3Vector v = R*CLHEP::Hep3Vector(0,1,0);
           // Then we rotate around it
           R.Rotate( M_PI , v );
           
