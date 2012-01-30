@@ -2,7 +2,10 @@
 #include "MeasurementSurface.h"
 #include "ICoordinateSystem.h"
 
-namespace GearExtensions {
-  MeasurementSurface::~MeasurementSurface(){ delete _coordinateSystem; }
-}
+namespace MarlinTrk {
 
+  namespace GearExtensions {
+    MeasurementSurface::~MeasurementSurface(){ delete _coordinateSystem; }
+  }
+  
+}

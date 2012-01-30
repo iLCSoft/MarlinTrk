@@ -3,8 +3,10 @@
 
 #include "CLHEP/Vector/ThreeVector.h"
 
-namespace GearExtensions{
-  
+namespace MarlinTrk {
+
+  namespace GearExtensions{
+    
   /** An abstract base class for coordinate systems
    */
   class ICoordinateSystem{
@@ -27,7 +29,9 @@ namespace GearExtensions{
     
   };
   
-} // end namespace
+  } // end of GearExtensions namespace
 
+} // end of MarlinTrk namespace
+  
 #endif
 
