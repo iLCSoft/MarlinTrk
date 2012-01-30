@@ -35,6 +35,14 @@ namespace MarlinTrk {
       << "| " << R.zx() << "  " << R.zy() << "  " << R.zz() << " |\n";
     }
     
+    void printVector( const CLHEP::Hep3Vector& vec ){
+      
+      streamlog_out(DEBUG4).precision(2);
+      streamlog_out(DEBUG4).setf( std::ios::fixed , std::ios::floatfield );
+      streamlog_out(DEBUG4) << "( " << vec.x() << "  " << vec.y() << "  " << vec.z() << " )\n";
+      
+    }
+    
     bool MeasurementSurfaceStore::_isInitialised = false ;
     
     MeasurementSurfaceStore::~MeasurementSurfaceStore(){
@@ -130,7 +138,6 @@ namespace MarlinTrk {
         
         
         
-        streamlog_out(DEBUG4) << "NLADDERS = " << nLadders << "\n";
         
         for( unsigned ladderNumber = 0; ladderNumber < nLadders; ladderNumber++ ){
           
@@ -143,7 +150,7 @@ namespace MarlinTrk {
           cellID[ lcio::ILDCellID0::sensor ] = 0 ;
           int cellID0 = cellID.lowWord();
           
-          streamlog_out(DEBUG4) << "layer = " << layerNumber << "\tladder = " << ladderNumber << "\n";
+          streamlog_out(DEBUG1) << "layer = " << layerNumber << "\tladder = " << ladderNumber << "\n";
           
           // Let's start with the translation T: the new center of coordinates:
           // The center of the first ladder (when we ignore an offset and phi0 for now) is (R,0,0)
@@ -174,9 +181,9 @@ namespace MarlinTrk {
           // we would just rotate by 90°, but with a strip angle by
           // 90°-stripAngle in clockwise direction. 
           CLHEP::HepRotation R;
-          printRotation( R );        
+//           printRotation( R );        
           R.rotateZ( stripAngle - M_PI/2. );
-          printRotation( R );
+//           printRotation( R );
           
           // Next we rotate 90° clockwise around y, so the strip now points in z direction (if strip angle == 0)
           R.rotateY( -M_PI/2. );
@@ -224,6 +231,8 @@ namespace MarlinTrk {
           
           for ( unsigned sensor = 1; sensor <=nSensors; sensor++ ){
             
+            streamlog_out(DEBUG1) << "layer = " << layer << "\tpetal = " << petal << "\tsensor = " << sensor << "\n";
+            
             double stripAngle = 0.; // TODO: implement
             
             cellID[ lcio::ILDCellID0::side   ] = -1 ;                    
@@ -236,8 +245,8 @@ namespace MarlinTrk {
             // So far the center of Mass will be on the x axis.
             // If we take into account that there are two sensors on each side, they all have their 
             // own centers of mass. We therefore just divide the big trapezoid into two smaller ones.
-            double xmin = ftdLayers.getSensitiveLengthMin(layer);
-            double xmax = ftdLayers.getSensitiveLengthMax(layer);
+            double xmin = ftdLayers.getSensitiveRinner(layer);
+            double xmax = xmin + ftdLayers.getSensitiveWidth(layer);
             
             // taking only half the petal:
             if( sensor%2 == 0 )xmax = (xmax+xmin)/2.;      // sensor 2 or 4, means the ones closer to the IP
@@ -247,17 +256,18 @@ namespace MarlinTrk {
             double y = 0.;
             double z = -ftdLayers.getSensitiveZposition( layer, petal, sensor );
             CLHEP::Hep3Vector T( x , y, z);
-            
+//             printVector( T );
             // Now we only have to rotate the petal around the z-axis into its place
             CLHEP::HepRotation rot;
             rot.rotateZ( petal * deltaPhi + phi0 );
             T = rot * T;
-            
+//             printVector( T );
             
             //On to the rotation matrix
             CLHEP::HepRotation R;
+//             printRotation( R );
             R.rotateZ( petal * deltaPhi + phi0 + stripAngle - M_PI/2. );
-            
+//             printRotation( R );
             
             CartesianCoordinateSystem* cartesian = new CartesianCoordinateSystem( T, R );
             MeasurementSurface* ms = new MeasurementSurface( cellID0, cartesian );
@@ -275,6 +285,7 @@ namespace MarlinTrk {
             CLHEP::Hep3Vector v = R*CLHEP::Hep3Vector(0,1,0);
             // Then we rotate around it
             R.rotate( M_PI , v );
+//             printRotation( R );
             
             CartesianCoordinateSystem* cartesian2 = new CartesianCoordinateSystem( T, R );
             MeasurementSurface* ms2 = new MeasurementSurface( cellID0, cartesian2 );
