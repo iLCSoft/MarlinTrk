@@ -265,7 +265,7 @@ namespace GearExtensions{
           cellID[ lcio::ILDCellID0::side   ] = 1 ;   
           cellID0 = cellID.lowWord();
           
-          //          T.SetZ( -T.Z() ); // switch 
+          T.setZ( -T.z() ); // switch 
           // R is pretty much the same as the strip orientation will be the same,
           // but as (by chosen definition) w should point towards the IP,
           // we have to flip u around. So we acutally have to rotate 180° around v
