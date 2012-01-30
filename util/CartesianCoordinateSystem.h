@@ -30,6 +30,11 @@ namespace MarlinTrk {
        */
       CLHEP::HepRotation getR(){ return _R;}
       
+      /** @return the local x-axis in global coordinates */
+      CLHEP::Hep3Vector getLocalXAxis(){ return _R * CLHEP::Hep3Vector(1,0,0); }
+      CLHEP::Hep3Vector getLocalYAxis(){ return _R * CLHEP::Hep3Vector(0,1,0); }
+      CLHEP::Hep3Vector getLocalZAxis(){ return _R * CLHEP::Hep3Vector(0,0,1); }
+      
     private:
       
       /** The translation vector (= the origin of the Coordinate System ) */
