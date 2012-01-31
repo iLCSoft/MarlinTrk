@@ -139,7 +139,7 @@ namespace MarlinTrk {
         double stripAngle = 0.; // TODO: implement
         double sensitive_length  = layerLayout.getSensitiveLength(layerNumber) * 2.0 ; // note: gear for historical reasons uses the halflength 
         double sensitive_width  = layerLayout.getSensitiveWidth(layerNumber);
-        
+        double sensitive_thickness = layerLayout.getSensitiveThickness(layerNumber);
         
         for( unsigned ladderNumber = 0; ladderNumber < nLadders; ladderNumber++ ){
           
@@ -156,7 +156,7 @@ namespace MarlinTrk {
           // Let's start with the translation T: the new center of coordinates:
           // The center of the first ladder (when we ignore an offset and phi0 for now) is (R,0,0)
           // If we include the offset, the center gets shifted to (R,offset,0)
-          CLHEP::Hep3Vector T( ladder_r, sensitive_offset, 0 );
+          CLHEP::Hep3Vector T( ladder_r + sensitive_thickness/2., sensitive_offset, 0 );
           // Now we have to take into account phi0 and that the number of the ladder.
           // Together the center is rotated by phi0 + ladderNumber*deltaPhi around the z axis
           CLHEP::HepRotation rot;
