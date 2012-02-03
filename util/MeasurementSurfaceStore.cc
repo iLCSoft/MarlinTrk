@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <vector>
 #include <algorithm>
+#include <sstream>
 
 #include "MeasurementSurface.h"
 #include "BoundaryRectangle.h"
@@ -15,6 +16,7 @@
 #include <gear/FTDParameters.h>
 #include <gear/GEAR.h>
 #include <gear/GearMgr.h>
+
 
 #include "UTIL/ILDConf.h"
 
@@ -65,7 +67,11 @@ namespace MarlinTrk {
       ms_map_it it = _measurement_surface_map.find(ID) ;        
       
       if ( it == _measurement_surface_map.end() ) { 
-        MeasurementSurfaceStoreException exp;
+        
+        std::stringstream s;
+        s << "GetMeasurementSurface: The surface with ID " << ID << " is not in the map!";
+        MeasurementSurfaceStoreException exp( s.str() ) ;
+        
         throw exp ; 
       } 
       else { 
@@ -90,10 +96,15 @@ namespace MarlinTrk {
       
       ms_map_it it = _measurement_surface_map.find(ID) ; 
       
-      MeasurementSurfaceStoreException exp;
+     
       
       if ( it != _measurement_surface_map.end() ) { 
+        
+        std::stringstream s;
+        s << "addMeasurementSurface: The surface with ID " << ID << " can't be added as it already is in the map!";
+        MeasurementSurfaceStoreException exp( s.str() ) ;
         throw exp; 
+        
       } 
       else { 
         _measurement_surface_map[ID] = ms  ; 
@@ -105,15 +116,61 @@ namespace MarlinTrk {
       
       
       const gear::ZPlanarParameters* paramVXD = &(gear_mgr->getVXDParameters());
-      storeZPlanar( paramVXD , UTIL::ILDDetID::VXD );
-      
       const gear::ZPlanarParameters* paramSIT = &(gear_mgr->getSITParameters());
-      storeZPlanar( paramSIT , UTIL::ILDDetID::SIT );
-      
       const gear::ZPlanarParameters* paramSET = &(gear_mgr->getSETParameters());
-      storeZPlanar( paramSET , UTIL::ILDDetID::SET );
-      
       const gear::FTDParameters* paramFTD = &(gear_mgr->getFTDParameters());
+      
+      // set the strip angle values, that are at the moment not in gear, so it's hardcoded here
+      #ifdef HARDCODEDGEAR
+      
+      unsigned nVTXLayers = paramVXD->getZPlanarLayerLayout().getNLayers();
+      for( unsigned i=0; i<nVTXLayers; i++) _VTXStripAngles.push_back( 0. );
+      
+      unsigned nSITLayers = paramSIT->getZPlanarLayerLayout().getNLayers();
+      for( unsigned i=0; i<nSITLayers; i++) _SITStripAngles.push_back( pow(-1,i) * 5.* M_PI/180. ); // alternately + and - 5°
+      
+      unsigned nSETLayers = paramSET->getZPlanarLayerLayout().getNLayers();
+      for( unsigned i=0; i<nSETLayers; i++) _SETStripAngles.push_back( pow(-1,i) * 5.* M_PI/180. ); // alternately + and - 5°
+      
+      const gear::FTDLayerLayout& ftdLayers = paramFTD->getFTDLayerLayout() ;
+      unsigned nFTDLayers = ftdLayers.getNLayers();
+      
+      
+      for( unsigned layer=0; layer<nFTDLayers; layer++ ){
+        
+        std::vector< double > angles;
+        
+        unsigned nSensors = 4; //ftdLayers.getNSensors( layer );
+        bool isDoubleSided = true; //ftdLayers.isDoubleSided( layer );
+        
+        if( isDoubleSided){ // it is a strip detector
+          
+          
+          for( unsigned sensor=1; sensor <= nSensors; sensor++ ){
+            
+            if ( sensor <= nSensors/2 ) angles.push_back( 5.* M_PI/180. );   // the first half of the sensors is in front with one angle,
+            else                        angles.push_back( -5.* M_PI/180. );  // the other is in the back with the opposite angle 
+            
+          }
+          
+        }
+        else{ // a pixel detector, so no stripAngle
+          
+          for( unsigned sensor=1; sensor <= nSensors; sensor++ ) angles.push_back(0.);
+          
+        }
+        
+        _FTDStripAngles.push_back( angles );
+        
+      }
+      
+      
+      #endif
+      
+      
+      storeZPlanar( paramVXD , UTIL::ILDDetID::VXD );
+      storeZPlanar( paramSIT , UTIL::ILDDetID::SIT );
+      storeZPlanar( paramSET , UTIL::ILDDetID::SET );
       storeFTD( paramFTD );
       
     }
@@ -124,6 +181,14 @@ namespace MarlinTrk {
     
     void MeasurementSurfaceStore::storeZPlanar( const gear::ZPlanarParameters* param , int det_id ){
       
+      
+      #ifdef HARDCODEDGEAR
+      std::vector< double > angles;
+      if( det_id == UTIL::ILDDetID::VXD ) angles = _VTXStripAngles;
+      else if ( det_id == UTIL::ILDDetID::SIT ) angles = _SITStripAngles;
+      else if ( det_id == UTIL::ILDDetID::SET ) angles = _SETStripAngles;
+      else return;
+      #endif
       
       const gear::ZPlanarLayerLayout& layerLayout = param->getZPlanarLayerLayout();
       
@@ -136,10 +201,16 @@ namespace MarlinTrk {
         double sensitive_offset    = layerLayout.getSensitiveOffset(layerNumber); // the offset, see ZPlanarLayerLayout.h for more details
         double deltaPhi            = ( 2 * M_PI ) / nLadders ; // the phi difference between two ladders
         double phi0                = layerLayout.getPhi0( layerNumber );
-        double stripAngle = 0.; // TODO: implement
         double sensitive_length  = layerLayout.getSensitiveLength(layerNumber) * 2.0 ; // note: gear for historical reasons uses the halflength 
         double sensitive_width  = layerLayout.getSensitiveWidth(layerNumber);
         double sensitive_thickness = layerLayout.getSensitiveThickness(layerNumber);
+        
+        double stripAngle = 0.; 
+        
+        // TODO: this should come from gear or somewhere else! And not be hardcoded
+        #ifdef HARDCODEDGEAR
+        stripAngle = angles[layerNumber];       
+        #endif
         
         for( unsigned ladderNumber = 0; ladderNumber < nLadders; ladderNumber++ ){
           
@@ -225,20 +296,30 @@ namespace MarlinTrk {
         double lengthMin = ftdLayers.getSensitiveLengthMin( layer );
         double lengthMax = ftdLayers.getSensitiveLengthMax( layer );
         double width     = ftdLayers.getSensitiveWidth( layer );
+        unsigned nSensors = ftdLayers.getNSensors( layer ); 
+        bool isDoubleSided = ftdLayers.isDoubleSided( layer );
+        // Get some information about the petal (a trapezoid, see gear for in depth description)
+        double distMin = ftdLayers.getSensitiveRinner(layer); // the xy-distance from (0,0) of the center of the inner base
+        double distMax = distMin + width; // the xy-distance from (0,0) of the center of the outer base
+        unsigned nSensorsOn1Side = nSensors;
+        if( isDoubleSided ) nSensorsOn1Side = nSensorsOn1Side / 2;
         
         for( unsigned petal=0; petal< nPetals; petal++ ){
           
           
           cellID[ lcio::ILDCellID0::module ] = petal ;
           
-          unsigned nSensors = 4; // FIXME: this should come from gear, also each sensor should get it's own CoordinateSystem!!!
-          // TODO: and why are we starting at 1 anyway?
-          
+          //TODO: should on back to back strip detectors of the FTD the w-vectors point in opposite directions or the same?
           for ( unsigned sensor = 1; sensor <=nSensors; sensor++ ){
             
             streamlog_out(DEBUG1) << "layer = " << layer << "\tpetal = " << petal << "\tsensor = " << sensor << "\n";
             
-            double stripAngle = 0.; // TODO: implement
+            double stripAngle = 0.; 
+            
+            // TODO: this should come from gear and not be hardcoded
+            #ifdef HARDCODEDGEAR
+            stripAngle = _FTDStripAngles[layer][sensor];       
+            #endif
             
             cellID[ lcio::ILDCellID0::side   ] = -1 ;                    
             cellID[ lcio::ILDCellID0::sensor ] = sensor ;
@@ -246,20 +327,33 @@ namespace MarlinTrk {
             
             // We start with the Translation Vector T (=origin of new CoordinateSystem )
             // the first petal (if phi0 = 0) sits with its symmetry axis on the x axis.
-            // It starts at x= rInner and reaches rInner+ width on the x axis
+            // It starts at x= rInner (lMin)nand reaches rInner+ width (lMax) on the x axis
             // So far the center of Mass will be on the x axis.
-            // If we take into account that there are two sensors on each side, they all have their 
-            // own centers of mass. We therefore just divide the big trapezoid into two smaller ones.
-            double xmin = ftdLayers.getSensitiveRinner(layer);
-            double xmax = xmin + ftdLayers.getSensitiveWidth(layer);
+            //
+            // Now we have to take into account how many sensors there are on the petal, and where they sit.
+            double deltaX = (distMax-distMin) / double( nSensorsOn1Side ); //how much delta x one sensor covers
             
-            // taking only half the petal:
-            if( sensor%2 == 0 )xmax = (xmax+xmin)/2.;      // sensor 2 or 4, means the ones closer to the IP
-            else               xmin = (xmax+xmin)/2.;      // sensor 1 or 3, the outer ones
+            // The first sensor is the outermost one. Let's calculate its center
+            double xFirst = distMax - deltaX/2.;
             
-            double x = (xmin+xmax) / 2.;
+            // From here, all we have to do is go down in steps of deltaX until we reach the right sensor.
+            // We have to be careful: when there are sensors on the back, they start again at the top.
+            // If we for example have 6 sensors on a doublesided petal: on the front it is from out to inside: 1,2,3
+            // and on the back: 4,5,6. So 1 and 4 will be (apart from z) at the same position. So will 2 and 5, as well
+            // as 3 and 6
+            unsigned steps = (sensor-1)%nSensorsOn1Side; // the number of steps to go deltaX (in negative direction)
+                                      // In our example with 6 sensors, this gives sensor 1: 0 steps, 2:1, 3:2, 4:0, 5:1, 6:2
+            
+            double x = xFirst - steps * deltaX;
             double y = 0.;
-            double z = -ftdLayers.getSensitiveZposition( layer, petal, sensor );
+            double z = -ftdLayers.getSensitiveZposition( layer, petal, sensor ); // we first calculate for the petals at -z 
+                                    //(because the imagination of the rotation is easier, as w point the same direction as z)
+                                    // later we from the result we can calculate R and T for +z pretty easy.
+            
+            // Calculate lengths of the inner and outer base of the trapezoid
+            double baseOuter = lengthMax - steps * (lengthMax - lengthMin);
+            double baseInner = baseOuter - (lengthMax - lengthMin) / nSensorsOn1Side;
+            
             CLHEP::Hep3Vector T( x , y, z);
 //             printVector( T );
             // Now we only have to rotate the petal around the z-axis into its place
@@ -276,20 +370,21 @@ namespace MarlinTrk {
             
             CartesianCoordinateSystem* cartesian = new CartesianCoordinateSystem( T, R );
             MeasurementSurface* ms = new MeasurementSurface( cellID0, cartesian );
-            ms->addBoundary( new BoundaryTrapezoid( lengthMin, lengthMax, width, 1., -stripAngle) );
+            ms->addBoundary( new BoundaryTrapezoid( baseInner, baseOuter, deltaX, 1., -stripAngle) );
             addMeasurementSurface( ms );
             
             
             
             // Once more for the other side
-            cellID[ lcio::ILDCellID0::side   ] = 1 ;   
+            cellID[ lcio::ILDCellID0::side ] = 1 ;   
             cellID0 = cellID.lowWord();
             
-            T.setZ( -T.z() ); // switch 
-                              // R is pretty much the same as the strip orientation will be the same,
-                              // but as (by chosen definition) w should point towards the IP,
-                              // we have to flip u around. So we acutally have to rotate 180° around v
-                              // So first we get the vector v
+            T.setZ( -T.z() ); // switch to -z
+            
+            // R is pretty much the same as the strip orientation will be the same,
+            // but as (by chosen definition) w should point towards the IP,
+            // we have to flip u around. So we acutally have to rotate 180° around v
+            // So first we get the vector v
             CLHEP::Hep3Vector v = R*CLHEP::Hep3Vector(0,1,0);
             // Then we rotate around it
             R.rotate( M_PI , v );
@@ -297,7 +392,7 @@ namespace MarlinTrk {
             
             CartesianCoordinateSystem* cartesian2 = new CartesianCoordinateSystem( T, R );
             MeasurementSurface* ms2 = new MeasurementSurface( cellID0, cartesian2 );
-            ms2->addBoundary( new BoundaryTrapezoid( lengthMin, lengthMax, width, 1., -stripAngle) );
+            ms2->addBoundary( new BoundaryTrapezoid( baseInner, baseOuter, deltaX, 1., stripAngle) );
             addMeasurementSurface( ms2 );
             
             

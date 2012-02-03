@@ -8,7 +8,8 @@
 
 #include <map>
 #include <exception>
-
+#include <vector>
+#include <string>
 
 namespace gear{
   class GearMgr;
@@ -24,10 +25,25 @@ namespace MarlinTrk {
     
     
     class MeasurementSurfaceStoreException: public std::exception {
+      
+    public:
+      
+      MeasurementSurfaceStoreException( std::string info= "unspecified error" ): _info( info ){}
+      
+      ~MeasurementSurfaceStoreException() throw() { /*no_op*/; } 
+      
       virtual const char* what() const throw() {
-        return "MeasurementSurfaceStoreException occurred";
+        
+        std::string what = "MeasurementSurfaceStoreException occurred: " + _info;
+        return what.c_str();
       }
-    } ;
+      
+    private:
+      
+      
+      std::string _info;
+      
+    };
     
     
     class MeasurementSurfaceStore {
@@ -84,6 +100,20 @@ namespace MarlinTrk {
       typedef std::map<int, MeasurementSurface*>::const_iterator ms_map_it ; 
       
       static bool _isInitialised;
+      
+#define HARDCODEDGEAR 1
+#ifdef HARDCODEDGEAR
+      
+      /** the strip angles for every layer */
+      std::vector< double > _VTXStripAngles;
+      std::vector< double > _SITStripAngles;
+      std::vector< double > _SETStripAngles;
+      
+      /** the strip angles for every layer and sensor */
+      std::vector< std::vector< double > > _FTDStripAngles;
+      
+      
+#endif
       
     };
     

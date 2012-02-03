@@ -18,7 +18,7 @@ namespace MarlinTrk {
        */
       virtual bool isInBoundary( CLHEP::Hep3Vector local ) const = 0;
       
-      virtual ~IBoundary() = 0;
+      virtual ~IBoundary(){ /* no_op */ };
       
     };
     
