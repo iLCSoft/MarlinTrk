@@ -31,6 +31,7 @@
 
 #include "streamlog/streamlog.h"
 
+#include "kaldet/ILDMeasurementSurfaceStoreFiller.h"
 
 namespace MarlinTrk{
   
@@ -60,6 +61,24 @@ streamlog_out( DEBUG4 ) << "  MarlinKalTest - established " << std::endl ;
   void MarlinKalTest::init() {
     
     streamlog_out( DEBUG4 ) << "  MarlinKalTest - call  this init " << std::endl ;
+    
+    
+    MeasurementSurfaceStore& surfstore = _gearMgr->getMeasurementSurfaceStore();
+    
+    // Check if the store is filled if not fill it. NOTE: In the case it is filled we just take what we are given and in debug print a message
+    if( surfstore.isFilled() == false ) {
+
+      ILDMeasurementSurfaceStoreFiller filler( *_gearMgr );
+      streamlog_out( DEBUG4 ) << "  MarlinKalTest - set up gear surface store using " << filler.getName() << std::endl ;
+      surfstore.FillStore(&filler);
+      
+    }
+    else {
+      
+       streamlog_out( DEBUG4 ) << "  MarlinKalTest - MeasurementSurfaceStore is already full. Using store as filled by MeasurementSurfaceStoreFiller " << surfstore.getFillerName() << std::endl ;
+      
+    }
+  
     
     try{
       ILDSupportKalDetector* supportdet = new ILDSupportKalDetector( *_gearMgr )  ;   
