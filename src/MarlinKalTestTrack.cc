@@ -566,7 +566,7 @@ return success ;
   
   
   
-  int MarlinKalTestTrack::fit() {
+  int MarlinKalTestTrack::fit( double maxChi2Increment ) {
     
     // SJA:FIXME: what do we do about calling fit after we have already added hits and filtered
     // I guess this would created new sites when addAndFit is called 
@@ -598,7 +598,7 @@ return success ;
       
       double chi2increment;
       TKalTrackSite* site;
-      int error_code = this->addAndFit( kalhit, chi2increment, site);
+      int error_code = this->addAndFit( kalhit, chi2increment, site, maxChi2Increment );
       
       
       EVENT::TrackerHit* trkhit = kalhit->getLCIOTrackerHit();

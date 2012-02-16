@@ -78,7 +78,7 @@ namespace MarlinTrk{
      *  the fit will be performed  in the order specified at initialise() wrt the order used in addHit(), i.e.
      *  IMarlinTrack::backward implies fitting from the outside to the inside for tracks comming from the IP.
      */
-    virtual int fit() = 0 ;
+    virtual int fit( double maxChi2Increment=DBL_MAX ) = 0 ;
     
     
     /** update the current fit using the supplied hit, return code via int. Provides the Chi2 increment to the fit from adding the hit via reference. 

@@ -87,7 +87,7 @@ private:
    *  the fit will be performed  in the order specified at initialise() wrt the order used in addHit(), i.e.
    *  IMarlinTrack::backward implies fitting from the outside to the inside for tracks comming from the IP.
    */
-  int fit() ;
+  int fit( double maxChi2Increment=DBL_MAX ) ;
   
   
   /** smooth all track states 
