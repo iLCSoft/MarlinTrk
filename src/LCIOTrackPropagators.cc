@@ -4,10 +4,6 @@
 #include <cmath>
 #include <iostream>
 
-#include "marlin/Global.h"
-#include "gear/GEAR.h"
-#include <gear/BField.h>
-
 #include "IMPL/TrackStateImpl.h"
 
 #include "CLHEP/Matrix/Matrix.h"

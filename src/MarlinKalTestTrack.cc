@@ -407,7 +407,7 @@ return success ;
     << dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) )->GetName() ;
     streamlog_out( DEBUG0 ) << " with CellIDs:";
     
-    for (int i = 0; i < (dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) )->getNCellIDs());++i) {
+    for (unsigned int i = 0; i < (dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) )->getNCellIDs());++i) {
       streamlog_out( DEBUG0 )  << " : " 
       << dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) )->getCellIDs()[i] ;
       
@@ -443,7 +443,7 @@ return success ;
       << " z = " << pos.z()
       << " with CellIDs: " << std::endl;
       
-      for (int i = 0; i < (dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) )->getNCellIDs());++i) {
+      for (unsigned int i = 0; i < (dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) )->getNCellIDs());++i) {
         streamlog_out( DEBUG1 )  << " CellID = " 
         << dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) )->getCellIDs()[i] 
         << std::endl ;
