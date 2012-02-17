@@ -274,7 +274,7 @@ return success ;
     double alpha = bfield_z * 2.99792458E-4 ;
     double kappa = ts.getOmega() / alpha ;
     
-    THelicalTrack helix( ts.getD0(),
+    THelicalTrack helix( -ts.getD0(),
                         toBaseRange( ts.getPhi() - M_PI/2. ) ,
                         kappa,
                         ts.getZ0(),
