@@ -1,8 +1,38 @@
 
 #include "MarlinTrk/HelixTrack.h"
 #include <cmath>
+#include <TVector3.h>
+#include <kaltest/THelicalTrack.h>
 
 
+HelixTrack::HelixTrack( const double* x1, const double* x2, const double* x3, double Bz, bool fitDirection ){
+
+  // Make a KalTest THelicalTrack
+  TVector3 p1( x1[0], x1[1], x1[2] );
+  TVector3 p2( x2[0], x2[1], x2[2] );
+  TVector3 p3( x3[0], x3[1], x3[2] );
+  
+  THelicalTrack helicalTrack( p1, p2, p3, Bz, fitDirection ); 
+
+  
+  // Set the track parameters and convert from the KalTest system to the lcio system
+  
+  _phi0 = toBaseRange( helicalTrack.GetPhi0() + M_PI/2. ) ;
+  _omega = 1. / helicalTrack.GetRho();
+  _z0 = helicalTrack.GetDz();
+  _d0 = - helicalTrack.GetDrho();
+  _tanLambda = helicalTrack.GetTanLambda();
+  
+  _ref_point_x =  helicalTrack.GetPivot().X() ;
+  _ref_point_y =  helicalTrack.GetPivot().Y() ;
+  _ref_point_z =  helicalTrack.GetPivot().Z() ;
+  
+ 
+  
+  
+}
+  
+  
 HelixTrack::HelixTrack( const double* position, const double* p, double charge, double Bz ){
   
   _ref_point_x = position[0] ;

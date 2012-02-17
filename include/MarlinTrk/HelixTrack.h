@@ -14,6 +14,10 @@ public:
     while ( _phi0 >= M_PI ) _phi0 -= 2.0*M_PI;
   } 
   
+  HelixTrack( const double* x1, const double* x2, const double* x3, double Bz, bool fitDirection );
+  
+  
+  
   HelixTrack( const double* position, const double* p, double charge, double Bz ) ;
   
   void moveRefPoint( double x, double y, double z) ;
@@ -37,6 +41,13 @@ private:
   double _phi0 ;
   double _omega ;
   double _tanLambda ;
+  
+  /** helper function to restrict the range of the azimuthal angle to ]-pi,pi]*/
+  inline double toBaseRange( double phi) const {
+    while( phi <= -M_PI ){  phi += 2. * M_PI ; }
+    while( phi >   M_PI ){  phi -= 2. * M_PI ; }
+    return phi ;
+  }
   
 } ;
 
