@@ -17,11 +17,11 @@
 #include <UTIL/Operators.h>
 #include <UTIL/ILDConf.h>
 
-#include "kaldet/ILDCylinderMeasLayer.h"
+#include "kaldet/ILDCylinderMeasLayer.h" // needed for dedicated IP Layer
 #include "kaldet/ILDCylinderHit.h"
 
-#include "kaldet/ILDPlanarMeasLayer.h"
 #include "kaldet/ILDPlanarHit.h"
+#include "kaldet/ILDPlanarStripHit.h"
 
 #include "gear/GEAR.h"
 #include "gear/BField.h"
@@ -180,7 +180,7 @@ return success ;
     // set up a dummy hit needed to create initial site  
     
     TVTrackHit* pDummyHit = NULL;
-    
+      
     if ( (pDummyHit = dynamic_cast<ILDCylinderHit *>( startingHit )) ) {
       pDummyHit = (new ILDCylinderHit(*static_cast<ILDCylinderHit*>( startingHit )));
     }
@@ -319,10 +319,20 @@ return success ;
     
     TVTrackHit* kalhit = dynamic_cast<TVTrackHit *>(_kalhits->At(index)); 
     
-    TVector3 initial_pivot = kalhit->GetMeasLayer().HitToXv(*kalhit);
-    
     double dphi;
-    helix.MoveTo( initial_pivot, dphi, NULL, &cov );
+   
+    TVector3 initial_pivot ;
+
+    // Leave the pivot at the origin for a 1-dim hit
+    if (kalhit->GetDimension() > 1) {
+      
+      initial_pivot = kalhit->GetMeasLayer().HitToXv(*kalhit) ;
+    }
+    else{
+      initial_pivot =  TVector3(0.0,0.0,0.0);
+    }
+
+    helix.MoveTo( initial_pivot, dphi, NULL, &cov );       
     
     // ---------------------------
     //  Create an initial start site for the track using the  hit
@@ -330,12 +340,16 @@ return success ;
     // set up a dummy hit needed to create initial site  
     
     TVTrackHit* pDummyHit = NULL;
-    
+  
     if ( (pDummyHit = dynamic_cast<ILDCylinderHit *>( kalhit )) ) {
       pDummyHit = (new ILDCylinderHit(*static_cast<ILDCylinderHit*>( kalhit )));
+      
     }
     else if ( (pDummyHit = dynamic_cast<ILDPlanarHit *>( kalhit )) ) {
       pDummyHit = (new ILDPlanarHit(*static_cast<ILDPlanarHit*>( kalhit )));
+    }
+    else if ( (pDummyHit = dynamic_cast<ILDPlanarStripHit *>( kalhit )) ) {
+      pDummyHit = (new ILDPlanarStripHit(*static_cast<ILDPlanarStripHit*>( kalhit )));
     }
     else {
       streamlog_out( ERROR) << "<<<<<<<<< MarlinKalTestTrack::initialise: dynamic_cast failed for hit type >>>>>>>" << std::endl;
@@ -344,10 +358,13 @@ return success ;
     
     TVTrackHit& dummyHit = *pDummyHit;
     
+    
+    
     //SJA:FIXME: this constants should go in a header file
     // give the dummy hit huge errors so that it does not contribute to the fit
     dummyHit(0,1) = 1.e6;   // give a huge error to d
-    dummyHit(1,1) = 1.e6;   // give a huge error to z   
+
+    if(dummyHit.GetDimension()>1) dummyHit(1,1) = 1.e6;   // give a huge error to z   
     
     // use dummy hit to create initial site
     TKalTrackSite& initialSite = *new TKalTrackSite(dummyHit);
@@ -367,6 +384,8 @@ return success ;
     initialState(4,0) = helix.GetTanLambda() ;   // tan(lambda)
     if (kSdim == 6) initialState(5,0) = 0.;      // t0
     
+    // make sure that the pivot is in the right place 
+    initialSite.SetPivot(initial_pivot);
     
     // ---------------------------
     //  Set up initial Covariance Matrix
@@ -1330,7 +1349,9 @@ return success ;
     
     streamlog_out( DEBUG2 ) << " kaltest track parameters: "
     << " chi2/ndf " << chi2 / ndf  
-    << " chi2 " <<  chi2 << std::endl 
+    << " chi2 " <<  chi2 
+    << " ndf " <<  ndf
+    << std::endl 
     
     << "\t D0 "          <<  d0         <<  "[+/-" << sqrt( covLCIO[0] ) << "] " 
     << "\t Phi :"        <<  phi        <<  "[+/-" << sqrt( covLCIO[2] ) << "] " 
