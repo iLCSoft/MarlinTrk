@@ -216,6 +216,12 @@ return success ;
     TVector3    x2 = h2.GetMeasLayer().HitToXv(h2);
     TVector3    x3 = h3.GetMeasLayer().HitToXv(h3);
     
+    if ( h1.GetDimension() == 1 || h2.GetDimension() == 1 || h3.GetDimension() == 1  ) {
+      
+      throw MarlinTrk::Exception("Track fit cannot be initialised from 1 Dimentional hits. Use method MarlinKalTestTrack::initialise(  const EVENT::TrackState& ts, double bfield_z, bool fitDirection )");   
+      
+    }
+    
     // create helix using 3 global space points 
     THelicalTrack helstart(x1, x2, x3, h1.GetBfield(), _fitDirection); // initial helix 
     
