@@ -23,6 +23,16 @@ specifically RefitProcessor which takes a track collection and refits each track
 
  =============================================================================================================
 
+  --------
+ | v01-04 |
+  -------- 
+
+	   - Changed fit  method to optionally respect a maxDeltaChi2 in IMarlinTrack interface:
+      	      fit( double maxChi2Increment=DBL_MAX ) ;
+  	   - Added new constructor to HelixTrack that generates helix from three point.
+	   - Corrected sign of d0 when initialising from an LCIO track state in MarlinKalTestTrack.
+	   - Fill GEAR MeasurementSurfaceStore using ILDMeasurementSurfaceStoreFiller from KalDet.
+	   - Cleaned up depedencies
 
 
   --------
