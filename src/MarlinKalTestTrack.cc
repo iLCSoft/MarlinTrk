@@ -75,18 +75,17 @@ namespace MarlinTrk {
   
   
   MarlinKalTestTrack::MarlinKalTestTrack( MarlinKalTest* ktest) 
-  : _ktest(ktest)
-  {
-
-_kaltrack = new TKalTrack() ;
-_kaltrack->SetOwner() ;
-
-_kalhits = new TObjArray() ;
-_kalhits->SetOwner() ;
-
-_initialised = false ;
-_smoothed = false ;
-
+  : _ktest(ktest) {
+    
+    _kaltrack = new TKalTrack() ;
+    _kaltrack->SetOwner() ;
+    
+    _kalhits = new TObjArray() ;
+    _kalhits->SetOwner() ;
+    
+    _initialised = false ;
+    _smoothed = false ;
+    
   }
   
   
@@ -97,43 +96,43 @@ _smoothed = false ;
   
   
   
-  int MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit) 
-  {
+  int MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit) {
 
-return this->addHit( trkhit, _ktest->findMeasLayer( trkhit )) ;
+    return this->addHit( trkhit, _ktest->findMeasLayer( trkhit )) ;
 
   } 
   
-  int MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit, const ILDVMeasLayer* ml) 
-  {
-if( trkhit && ml ) {
-  return this->addHit( trkhit, ml->ConvertLCIOTrkHit(trkhit), ml) ;
-}
-else {
-  return bad_intputs ;
-}
+  int MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit, const ILDVMeasLayer* ml) {
 
+    streamlog_out(DEBUG1) << "MarlinKalTestTrack::addHit: trkhit = "  << trkhit << " ml = " << ml << std::endl ;
+    
+    if( trkhit && ml ) {
+      return this->addHit( trkhit, ml->ConvertLCIOTrkHit(trkhit), ml) ;
+    }
+    else {
+      return bad_intputs ;
+    }
+    
   }
   
-  int MarlinKalTestTrack::addHit( EVENT::TrackerHit* trkhit, ILDVTrackHit* kalhit, const ILDVMeasLayer* ml) 
-  {
-
-if( kalhit && ml ) {
-  _kalhits->Add(kalhit ) ;  // Add hit and set surface found 
-  _lcio_hits_to_kaltest_hits[trkhit] = kalhit ; // add hit to map relating lcio and kaltest hits
-                                                //    _kaltest_hits_to_lcio_hits[kalhit] = trkhit ; // add hit to map relating kaltest and lcio hits
-}
-else{
-  delete kalhit;
-  return bad_intputs ;
-}
-
-streamlog_out(DEBUG1) << "MarlinKalTestTrack::addHit: hit added " 
-<< "number of hits for track = " << _kalhits->GetEntries() 
-<< std::endl ;
-
-return success ;
-
+  int MarlinKalTestTrack::addHit( EVENT::TrackerHit* trkhit, ILDVTrackHit* kalhit, const ILDVMeasLayer* ml) {
+    
+    if( kalhit && ml ) {
+      _kalhits->Add(kalhit ) ;  // Add hit and set surface found 
+      _lcio_hits_to_kaltest_hits[trkhit] = kalhit ; // add hit to map relating lcio and kaltest hits
+                                                    //    _kaltest_hits_to_lcio_hits[kalhit] = trkhit ; // add hit to map relating kaltest and lcio hits
+    }
+    else {
+      delete kalhit;
+      return bad_intputs ;
+    }
+    
+    streamlog_out(DEBUG1) << "MarlinKalTestTrack::addHit: hit added " 
+    << "number of hits for track = " << _kalhits->GetEntries() 
+    << std::endl ;
+    
+    return success ;
+    
   }
   
   
@@ -180,12 +179,15 @@ return success ;
     // set up a dummy hit needed to create initial site  
     
     TVTrackHit* pDummyHit = NULL;
-      
+    
     if ( (pDummyHit = dynamic_cast<ILDCylinderHit *>( startingHit )) ) {
       pDummyHit = (new ILDCylinderHit(*static_cast<ILDCylinderHit*>( startingHit )));
     }
     else if ( (pDummyHit = dynamic_cast<ILDPlanarHit *>( startingHit )) ) {
       pDummyHit = (new ILDPlanarHit(*static_cast<ILDPlanarHit*>( startingHit )));
+    }
+    else if ( ILDPlanarStripHit_DIM == 2 && (pDummyHit = dynamic_cast<ILDPlanarStripHit *>( startingHit )) ) {
+      pDummyHit = (new ILDPlanarStripHit(*static_cast<ILDPlanarStripHit*>( startingHit )));
     }
     else {
       streamlog_out( ERROR) << "<<<<<<<<< MarlinKalTestTrack::initialise: dynamic_cast failed for hit type >>>>>>>" << std::endl;
@@ -369,7 +371,7 @@ return success ;
     //SJA:FIXME: this constants should go in a header file
     // give the dummy hit huge errors so that it does not contribute to the fit
     dummyHit(0,1) = 1.e6;   // give a huge error to d
-
+    
     if(dummyHit.GetDimension()>1) dummyHit(1,1) = 1.e6;   // give a huge error to z   
     
     // use dummy hit to create initial site
@@ -381,7 +383,7 @@ return success ;
     // ---------------------------
     //  Set up initial track state 
     // ---------------------------
-    
+        
     static TKalMatrix initialState(kSdim,1) ;
     initialState(0,0) = helix.GetDrho() ;        // d0
     initialState(1,0) = helix.GetPhi0() ;        // phi0
@@ -762,7 +764,7 @@ return success ;
     
     TKalTrackSite* site = NULL ;
     int error_code = getSiteFromLCIOHit(trkhit, site);
-
+    
     if( error_code != success ) return error_code;
     
     return this->extrapolate( point, *site, ts, chi2, ndf ) ;
@@ -851,7 +853,7 @@ return success ;
     
     TKalTrackSite* site = NULL;
     int error_code = getSiteFromLCIOHit(trkhit, site);
-
+    
     if( error_code != success ) return error_code ;
     
     return this->extrapolateToDetElement( detElementID, *site, ts, chi2, ndf, mode ) ;
@@ -892,7 +894,7 @@ return success ;
     
     TKalTrackSite* site = NULL;
     int error_code = getSiteFromLCIOHit(trkhit, site);
-
+    
     if( error_code != success ) return error_code ;
     
     // check if the point is inside the beampipe
@@ -993,10 +995,10 @@ return success ;
   
   
   int MarlinKalTestTrack::propagateToLayer( int layerID, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID, int mode ) { 
-
+    
     TKalTrackSite* site = NULL;
     int error_code = getSiteFromLCIOHit(trkhit, site);
-
+    
     if( error_code != success ) return error_code ;
     
     return this->propagateToLayer( layerID, *site, ts, chi2, ndf, detElementID, mode ) ;
@@ -1034,7 +1036,7 @@ return success ;
     
     TKalTrackSite* site = NULL;
     int error_code = getSiteFromLCIOHit(trkhit, site);
-
+    
     if( error_code != success ) return error_code ;
     
     return this->propagateToDetElement( detElementID, *site, ts, chi2, ndf, mode ) ;
@@ -1072,7 +1074,7 @@ return success ;
     
     TKalTrackSite* site = NULL;
     int error_code = getSiteFromLCIOHit(trkhit, site);
-
+    
     if( error_code != success ) return error_code ;
     
     const ILDVMeasLayer* ml = NULL;
@@ -1138,7 +1140,7 @@ return success ;
     
     TKalTrackSite* site = NULL;
     int error_code = getSiteFromLCIOHit(trkhit, site);
-
+    
     if( error_code != success ) return error_code ;
     
     const ILDVMeasLayer* ml = NULL;
