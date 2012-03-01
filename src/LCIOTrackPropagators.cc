@@ -113,6 +113,8 @@ namespace LCIOTrackPropagators{
       }
     }
     
+    while ( phi0Prime < -M_PI  ) phi0Prime += 2.0*M_PI ;
+    while ( phi0Prime >= M_PI )  phi0Prime -= 2.0*M_PI ;
     
     ts.setD0( d0Prime ) ;  
     ts.setPhi( phi0Prime  ) ; 
