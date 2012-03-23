@@ -267,6 +267,13 @@ namespace MarlinTrk {
   }
   
   int MarlinKalTestTrack::initialise(  const EVENT::TrackState& ts, double bfield_z, bool fitDirection ) {
+
+    if (_kalhits->GetEntries() == 0) {
+      
+      streamlog_out( ERROR) << "<<<<<< MarlinKalTestTrack::Initialise: Number of Hits is Zero. Cannot Initialise >>>>>>>" << std::endl;
+      return error ;
+      
+    }
     
     //SJA:FIXME: check here if the track is already initialised, and for now don't allow it to be re-initialised
     //           if the track is going to be re-initialised then we would need to do it directly on the first site
