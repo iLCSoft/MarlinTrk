@@ -24,6 +24,20 @@ specifically RefitProcessor which takes a track collection and refits each track
  =============================================================================================================
 
   --------
+ | v01-05 |
+  -------- 
+
+	   - MarlinKalTestTrack:
+	     - Protect against initializing before any hits have been added.
+	     - Allow starting from strip hit in debug mode.
+
+	   - HelixTrack:
+	     - Take account of direction of helix for fit.
+
+	   - LCIOTrackPropagators:
+	     - Corrected phi range for propagation.
+
+  --------
  | v01-04 |
   -------- 
 
