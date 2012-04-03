@@ -24,6 +24,16 @@ specifically RefitProcessor which takes a track collection and refits each track
  =============================================================================================================
 
   --------
+ | v01-06 |                                                                                                                                                                  --------        
+
+   	  - Added diagnostic functionality. 
+	     This needs to be enabled via the #define statement MARLINTRK_DIAGNOSTICS_ON in MarlinTrkDiagnostics.h. 
+	     The recording of diagnostics is controlled via DiagnosticsController, with recording off by default. 
+             To enable recording use getDiagnositicsPointer on the IMarlinTrkSystem and cast to DiagnosticsController, 
+	     then call init(std::string root_file_name, std::string root_tree_name, bool recording_on) 
+	     with recording_on set to true.
+
+  --------
  | v01-05 |
   -------- 
 
