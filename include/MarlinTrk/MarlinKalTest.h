@@ -1,8 +1,11 @@
-#ifndef INCLUDE_MarlinKalTest
-#define INCLUDE_MarlinKalTest 1
+#ifndef MarlinKalTest_h
+#define MarlinKalTest_h
 
 #include "MarlinTrk/IMarlinTrkSystem.h"
 
+#ifdef MARLINTRK_DIAGNOSTICS_ON
+#include "MarlinTrk/DiagnosticsController.h"
+#endif
 
 #include "gear/GearMgr.h"
 
@@ -103,6 +106,19 @@ namespace MarlinTrk{
     std::multimap< int,const ILDVMeasLayer *> _active_measurement_modules_by_layer;
     
     
+#ifdef MARLINTRK_DIAGNOSTICS_ON
+
+  private:    
+    MarlinTrk::DiagnosticsController _diagnostics;
+
+  public:    
+
+    /** Return the pointer to the Diagnositics Object. Forseen for internal diagnostics, only available when complied with MARLINTRK_DIAGNOSTICS_ON defined. 
+     */
+    virtual void * getDiagnositicsPointer() { return &_diagnostics ; }
+            
+#endif
+
     
   } ;
   

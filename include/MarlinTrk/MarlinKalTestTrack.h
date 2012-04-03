@@ -39,7 +39,11 @@ namespace MarlinTrk{
 class MarlinKalTestTrack : public MarlinTrk::IMarlinTrack {
   
 public:
-  
+
+#ifdef MARLINTRK_DIAGNOSTICS_ON
+  friend class DiagnosticsController;
+#endif
+    
   MarlinKalTestTrack(MarlinKalTest* ktest) ;
   
   ~MarlinKalTestTrack() ;

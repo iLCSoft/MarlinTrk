@@ -35,24 +35,29 @@
 
 namespace MarlinTrk{
   
-  MarlinKalTest::MarlinKalTest( const gear::GearMgr& gearMgr) : 
-  _gearMgr( &gearMgr )
-  {
-
-streamlog_out( DEBUG4 ) << "  MarlinKalTest - initializing the detector ..." << std::endl ;
-
-_det = new TKalDetCradle ; // from kaltest. TKalDetCradle inherits from TObjArray ... 
-_det->SetOwner( true ) ; // takes care of deleting subdetector in the end ...
-
-is_initialised = false; 
-
-this->registerOptions() ;
-
-streamlog_out( DEBUG4 ) << "  MarlinKalTest - established " << std::endl ;
-
-  }
   
+  MarlinKalTest::MarlinKalTest( const gear::GearMgr& gearMgr) : 
+  _gearMgr( &gearMgr ) {
+    
+    streamlog_out( DEBUG4 ) << "  MarlinKalTest - initializing the detector ..." << std::endl ;
+    
+    _det = new TKalDetCradle ; // from kaltest. TKalDetCradle inherits from TObjArray ... 
+    _det->SetOwner( true ) ; // takes care of deleting subdetector in the end ...
+    
+    is_initialised = false; 
+    
+    this->registerOptions() ;
+    
+    streamlog_out( DEBUG4 ) << "  MarlinKalTest - established " << std::endl ;
+    
+    
+  }
+
   MarlinKalTest::~MarlinKalTest(){
+    
+#ifdef MARLINTRK_DIAGNOSTICS_ON
+    _diagnostics.end();
+#endif
     
     delete _det ;
   }

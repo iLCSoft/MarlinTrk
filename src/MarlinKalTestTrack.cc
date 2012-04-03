@@ -86,10 +86,20 @@ namespace MarlinTrk {
     _initialised = false ;
     _smoothed = false ;
     
+#ifdef MARLINTRK_DIAGNOSTICS_ON
+      _ktest->_diagnostics.new_track(this) ;
+#endif
+    
+    
   }
   
   
   MarlinKalTestTrack::~MarlinKalTestTrack(){
+    
+#ifdef MARLINTRK_DIAGNOSTICS_ON    
+    _ktest->_diagnostics.end_track() ;
+#endif
+    
     delete _kaltrack ;
     delete _kalhits ;
   }
@@ -262,6 +272,24 @@ namespace MarlinTrk {
     
     _initialised = true ;
     
+#ifdef MARLINTRK_DIAGNOSTICS_ON
+    
+    // convert to LICO parameters first
+    
+    double d0        =    0.0 ;
+    double phi       =    toBaseRange( helstart.GetPhi0() + M_PI/2. );
+    double omega     =    1. /helstart.GetRho()  ;              
+    double z0        =    0.0 ;
+    double tanLambda =    helstart.GetTanLambda()  ;
+    
+    _ktest->_diagnostics.set_intial_track_parameters(d0,
+                                                     phi,
+                                                     omega,
+                                                     z0,
+                                                     tanLambda);
+
+#endif
+    
     return success ;
     
   }
@@ -419,6 +447,25 @@ namespace MarlinTrk {
     _kaltrack->Add(&initialSite);
     
     _initialised = true ;
+
+    
+#ifdef MARLINTRK_DIAGNOSTICS_ON
+    
+    // convert to LICO parameters first
+    
+    double d0        =  - helix.GetDrho() ;
+    double phi       =    toBaseRange( helix.GetPhi0() + M_PI/2. );
+    double omega     =    1. /helix.GetRho()  ;              
+    double z0        =    helix.GetDz()   ;
+    double tanLambda =    helix.GetTanLambda()  ;
+    
+    _ktest->_diagnostics.set_intial_track_parameters(d0,
+                                                     phi,
+                                                     omega,
+                                                     z0,
+                                                     tanLambda);
+#endif
+    
     return success ;
     
   } 
@@ -483,9 +530,12 @@ namespace MarlinTrk {
         << std::endl ;
       }
       
+
+#ifdef MARLINTRK_DIAGNOSTICS_ON
+      _ktest->_diagnostics.record_rejected_site(kalhit, temp_site); 
+#endif
       
       delete temp_site;  // delete site if filter step failed      
-      
       
       
       // compiling the code below with the cmake option CMAKE_BUILD_TYPE=Debug
@@ -510,6 +560,10 @@ namespace MarlinTrk {
     
     site = temp_site;
     chi2increment = site->GetDeltaChi2() ;
+
+#ifdef MARLINTRK_DIAGNOSTICS_ON
+    _ktest->_diagnostics.record_site(kalhit, site);  
+#endif
     
     return success ;
     

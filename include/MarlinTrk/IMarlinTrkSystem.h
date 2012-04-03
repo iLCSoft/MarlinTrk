@@ -1,6 +1,8 @@
 #ifndef IMarlinTrkSystem_h
 #define IMarlinTrkSystem_h
 
+#include "MarlinTrkDiagnostics.h"
+
 #include <exception>
 #include "ConfigFlags.h"
 
@@ -87,6 +89,14 @@ namespace MarlinTrk {
      */
     virtual MarlinTrk::IMarlinTrack* createTrack() = 0 ;
     
+    
+#ifdef MARLINTRK_DIAGNOSTICS_ON
+    
+    /** Return the pointer to the Diagnositics Object. Forseen for internal diagnostics, only available when complied with MARLINTRK_DIAGNOSTICS_ON defined. 
+     */
+    virtual void * getDiagnositicsPointer() = 0 ;
+
+#endif
     
   protected:
     
