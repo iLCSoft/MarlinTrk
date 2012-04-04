@@ -60,8 +60,7 @@ HelixTrack::HelixTrack( const double* position, const double* p, double charge, 
   
   _phi0 = atan2(p[1],p[0]);
   
-  while ( _phi0 < -M_PI ) _phi0 += 2.0*M_PI ;
-  while ( _phi0 >= M_PI ) _phi0 -= 2.0*M_PI;
+  toBaseRange(_phi0);
 
 }
 
@@ -91,6 +90,8 @@ void HelixTrack::moveRefPoint( double x, double y, double z){
   const double s = atan2(-sinDeltaPhi,cosDeltaPhi) / _omega ;
   
   const double z0Prime  = _ref_point_z - z + _z0 + _tanLambda * s ;
+  
+  toBaseRange(phi0Prime);
   
   _d0   = d0Prime ;
   _phi0 = phi0Prime ;
