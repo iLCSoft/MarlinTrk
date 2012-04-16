@@ -11,6 +11,7 @@
 #include "kaldet/ILDVXDKalDetector.h"
 #include "kaldet/ILDSITKalDetector.h"
 #include "kaldet/ILDSITCylinderKalDetector.h"
+#include "kaldet/ILDSETKalDetector.h"
 #include "kaldet/ILDFTDKalDetector.h"
 #include "kaldet/ILDFTDDiscBasedKalDetector.h"
 #include "kaldet/ILDTPCKalDetector.h"
@@ -134,6 +135,17 @@ namespace MarlinTrk{
         streamlog_out( MESSAGE ) << "  MarlinKalTest - Simple Cylinder Based SIT missing in gear file: Simple Cylinder Based SIT Not Built " << std::endl ;
       }
     }
+    
+    try{
+      ILDSETKalDetector* setdet = new ILDSETKalDetector( *_gearMgr )  ;
+      // store the measurement layer id's for the active layers 
+      this->storeActiveMeasurementModuleIDs(setdet);
+      _det->Install( *setdet ) ; 
+    }
+    catch( gear::UnknownParameterException& e){   
+      streamlog_out( MESSAGE ) << "  MarlinKalTest - SET missing in gear file: SET Not Built " << std::endl ;  
+    }
+
     
     bool FTD_found = false ;
     try{
@@ -350,7 +362,7 @@ namespace MarlinTrk{
     
     int nsufaces =  _det->GetEntriesFast();
     
-    const ILDVMeasLayer* ml_retval = NULL;
+    const ILDVMeasLayer* ml_retval = 0;
     double min_deflection = DBL_MAX;
     
     for(int i=0; i<nsufaces; ++i) {
@@ -404,7 +416,7 @@ namespace MarlinTrk{
   
   const ILDVMeasLayer* MarlinKalTest::findMeasLayer( int detElementID, const TVector3& point) const {
     
-    const ILDVMeasLayer* ml = NULL; // return value 
+    const ILDVMeasLayer* ml = 0; // return value 
     
     std::vector<const ILDVMeasLayer*> meas_modules ;
     
@@ -441,7 +453,7 @@ namespace MarlinTrk{
         
         
         
-        const TVSurface* surf = NULL;
+        const TVSurface* surf = 0;
         
         if( ! (surf = dynamic_cast<const TVSurface*> (  meas_modules[i] )) ) {
           std::stringstream errorMsg;

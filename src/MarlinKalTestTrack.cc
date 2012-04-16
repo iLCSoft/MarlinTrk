@@ -188,7 +188,7 @@ namespace MarlinTrk {
     // ---------------------------
     // set up a dummy hit needed to create initial site  
     
-    TVTrackHit* pDummyHit = NULL;
+    TVTrackHit* pDummyHit = 0;
     
     if ( (pDummyHit = dynamic_cast<ILDCylinderHit *>( startingHit )) ) {
       pDummyHit = (new ILDCylinderHit(*static_cast<ILDCylinderHit*>( startingHit )));
@@ -254,14 +254,20 @@ namespace MarlinTrk {
     //  Set up initial Covariance Matrix with very large errors 
     // ---------------------------
     
-    static TKalMatrix Cov(kSdim,kSdim);
+    TKalMatrix Cov(kSdim,kSdim);
+
+    // make sure everything is initialised to zero
+    for (int i=0; i<kSdim*kSdim; ++i) {
+      Cov.GetMatrixArray()[i] = 0.0;
+    }
+    
     for (Int_t i=0; i<kSdim; i++) {
       // fg: if the error is too large the initial helix parameters might be changed extremely by the first three (or so) hits,
       //     such that the fit will not work because the helix curls away and does not hit the next layer !!!
       Cov(i,i) = 1.e2 ;   // initialise diagonal elements of dummy error matrix
     }
     
-    
+          
     // Add initial states to the site 
     initialSite.Add(new TKalTrackState(initialState,Cov,initialSite,TVKalSite::kPredicted));
     initialSite.Add(new TKalTrackState(initialState,Cov,initialSite,TVKalSite::kFiltered));
@@ -282,12 +288,20 @@ namespace MarlinTrk {
     double z0        =    0.0 ;
     double tanLambda =    helstart.GetTanLambda()  ;
     
+    Cov.Print();
+    
     _ktest->_diagnostics.set_intial_track_parameters(d0,
                                                      phi,
                                                      omega,
                                                      z0,
-                                                     tanLambda);
+                                                     tanLambda,
+                                                     helstart.GetPivot().X(),
+                                                     helstart.GetPivot().Y(),
+                                                     helstart.GetPivot().Z(),
+                                                     Cov);
 
+    
+    
 #endif
     
     return success ;
@@ -331,10 +345,10 @@ namespace MarlinTrk {
 
     EVENT::FloatVec covLCIO = ts.getCovMatrix();
     
-    cov( 0 , 0 )  =   covLCIO[ 0] ; //   d0,   d0
+    cov( 0 , 0 ) =   covLCIO[ 0] ; //   d0,   d0
     
-    cov( 1 , 0 )  = - covLCIO[ 1] ; //   phi0, d0
-    cov( 1 , 1 )  =   covLCIO[ 2] ; //   phi0, phi 
+    cov( 1 , 0 ) = - covLCIO[ 1] ; //   phi0, d0
+    cov( 1 , 1 ) =   covLCIO[ 2] ; //   phi0, phi 
     
     cov( 2 , 0 ) = - covLCIO[ 3] / alpha ;           //   kappa, d0
     cov( 2 , 1 ) =   covLCIO[ 4] / alpha ;           //   kappa, phi
@@ -350,6 +364,7 @@ namespace MarlinTrk {
     cov( 4 , 2 ) =   covLCIO[12] / alpha ; //   tanl, kappa    
     cov( 4 , 3 ) =   covLCIO[13] ;         //   tanl, z0
     cov( 4 , 4 ) =   covLCIO[14] ;         //   tanl, tanl
+    
     
     // move the helix to either the position of the last hit or the first depending on initalise_at_end
     
@@ -375,14 +390,13 @@ namespace MarlinTrk {
       initial_pivot =  TVector3(0.0,0.0,0.0);
     }
 
-    helix.MoveTo( initial_pivot, dphi, NULL, &cov );       
     
     // ---------------------------
     //  Create an initial start site for the track using the  hit
     // ---------------------------
     // set up a dummy hit needed to create initial site  
     
-    TVTrackHit* pDummyHit = NULL;
+    TVTrackHit* pDummyHit = 0;
   
     if ( (pDummyHit = dynamic_cast<ILDCylinderHit *>( kalhit )) ) {
       pDummyHit = (new ILDCylinderHit(*static_cast<ILDCylinderHit*>( kalhit )));
@@ -392,7 +406,24 @@ namespace MarlinTrk {
       pDummyHit = (new ILDPlanarHit(*static_cast<ILDPlanarHit*>( kalhit )));
     }
     else if ( (pDummyHit = dynamic_cast<ILDPlanarStripHit *>( kalhit )) ) {
+      
       pDummyHit = (new ILDPlanarStripHit(*static_cast<ILDPlanarStripHit*>( kalhit )));
+
+      const TVMeasLayer *ml = &pDummyHit->GetMeasLayer();
+      
+      const TVSurface* surf = dynamic_cast<const TVSurface*>(ml);
+      
+      if (surf) {
+        double phi;
+
+        surf->CalcXingPointWith(helix, initial_pivot, phi);        
+
+      } else {
+        streamlog_out( ERROR) << "<<<<<<<<< MarlinKalTestTrack::initialise: dynamic_cast failed for TVSurface  >>>>>>>" << std::endl;
+        return error ;        
+      }
+            
+    
     }
     else {
       streamlog_out( ERROR) << "<<<<<<<<< MarlinKalTestTrack::initialise: dynamic_cast failed for hit type >>>>>>>" << std::endl;
@@ -400,14 +431,12 @@ namespace MarlinTrk {
     }
     
     TVTrackHit& dummyHit = *pDummyHit;
-    
-    
-    
+        
     //SJA:FIXME: this constants should go in a header file
     // give the dummy hit huge errors so that it does not contribute to the fit
-    dummyHit(0,1) = 1.e6;   // give a huge error to d
+    dummyHit(0,1) = 1.e16;   // give a huge error to d
     
-    if(dummyHit.GetDimension()>1) dummyHit(1,1) = 1.e6;   // give a huge error to z   
+    if(dummyHit.GetDimension()>1) dummyHit(1,1) = 1.e16;   // give a huge error to z   
     
     // use dummy hit to create initial site
     TKalTrackSite& initialSite = *new TKalTrackSite(dummyHit);
@@ -418,7 +447,9 @@ namespace MarlinTrk {
     // ---------------------------
     //  Set up initial track state 
     // ---------------------------
-        
+
+    helix.MoveTo( initial_pivot, dphi, 0, &cov );  
+    
     static TKalMatrix initialState(kSdim,1) ;
     initialState(0,0) = helix.GetDrho() ;        // d0
     initialState(1,0) = helix.GetPhi0() ;        // phi0
@@ -434,10 +465,14 @@ namespace MarlinTrk {
     //  Set up initial Covariance Matrix
     // ---------------------------
     
-    TKalMatrix covK(kSdim,kSdim) ;  for(int i=0;i<5;++i) for(int j=0;j<5;++j) covK[i][j] = cov[i][j] ;
+    TKalMatrix covK(kSdim,kSdim) ;  
+    for(int i=0;i<5;++i) {
+      for(int j=0;j<5;++j) {
+        covK[i][j] = cov[i][j] ;  
+      }
+    }
     if (kSdim == 6) covK(5,5) = 1.e6; // t0
-    
-    
+        
     // Add initial states to the site 
     initialSite.Add(new TKalTrackState(initialState,covK,initialSite,TVKalSite::kPredicted));
     initialSite.Add(new TKalTrackState(initialState,covK,initialSite,TVKalSite::kFiltered));
@@ -458,12 +493,19 @@ namespace MarlinTrk {
     double omega     =    1. /helix.GetRho()  ;              
     double z0        =    helix.GetDz()   ;
     double tanLambda =    helix.GetTanLambda()  ;
-    
+        
     _ktest->_diagnostics.set_intial_track_parameters(d0,
                                                      phi,
                                                      omega,
                                                      z0,
-                                                     tanLambda);
+                                                     tanLambda,
+                                                     helix.GetPivot().X(),
+                                                     helix.GetPivot().Y(),
+                                                     helix.GetPivot().Z(),
+                                                     covK);
+
+    
+
 #endif
     
     return success ;
@@ -572,7 +614,7 @@ namespace MarlinTrk {
   int MarlinKalTestTrack::addAndFit( EVENT::TrackerHit* trkhit, double& chi2increment, double maxChi2Increment) {
     
     if( ! trkhit ) { 
-      streamlog_out( ERROR) << "MarlinKalTestTrack::addAndFit( EVENT::TrackerHit* trkhit, double& chi2increment, double maxChi2Increment): trkhit == NULL"  << std::endl;
+      streamlog_out( ERROR) << "MarlinKalTestTrack::addAndFit( EVENT::TrackerHit* trkhit, double& chi2increment, double maxChi2Increment): trkhit == 0"  << std::endl;
       return bad_intputs ; 
     }
     
@@ -591,11 +633,11 @@ namespace MarlinTrk {
     
     ILDVTrackHit* kalhit = ml->ConvertLCIOTrkHit(trkhit) ;
     
-    if( kalhit == 0 ){  //fg: ml->ConvertLCIOTrkHit returns NULL if hit not on surface !!!
+    if( kalhit == 0 ){  //fg: ml->ConvertLCIOTrkHit returns 0 if hit not on surface !!!
       return IMarlinTrack::bad_intputs ;
     }
     
-    TKalTrackSite* site = NULL ;
+    TKalTrackSite* site = 0 ;
     int error_code = this->addAndFit( kalhit, chi2increment, site, maxChi2Increment);
     
     if( error_code != success ){
@@ -618,7 +660,7 @@ namespace MarlinTrk {
   int MarlinKalTestTrack::testChi2Increment( EVENT::TrackerHit* trkhit, double& chi2increment ) {
     
     if( ! trkhit ) { 
-      streamlog_out( ERROR) << "MarlinKalTestTrack::addAndFit( EVENT::TrackerHit* trkhit, double& chi2increment, double maxChi2Increment): trkhit == NULL"  << std::endl;
+      streamlog_out( ERROR) << "MarlinKalTestTrack::addAndFit( EVENT::TrackerHit* trkhit, double& chi2increment, double maxChi2Increment): trkhit == 0"  << std::endl;
       return IMarlinTrack::bad_intputs ; 
     }
     
@@ -638,12 +680,12 @@ namespace MarlinTrk {
     
     ILDVTrackHit* kalhit = ml->ConvertLCIOTrkHit(trkhit) ;
     
-    if( kalhit == 0 ){  //fg: ml->ConvertLCIOTrkHit returns NULL if hit not on surface !!!
+    if( kalhit == 0 ){  //fg: ml->ConvertLCIOTrkHit returns 0 if hit not on surface !!!
       return IMarlinTrack::bad_intputs ;
     }
     
     
-    TKalTrackSite* site = NULL ;
+    TKalTrackSite* site = 0 ;
     int error_code = this->addAndFit( kalhit, chi2increment, site, -DBL_MAX); // using -DBL_MAX here ensures the hit will never be added to the fit
     
     delete kalhit;  
@@ -746,7 +788,7 @@ namespace MarlinTrk {
     std::map<EVENT::TrackerHit*,TKalTrackSite*>::const_iterator it;
     
     
-    TKalTrackSite* site = NULL ;
+    TKalTrackSite* site = 0 ;
     int error_code = getSiteFromLCIOHit(trkhit, site);
     
     if( error_code != success ) return error_code ;
@@ -781,7 +823,7 @@ namespace MarlinTrk {
     
     streamlog_out( DEBUG2 )  << "MarlinKalTestTrack::getTrackState( EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts ) using hit: " << trkhit << " with cellID0 = " << trkhit->getCellID0() << std::endl ;
     
-    TKalTrackSite* site = NULL ;
+    TKalTrackSite* site = 0 ;
     int error_code = getSiteFromLCIOHit(trkhit, site);
     
     if( error_code != success ) return error_code ;
@@ -823,7 +865,7 @@ namespace MarlinTrk {
   
   int MarlinKalTestTrack::extrapolate( const gear::Vector3D& point, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) {
     
-    TKalTrackSite* site = NULL ;
+    TKalTrackSite* site = 0 ;
     int error_code = getSiteFromLCIOHit(trkhit, site);
     
     if( error_code != success ) return error_code;
@@ -875,7 +917,7 @@ namespace MarlinTrk {
   
   int MarlinKalTestTrack::extrapolateToLayer( int layerID, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID, int mode ) { 
     
-    TKalTrackSite* site = NULL;
+    TKalTrackSite* site = 0;
     int error_code = getSiteFromLCIOHit(trkhit, site);
     
     if( error_code != success ) return error_code ;
@@ -890,7 +932,7 @@ namespace MarlinTrk {
     streamlog_out(DEBUG2) << "MarlinKalTestTrack::extrapolateToLayer( int layerID, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID ) called " << std::endl ;
     
     gear::Vector3D crossing_point ;
-    const ILDVMeasLayer* ml = NULL;
+    const ILDVMeasLayer* ml = 0;
     
     int error_code = this->intersectionWithLayer( layerID, site, crossing_point, detElementID, ml, mode ) ;
     
@@ -912,7 +954,7 @@ namespace MarlinTrk {
   
   int MarlinKalTestTrack::extrapolateToDetElement( int detElementID, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int mode ) { 
     
-    TKalTrackSite* site = NULL;
+    TKalTrackSite* site = 0;
     int error_code = getSiteFromLCIOHit(trkhit, site);
     
     if( error_code != success ) return error_code ;
@@ -928,7 +970,7 @@ namespace MarlinTrk {
     
     gear::Vector3D crossing_point ;
     
-    const ILDVMeasLayer* ml = NULL;
+    const ILDVMeasLayer* ml = 0;
     int error_code = this->intersectionWithDetElement( detElementID, site, crossing_point, ml, mode ) ;
     
     if( error_code != 0 ) return error_code ;
@@ -945,7 +987,7 @@ namespace MarlinTrk {
     
     // check if the point is inside the beampipe
     // SJA:FIXME: really we should also check if the PCA to the point is also less than R
-    const ILDVMeasLayer* ml = (point.r() < _ktest->getIPLayer()->GetR()) ? _ktest->getIPLayer() : NULL;
+    const ILDVMeasLayer* ml = (point.r() < _ktest->getIPLayer()->GetR()) ? _ktest->getIPLayer() : 0;
     
     return this->propagate( point, site, ts, chi2, ndf, ml ) ;
     
@@ -953,14 +995,14 @@ namespace MarlinTrk {
   
   int MarlinKalTestTrack::propagate( const gear::Vector3D& point, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ){
     
-    TKalTrackSite* site = NULL;
+    TKalTrackSite* site = 0;
     int error_code = getSiteFromLCIOHit(trkhit, site);
     
     if( error_code != success ) return error_code ;
     
     // check if the point is inside the beampipe
     // SJA:FIXME: really we should also check if the PCA to the point is also less than R
-    const ILDVMeasLayer* ml = (point.r() < _ktest->getIPLayer()->GetR()) ? _ktest->getIPLayer() : NULL;
+    const ILDVMeasLayer* ml = (point.r() < _ktest->getIPLayer()->GetR()) ? _ktest->getIPLayer() : 0;
     
     return this->propagate( point, *site, ts, chi2, ndf, ml ) ;
     
@@ -1057,7 +1099,7 @@ namespace MarlinTrk {
   
   int MarlinKalTestTrack::propagateToLayer( int layerID, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID, int mode ) { 
     
-    TKalTrackSite* site = NULL;
+    TKalTrackSite* site = 0;
     int error_code = getSiteFromLCIOHit(trkhit, site);
     
     if( error_code != success ) return error_code ;
@@ -1073,7 +1115,7 @@ namespace MarlinTrk {
     
     gear::Vector3D crossing_point ;
     
-    const ILDVMeasLayer* ml = NULL;
+    const ILDVMeasLayer* ml = 0;
     
     int error_code = this->intersectionWithLayer( layerID, site, crossing_point, detElementID, ml, mode) ;
     
@@ -1095,7 +1137,7 @@ namespace MarlinTrk {
   
   int MarlinKalTestTrack::propagateToDetElement( int detElementID, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int mode ) { 
     
-    TKalTrackSite* site = NULL;
+    TKalTrackSite* site = 0;
     int error_code = getSiteFromLCIOHit(trkhit, site);
     
     if( error_code != success ) return error_code ;
@@ -1111,7 +1153,7 @@ namespace MarlinTrk {
     
     gear::Vector3D crossing_point ;
     
-    const ILDVMeasLayer* ml = NULL;
+    const ILDVMeasLayer* ml = 0;
     int error_code = this->intersectionWithDetElement( detElementID, site, crossing_point, ml, mode ) ;
     
     if( error_code != 0 ) return error_code ;
@@ -1125,7 +1167,7 @@ namespace MarlinTrk {
     
     const TKalTrackSite& site = *(dynamic_cast<const TKalTrackSite*>(_kaltrack->Last())) ;
     
-    const ILDVMeasLayer* ml = NULL;
+    const ILDVMeasLayer* ml = 0;
     return this->intersectionWithDetElement( detElementID, site, point, ml, mode ) ;
     
   }
@@ -1133,12 +1175,12 @@ namespace MarlinTrk {
   
   int MarlinKalTestTrack::intersectionWithDetElement( int detElementID,  EVENT::TrackerHit* trkhit, gear::Vector3D& point, int mode ) {  
     
-    TKalTrackSite* site = NULL;
+    TKalTrackSite* site = 0;
     int error_code = getSiteFromLCIOHit(trkhit, site);
     
     if( error_code != success ) return error_code ;
     
-    const ILDVMeasLayer* ml = NULL;
+    const ILDVMeasLayer* ml = 0;
     return this->intersectionWithDetElement( detElementID, *site, point, ml, mode ) ;
     
   }
@@ -1176,7 +1218,7 @@ namespace MarlinTrk {
     
     else if( error_code == no_intersection ) {
       
-      ml = NULL;
+      ml = 0;
       
       streamlog_out(DEBUG1) << "MarlinKalTestTrack::intersectionWithDetElement No intersection with detElementID = "
       << decodeILD( detElementID )
@@ -1191,7 +1233,7 @@ namespace MarlinTrk {
   int MarlinKalTestTrack::intersectionWithLayer( int layerID, gear::Vector3D& point, int& detElementID, int mode ) {  
     
     const TKalTrackSite& site = *(dynamic_cast<const TKalTrackSite*>(_kaltrack->Last())) ;
-    const ILDVMeasLayer* ml = NULL;
+    const ILDVMeasLayer* ml = 0;
     return this->intersectionWithLayer( layerID, site, point, detElementID, ml,  mode ) ;
     
   }
@@ -1199,12 +1241,12 @@ namespace MarlinTrk {
   
   int MarlinKalTestTrack::intersectionWithLayer( int layerID,  EVENT::TrackerHit* trkhit, gear::Vector3D& point, int& detElementID, int mode ) {  
     
-    TKalTrackSite* site = NULL;
+    TKalTrackSite* site = 0;
     int error_code = getSiteFromLCIOHit(trkhit, site);
     
     if( error_code != success ) return error_code ;
     
-    const ILDVMeasLayer* ml = NULL;
+    const ILDVMeasLayer* ml = 0;
     return this->intersectionWithLayer( layerID, *site, point, detElementID, ml, mode ) ;
     
   }
@@ -1244,7 +1286,7 @@ namespace MarlinTrk {
     }
     else if( error_code == no_intersection ) {
       
-      ml = NULL;
+      ml = 0;
       streamlog_out(DEBUG1) << "MarlinKalTestTrack::intersectionWithLayer No intersection with layerID = "
       << layerID 
       << " " << decodeILD( layerID )
@@ -1420,6 +1462,7 @@ namespace MarlinTrk {
     << " chi2/ndf " << chi2 / ndf  
     << " chi2 " <<  chi2 
     << " ndf " <<  ndf
+    << " prob " <<  TMath::Prob(chi2, ndf)
     << std::endl 
     
     << "\t D0 "          <<  d0         <<  "[+/-" << sqrt( covLCIO[0] ) << "] " 

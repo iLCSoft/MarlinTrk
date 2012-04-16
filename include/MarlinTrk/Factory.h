@@ -23,7 +23,7 @@ namespace MarlinTrk{
     
     /** Create the MarlinTrkSystem instance of the specified type:<br>
      *  KalTest, LEPTracking, GenFit,...<br>
-     *  Returns null if type not implemented...
+     *  Returns 0 if type not implemented...
      * 
      *  For now only KalTest.
      */
