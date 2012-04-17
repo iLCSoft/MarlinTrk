@@ -2,7 +2,7 @@
 #define MarlinTrkDiagnostics_h 
 
 //// switch to turn on diagnostics code
-#define MARLINTRK_DIAGNOSTICS_ON 1
+#define MARLINTRK_DIAGNOSTICS_ON 0
 
 #ifdef MARLINTRK_DIAGNOSTICS_ON
 
@@ -15,7 +15,7 @@ namespace MarlinTrk{
   
   // LCIO Extension creating a pointer to the simhit for trackerhits 
   struct MCTruth4HitExtStruct{
-    MCTruth4HitExtStruct() : simhit(NULL) {}
+    MCTruth4HitExtStruct() : simhit(0) {}
     EVENT::SimTrackerHit* simhit;
   } ; 
   struct MCTruth4HitExt : lcio::LCOwnedExtension<MCTruth4HitExt, MCTruth4HitExtStruct> {} ;
