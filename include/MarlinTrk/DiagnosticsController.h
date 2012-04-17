@@ -8,6 +8,7 @@
 class TFile;
 class TH1F;
 class TTree;
+class TKalMatrix;
 
 namespace EVENT {
   class MCParticle;
@@ -36,13 +37,13 @@ namespace MarlinTrk{
     
     void new_track(MarlinKalTestTrack* trk) ;
     
-    void set_intial_track_parameters(double d0, double phi0, double omega, double z0, double tanL);
+    void set_intial_track_parameters(double d0, double phi0, double omega, double z0, double tanL, double pivot_x, double pivot_y, double pivot_z, TKalMatrix& cov);
     
     void record_site(ILDVTrackHit* hit, TKalTrackSite* site);
     
     void record_rejected_site(ILDVTrackHit* hit, TKalTrackSite* site);
     
-    void skip_current_track() { _skip_track = false ;}
+    void skip_current_track(); 
       
     void end_track() ;
     
@@ -58,6 +59,9 @@ namespace MarlinTrk{
     
     bool _initialised;
     bool _recording_on;
+    
+    int _ntracks_written;
+    int _ntracks_skipped;
     
     std::string _root_file_name;
     std::string _root_tree_name;

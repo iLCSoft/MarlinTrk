@@ -4,8 +4,10 @@
 #define MAX_SITES 300
 struct {
   
+  int error_code;
+  
   int nsites;
-
+  
   int nsites_vxd;
   int nsites_sit;
   int nsites_ftd;
@@ -13,10 +15,16 @@ struct {
   int nsites_set;
   int nsites_etd;
 
+  float x_mcp;
+  float y_mcp;
+  float z_mcp;
+
   float px_mcp;
   float py_mcp;
   float pz_mcp;
+
   float p_mcp;
+
   float theta_mcp;
   float phi_mcp;
   int   pdg_mcp;
@@ -37,6 +45,25 @@ struct {
   float z0_seed;
   float tanL_seed; 
 
+  float seed_ref_point_x;
+  float seed_ref_point_y;
+  float seed_ref_point_z;
+  
+  float cov_seed_d0d0 ;      
+  float cov_seed_phi0d0 ;      
+  float cov_seed_phi0phi0 ;      
+  float cov_seed_kappad0 ;      
+  float cov_seed_kappaphi0 ;      
+  float cov_seed_kappakappa ;      
+  float cov_seed_z0d0 ;      
+  float cov_seed_z0phi0 ;      
+  float cov_seed_z0kappa ;      
+  float cov_seed_z0z0 ;      
+  float cov_seed_tanLz0 ;      
+  float cov_seed_tanLd0 ;      
+  float cov_seed_tanLphi0 ;      
+  float cov_seed_tanLkappa ;      
+  float cov_seed_tanLtanL ;      
   
   float d0_ip;
   float phi0_ip;
@@ -54,7 +81,7 @@ struct {
   float cov_ip_z0phi0 ;      
   float cov_ip_z0omega ;      
   float cov_ip_z0z0 ;      
-  float cov_ip_z0tanL ;      
+  float cov_ip_tanLz0 ;      
   float cov_ip_tanLd0 ;      
   float cov_ip_tanLphi0 ;      
   float cov_ip_tanLomega ;      
@@ -110,7 +137,7 @@ struct {
   float cov_predicted_z0phi0[MAX_SITES];      
   float cov_predicted_z0omega[MAX_SITES];      
   float cov_predicted_z0z0[MAX_SITES];      
-  float cov_predicted_z0tanL[MAX_SITES];      
+  float cov_predicted_tanLz0[MAX_SITES];      
   float cov_predicted_tanLd0[MAX_SITES];      
   float cov_predicted_tanLphi0[MAX_SITES];      
   float cov_predicted_tanLomega[MAX_SITES];      
@@ -126,7 +153,7 @@ struct {
   float cov_filtered_z0phi0[MAX_SITES];      
   float cov_filtered_z0omega[MAX_SITES];      
   float cov_filtered_z0z0[MAX_SITES];      
-  float cov_filtered_z0tanL[MAX_SITES];      
+  float cov_filtered_tanLz0[MAX_SITES];      
   float cov_filtered_tanLd0[MAX_SITES];      
   float cov_filtered_tanLphi0[MAX_SITES];      
   float cov_filtered_tanLomega[MAX_SITES];      
@@ -142,7 +169,7 @@ struct {
   float cov_smoothed_z0phi0[MAX_SITES];      
   float cov_smoothed_z0omega[MAX_SITES];      
   float cov_smoothed_z0z0[MAX_SITES];      
-  float cov_smoothed_z0tanL[MAX_SITES];      
+  float cov_smoothed_tanLz0[MAX_SITES];      
   float cov_smoothed_tanLd0[MAX_SITES];      
   float cov_smoothed_tanLphi0[MAX_SITES];      
   float cov_smoothed_tanLomega[MAX_SITES];      
