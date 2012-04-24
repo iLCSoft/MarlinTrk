@@ -619,6 +619,7 @@ namespace MarlinTrk{
         _track_record.z0_mcp = helixMC.getZ0();
         _track_record.tanL_mcp = helixMC.getTanLambda();
         
+        _mcpInfoStored = true;
         
       }
       else if( _currentMCP != mcp ) {
