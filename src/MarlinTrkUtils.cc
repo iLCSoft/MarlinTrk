@@ -133,8 +133,6 @@ namespace MarlinTrk {
       ss << "MarlinTrk::createFinalisedLCIOTrack track state must be set at either first or last hit. Location = ";
       ss << pre_fit->getLocation();
       
-      abort();
-        
       throw EVENT::Exception( ss.str() );
       
     } 
