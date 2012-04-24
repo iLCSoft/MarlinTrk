@@ -22,7 +22,7 @@
 namespace MarlinTrk {
   
   
-  int MarlinTrk::createFinalisedLCIOTrack( MarlinTrk::IMarlinTrack* marlinTrk, std::vector<EVENT::TrackerHit*>& hit_list, IMPL::TrackImpl* track, bool fit_backwards, const EVENT::FloatVec& initial_cov_for_prefit, float bfield_z){
+  int createFinalisedLCIOTrack( IMarlinTrack* marlinTrk, std::vector<EVENT::TrackerHit*>& hit_list, IMPL::TrackImpl* track, bool fit_backwards, const EVENT::FloatVec& initial_cov_for_prefit, float bfield_z){
     
     ///////////////////////////////////////////////////////
     // check inputs 
@@ -65,7 +65,7 @@ namespace MarlinTrk {
     
   }
   
-  int MarlinTrk::createFinalisedLCIOTrack( MarlinTrk::IMarlinTrack* marlinTrk, std::vector<EVENT::TrackerHit*>& hit_list, IMPL::TrackImpl* track, bool fit_backwards, IMPL::TrackStateImpl* pre_fit, float bfield_z){
+  int createFinalisedLCIOTrack( IMarlinTrack* marlinTrk, std::vector<EVENT::TrackerHit*>& hit_list, IMPL::TrackImpl* track, bool fit_backwards, IMPL::TrackStateImpl* pre_fit, float bfield_z){
     
     
     ///////////////////////////////////////////////////////
@@ -102,7 +102,7 @@ namespace MarlinTrk {
   
   
   
-  int MarlinTrk::createFit( std::vector<EVENT::TrackerHit*>& hit_list, MarlinTrk::IMarlinTrack* marlinTrk, IMPL::TrackStateImpl* pre_fit, float bfield_z, bool fit_backwards ){
+  int createFit( std::vector<EVENT::TrackerHit*>& hit_list, IMarlinTrack* marlinTrk, IMPL::TrackStateImpl* pre_fit, float bfield_z, bool fit_backwards ){
     
     
     ///////////////////////////////////////////////////////
@@ -221,7 +221,7 @@ namespace MarlinTrk {
   
   
   
-  int MarlinTrk::createPrefit( std::vector<EVENT::TrackerHit*>& hit_list, IMPL::TrackStateImpl* pre_fit, float bfield_z, bool fit_backwards){
+  int createPrefit( std::vector<EVENT::TrackerHit*>& hit_list, IMPL::TrackStateImpl* pre_fit, float bfield_z, bool fit_backwards){
     
     ///////////////////////////////////////////////////////
     // check inputs 
@@ -291,7 +291,7 @@ namespace MarlinTrk {
     
   }
   
-  int MarlinTrk::finaliseLCIOTrack( MarlinTrk::IMarlinTrack* marlintrk, IMPL::TrackImpl* track ){
+  int finaliseLCIOTrack( IMarlinTrack* marlintrk, IMPL::TrackImpl* track ){
     
     ///////////////////////////////////////////////////////
     // check inputs 
@@ -416,7 +416,7 @@ namespace MarlinTrk {
   
   
   
-  int MarlinTrk::createTrackStateAtCaloFace( MarlinTrk::IMarlinTrack* marlintrk, IMPL::TrackStateImpl* trkStateCalo, EVENT::TrackerHit* trkhit, bool tanL_is_positive){
+  int createTrackStateAtCaloFace( IMarlinTrack* marlintrk, IMPL::TrackStateImpl* trkStateCalo, EVENT::TrackerHit* trkhit, bool tanL_is_positive){
     
     ///////////////////////////////////////////////////////
     // check inputs 
@@ -450,7 +450,7 @@ namespace MarlinTrk {
     
     return_error = marlintrk->propagateToLayer(encoder.lowWord(), trkhit, *trkStateCalo, chi2, ndf, detElementID, IMarlinTrack::modeForward ) ;
     
-    if (return_error == MarlinTrk::IMarlinTrack::no_intersection ) { // try forward or backward
+    if (return_error == IMarlinTrack::no_intersection ) { // try forward or backward
       if (tanL_is_positive) {
         encoder[lcio::ILDCellID0::side] = lcio::ILDDetID::fwd;
       }
@@ -460,7 +460,7 @@ namespace MarlinTrk {
       return_error = marlintrk->propagateToLayer(encoder.lowWord(), trkhit, *trkStateCalo, chi2, ndf, detElementID, IMarlinTrack::modeForward ) ;
     }
     
-    if (return_error !=MarlinTrk::IMarlinTrack::success ) {
+    if (return_error !=IMarlinTrack::success ) {
       streamlog_out( DEBUG5 ) << "  >>>>>>>>>>> FinalRefit :  could not get TrackState at Calo Face: return_error = " << return_error << std::endl ;
     }
     
