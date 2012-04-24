@@ -344,9 +344,18 @@ namespace MarlinTrk {
     ///////////////////////////////////////////////////////
     
     std::vector<std::pair<EVENT::TrackerHit*, double> > hits_in_fit;
+    std::vector<std::pair<EVENT::TrackerHit*, double> > outliers;
     
     marlintrk->getHitsInFit(hits_in_fit);
+    marlintrk->getOutliers(outliers);
     
+    for (unsigned ihit = 0; ihit < hits_in_fit.size(); ++ihit) {
+      track->addHit(hits_in_fit[ihit].first);
+    }
+
+    for (unsigned ihit = 0; ihit < outliers.size(); ++ihit) {
+      track->addHit(outliers[ihit].first);
+    }
     
     ///////////////////////////////////////////////////////
     // first hit
@@ -354,6 +363,7 @@ namespace MarlinTrk {
     
     IMPL::TrackStateImpl* trkStateAtFirstHit = new IMPL::TrackStateImpl() ;
     EVENT::TrackerHit* firstHit = hits_in_fit.front().first;
+    
     
     return_error = marlintrk->getTrackState(firstHit, *trkStateAtFirstHit, chi2, ndf ) ;
     
