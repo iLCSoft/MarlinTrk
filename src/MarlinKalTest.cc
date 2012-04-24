@@ -325,16 +325,16 @@ namespace MarlinTrk{
         
         this->_active_measurement_modules_by_layer.insert(std::pair<int ,const ILDVMeasLayer*>(subdet_layer_id,ml));
         
-        streamlog_out(DEBUG3) << "MarlinKalTest::storeActiveMeasurementLayerIDs added active layer with "
+        streamlog_out(DEBUG0) << "MarlinKalTest::storeActiveMeasurementLayerIDs added active layer with "
         << " LayerID = " << subdet_layer_id << " and DetElementIDs  " ;
         
         for (it = ml->getCellIDs().begin(); it!=ml->getCellIDs().end(); ++it) {
           
-          streamlog_out(DEBUG3) << " : " << *it ;
+          streamlog_out(DEBUG0) << " : " << *it ;
           
         }
         
-        streamlog_out(DEBUG3) << std::endl;
+        streamlog_out(DEBUG0) << std::endl;
         
         
         
