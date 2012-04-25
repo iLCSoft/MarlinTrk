@@ -2,7 +2,7 @@
 #define MarlinTrkDiagnostics_h 
 
 //// switch to turn on diagnostics code
-#define MARLINTRK_DIAGNOSTICS_ON 0
+//#define MARLINTRK_DIAGNOSTICS_ON 
 
 #ifdef MARLINTRK_DIAGNOSTICS_ON
 
