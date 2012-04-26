@@ -22,6 +22,10 @@
 namespace MarlinTrk {
   
   
+  int finaliseLCIOTrack( IMarlinTrack* marlinTrk, IMPL::TrackImpl* track );
+  
+  int createTrackStateAtCaloFace( IMarlinTrack* marlinTrk, IMPL::TrackStateImpl* track, EVENT::TrackerHit* trkhit, bool tanL_is_positive);
+  
   int createFinalisedLCIOTrack( IMarlinTrack* marlinTrk, std::vector<EVENT::TrackerHit*>& hit_list, IMPL::TrackImpl* track, bool fit_backwards, const EVENT::FloatVec& initial_cov_for_prefit, float bfield_z){
     
     ///////////////////////////////////////////////////////
@@ -345,6 +349,9 @@ namespace MarlinTrk {
     
     std::vector<std::pair<EVENT::TrackerHit*, double> > hits_in_fit;
     std::vector<std::pair<EVENT::TrackerHit*, double> > outliers;
+
+    hits_in_fit.reserve(300);
+    outliers.reserve(300);
     
     marlintrk->getHitsInFit(hits_in_fit);
     marlintrk->getOutliers(outliers);
@@ -356,6 +363,7 @@ namespace MarlinTrk {
     for (unsigned ihit = 0; ihit < outliers.size(); ++ihit) {
       track->addHit(outliers[ihit].first);
     }
+
     
     ///////////////////////////////////////////////////////
     // first hit
@@ -469,10 +477,8 @@ namespace MarlinTrk {
     }
     
     if (return_error !=IMarlinTrack::success ) {
-      streamlog_out( DEBUG5 ) << "  >>>>>>>>>>> FinalRefit :  could not get TrackState at Calo Face: return_error = " << return_error << std::endl ;
+      streamlog_out( DEBUG5 ) << "  >>>>>>>>>>> createTrackStateAtCaloFace :  could not get TrackState at Calo Face: return_error = " << return_error << std::endl ;
     }
-    
-    
     
     
     return return_error;
@@ -486,7 +492,7 @@ namespace MarlinTrk {
     // check inputs 
     ///////////////////////////////////////////////////////
     if( track == 0 ){
-      throw EVENT::Exception( std::string("MarlinTrk::createTrackStateAtCaloFace: TrackImpl == NULL ")  ) ;
+      throw EVENT::Exception( std::string("MarlinTrk::addHitsToTrack: TrackImpl == NULL ")  ) ;
     }
 
     std::map<int, int> hitNumbers; 
@@ -522,6 +528,50 @@ namespace MarlinTrk {
     track->subdetectorHitNumbers()[ 2 * lcio::ILDDetID::ETD - offset ] = hitNumbers[lcio::ILDDetID::ETD];
 
     
+    
+  }
+  
+  void addHitsToTrack(IMPL::TrackImpl* track, std::vector<std::pair<EVENT::TrackerHit* , double> >& hit_list, bool hits_in_fit, UTIL::BitField64& cellID_encoder){
+    
+    ///////////////////////////////////////////////////////
+    // check inputs 
+    ///////////////////////////////////////////////////////
+    if( track == 0 ){
+      throw EVENT::Exception( std::string("MarlinTrk::addHitsToTrack: TrackImpl == NULL ")  ) ;
+    }
+    
+    std::map<int, int> hitNumbers; 
+    
+    hitNumbers[lcio::ILDDetID::VXD] = 0;
+    hitNumbers[lcio::ILDDetID::SIT] = 0;
+    hitNumbers[lcio::ILDDetID::FTD] = 0;
+    hitNumbers[lcio::ILDDetID::TPC] = 0;
+    hitNumbers[lcio::ILDDetID::SET] = 0;
+    hitNumbers[lcio::ILDDetID::ETD] = 0;
+    
+    for(unsigned int j=0; j<hit_list.size(); ++j) {
+      
+      track->addHit(hit_list.at(j).first) ;
+      
+      cellID_encoder.setValue(hit_list.at(j).first->getCellID0()) ;
+      int detID = cellID_encoder[UTIL::ILDCellID0::subdet];
+      ++hitNumbers[detID];
+      //    streamlog_out( DEBUG1 ) << "Hit from Detector " << detID << std::endl;     
+    }
+    
+    int offset = 2 ;
+    if ( hits_in_fit == false ) { // all hit atributed by patrec
+      offset = 1 ;
+    }
+    
+    track->subdetectorHitNumbers().resize(2 * lcio::ILDDetID::ETD);
+    track->subdetectorHitNumbers()[ 2 * lcio::ILDDetID::VXD - offset ] = hitNumbers[lcio::ILDDetID::VXD];
+    track->subdetectorHitNumbers()[ 2 * lcio::ILDDetID::FTD - offset ] = hitNumbers[lcio::ILDDetID::FTD];
+    track->subdetectorHitNumbers()[ 2 * lcio::ILDDetID::SIT - offset ] = hitNumbers[lcio::ILDDetID::SIT];
+    track->subdetectorHitNumbers()[ 2 * lcio::ILDDetID::TPC - offset ] = hitNumbers[lcio::ILDDetID::TPC];
+    track->subdetectorHitNumbers()[ 2 * lcio::ILDDetID::SET - offset ] = hitNumbers[lcio::ILDDetID::SET];
+    track->subdetectorHitNumbers()[ 2 * lcio::ILDDetID::ETD - offset ] = hitNumbers[lcio::ILDDetID::ETD];
+
     
   }
   

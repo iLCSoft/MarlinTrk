@@ -64,7 +64,7 @@ HelixTrack::HelixTrack( const double* position, const double* p, double charge, 
 
 }
 
-void HelixTrack::moveRefPoint( double x, double y, double z){
+double HelixTrack::moveRefPoint( double x, double y, double z){
   
   const double radius = 1.0/_omega ; 
   
@@ -100,6 +100,8 @@ void HelixTrack::moveRefPoint( double x, double y, double z){
   _ref_point_x = x; 
   _ref_point_y = y;
   _ref_point_z = z;   
+  
+  return (s/radius);
   
 }
 

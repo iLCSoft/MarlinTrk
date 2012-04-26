@@ -20,7 +20,7 @@ public:
   
   HelixTrack( const double* position, const double* p, double charge, double Bz ) ;
   
-  void moveRefPoint( double x, double y, double z) ;
+  double moveRefPoint( double x, double y, double z) ;
   
   double  getRefPointX() const { return _ref_point_x ; }        
   double  getRefPointY() const { return _ref_point_y ; }        
