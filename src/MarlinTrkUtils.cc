@@ -2,6 +2,7 @@
 #include "MarlinTrk/MarlinTrkUtils.h"
 
 #include <vector>
+#include <algorithm>
 
 #include "MarlinTrk/IMarlinTrack.h"
 #include "MarlinTrk/HelixTrack.h"
@@ -22,7 +23,7 @@
 namespace MarlinTrk {
   
   
-  int finaliseLCIOTrack( IMarlinTrack* marlinTrk, IMPL::TrackImpl* track );
+  int finaliseLCIOTrack( IMarlinTrack* marlinTrk, IMPL::TrackImpl* track, std::vector<EVENT::TrackerHit*>& hit_list);
   
   int createTrackStateAtCaloFace( IMarlinTrack* marlinTrk, IMPL::TrackStateImpl* track, EVENT::TrackerHit* trkhit, bool tanL_is_positive);
   
@@ -96,7 +97,7 @@ namespace MarlinTrk {
       
     } 
     
-    int error = finaliseLCIOTrack(marlinTrk, track);
+    int error = finaliseLCIOTrack(marlinTrk, track, hit_list);
     
     
     return error;
@@ -293,7 +294,7 @@ namespace MarlinTrk {
     
   }
   
-  int finaliseLCIOTrack( IMarlinTrack* marlintrk, IMPL::TrackImpl* track ){
+  int finaliseLCIOTrack( IMarlinTrack* marlintrk, IMPL::TrackImpl* track, std::vector<EVENT::TrackerHit*>& hit_list ){
     
     ///////////////////////////////////////////////////////
     // check inputs 
@@ -343,27 +344,84 @@ namespace MarlinTrk {
     track->setNdf(ndf);
     
     
-    ///////////////////////////////////////////////////////
-    // set the track states at the first and last hits 
-    ///////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // add the hits used in the fit to the track, add spacepoints as long as at least on strip hit is used.  
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     std::vector<std::pair<EVENT::TrackerHit*, double> > hits_in_fit;
     std::vector<std::pair<EVENT::TrackerHit*, double> > outliers;
-
+    std::vector<EVENT::TrackerHit*> used_hits;
+    
+    
     hits_in_fit.reserve(300);
     outliers.reserve(300);
     
     marlintrk->getHitsInFit(hits_in_fit);
     marlintrk->getOutliers(outliers);
+          
+    ///////////////////////////////////////////////
+    // now loop over the hits provided for fitting 
+    // we do this so that the hits are added in the
+    // order in which they have been fitted
+    ///////////////////////////////////////////////
     
-    for (unsigned ihit = 0; ihit < hits_in_fit.size(); ++ihit) {
-      track->addHit(hits_in_fit[ihit].first);
-    }
+    for ( unsigned ihit = 0; ihit < hit_list.size(); ++ihit) {
+      
+      EVENT::TrackerHit* trkHit = hit_list[ihit];
+      
+      if( UTIL::BitSet32( trkHit->getType() )[ UTIL::ILDTrkHitTypeBit::COMPOSITE_SPACEPOINT ]   ){ //it is a composite spacepoint
+        
+        // get strip hits 
+        const EVENT::LCObjectVec rawObjects = trkHit->getRawHits();                    
+        
+        for( unsigned k=0; k< rawObjects.size(); k++ ){
+          
+          EVENT::TrackerHit* rawHit = dynamic_cast< EVENT::TrackerHit* >( rawObjects[k] );
+                          
+          bool is_outlier = false;
 
-    for (unsigned ihit = 0; ihit < outliers.size(); ++ihit) {
-      track->addHit(outliers[ihit].first);
-    }
+          // here we loop over outliers as this will be faster than looping over the used hits
+          for ( unsigned ohit = 0; ohit < outliers.size(); ++ohit) {
+            
+            if ( rawHit == outliers[ohit].first ) { 
+              is_outlier = true;                                    
+              break; // break out of loop over outliers
+            }
+          }
+          
+          if (is_outlier == false) {
+            used_hits.push_back(hit_list[ihit]);
+            track->addHit(used_hits.back());
+            break; // break out of loop over rawObjects
+          }          
+        }
+      } else {
+        
+        bool is_outlier = false;
+        
+        // here we loop over outliers as this will be faster than looping over the used hits
+        for ( unsigned ohit = 0; ohit < outliers.size(); ++ohit) {
+          
+          if ( trkHit == outliers[ohit].first ) { 
+            is_outlier = true;                                    
+            break; // break out of loop over outliers
+          }
+        }
+        
+        if (is_outlier == false) {
+          used_hits.push_back(hit_list[ihit]);
+          track->addHit(used_hits.back());
+        }          
 
+        
+      }
+      
+    }
+          
+    ///////////////////////////////////////////////////////
+    // set the track states at the first and last hits 
+    ///////////////////////////////////////////////////////    
+    
     
     ///////////////////////////////////////////////////////
     // first hit
@@ -417,6 +475,10 @@ namespace MarlinTrk {
       streamlog_out( DEBUG5 ) << "  >>>>>>>>>>> MarlinTrk::finaliseLCIOTrack:  could not get TrackState at Calo Face "  << std::endl ;
       delete trkStateCalo;
     }
+    
+    
+    
+
     
     
     ///////////////////////////////////////////////////////
@@ -486,7 +548,7 @@ namespace MarlinTrk {
     
   }
   
-  void addHitsToTrack(IMPL::TrackImpl* track, std::vector<EVENT::TrackerHit*>& hit_list, bool hits_in_fit, UTIL::BitField64& cellID_encoder){
+  void addHitNumbersToTrack(IMPL::TrackImpl* track, std::vector<EVENT::TrackerHit*>& hit_list, bool hits_in_fit, UTIL::BitField64& cellID_encoder){
     
     ///////////////////////////////////////////////////////
     // check inputs 
@@ -505,8 +567,6 @@ namespace MarlinTrk {
     hitNumbers[lcio::ILDDetID::ETD] = 0;
     
     for(unsigned int j=0; j<hit_list.size(); ++j) {
-      
-      track->addHit(hit_list.at(j)) ;
       
       cellID_encoder.setValue(hit_list.at(j)->getCellID0()) ;
       int detID = cellID_encoder[UTIL::ILDCellID0::subdet];
@@ -531,7 +591,7 @@ namespace MarlinTrk {
     
   }
   
-  void addHitsToTrack(IMPL::TrackImpl* track, std::vector<std::pair<EVENT::TrackerHit* , double> >& hit_list, bool hits_in_fit, UTIL::BitField64& cellID_encoder){
+  void addHitNumbersToTrack(IMPL::TrackImpl* track, std::vector<std::pair<EVENT::TrackerHit* , double> >& hit_list, bool hits_in_fit, UTIL::BitField64& cellID_encoder){
     
     ///////////////////////////////////////////////////////
     // check inputs 
@@ -550,8 +610,6 @@ namespace MarlinTrk {
     hitNumbers[lcio::ILDDetID::ETD] = 0;
     
     for(unsigned int j=0; j<hit_list.size(); ++j) {
-      
-      track->addHit(hit_list.at(j).first) ;
       
       cellID_encoder.setValue(hit_list.at(j).first->getCellID0()) ;
       int detID = cellID_encoder[UTIL::ILDCellID0::subdet];
