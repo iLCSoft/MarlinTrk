@@ -24,7 +24,15 @@ specifically RefitProcessor which takes a track collection and refits each track
  =============================================================================================================
 
   --------
- | v01-06 |                                                                                                                                                                  --------        
+ | v01-07 |                                                                                                                                                                    --------        
+   	 - Added convenient utility methods for fitting and producing LCIO tracks.
+	 - Added SET.
+	 - Moved initial pivot from the origin to the point where the initial helix crossed the layer containing the first hit to be filtered. 
+	 - Replaced NULL C macro with 0 for pointers value.
+	 - Corrected phi range for moveRefPoint in HelixTrack.
+
+  --------
+ | v01-06 |                                                                                                                                                                    --------        
 
    	  - Added diagnostic functionality. 
 	     This needs to be enabled via the #define statement MARLINTRK_DIAGNOSTICS_ON in MarlinTrkDiagnostics.h. 
