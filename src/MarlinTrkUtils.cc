@@ -27,7 +27,7 @@ namespace MarlinTrk {
   
   int createTrackStateAtCaloFace( IMarlinTrack* marlinTrk, IMPL::TrackStateImpl* track, EVENT::TrackerHit* trkhit, bool tanL_is_positive);
   
-  int createFinalisedLCIOTrack( IMarlinTrack* marlinTrk, std::vector<EVENT::TrackerHit*>& hit_list, IMPL::TrackImpl* track, bool fit_backwards, const EVENT::FloatVec& initial_cov_for_prefit, float bfield_z){
+  int createFinalisedLCIOTrack( IMarlinTrack* marlinTrk, std::vector<EVENT::TrackerHit*>& hit_list, IMPL::TrackImpl* track, bool fit_backwards, const EVENT::FloatVec& initial_cov_for_prefit, float bfield_z, double maxChi2Increment){
     
     ///////////////////////////////////////////////////////
     // check inputs 
@@ -58,7 +58,7 @@ namespace MarlinTrk {
     
     if( return_error == 0 ) {
       
-      return_error = createFinalisedLCIOTrack( marlinTrk, hit_list, track, fit_backwards, pre_fit, bfield_z);
+      return_error = createFinalisedLCIOTrack( marlinTrk, hit_list, track, fit_backwards, pre_fit, bfield_z, maxChi2Increment);
       
     } else {
       streamlog_out(DEBUG3) << "MarlinTrk::createFinalisedLCIOTrack : Prefit failed error = " << return_error << std::endl;
@@ -70,7 +70,7 @@ namespace MarlinTrk {
     
   }
   
-  int createFinalisedLCIOTrack( IMarlinTrack* marlinTrk, std::vector<EVENT::TrackerHit*>& hit_list, IMPL::TrackImpl* track, bool fit_backwards, IMPL::TrackStateImpl* pre_fit, float bfield_z){
+  int createFinalisedLCIOTrack( IMarlinTrack* marlinTrk, std::vector<EVENT::TrackerHit*>& hit_list, IMPL::TrackImpl* track, bool fit_backwards, IMPL::TrackStateImpl* pre_fit, float bfield_z, double maxChi2Increment){
     
     
     ///////////////////////////////////////////////////////
@@ -87,7 +87,7 @@ namespace MarlinTrk {
     }
     
     
-    int fit_status = createFit(hit_list, marlinTrk, pre_fit, bfield_z, fit_backwards);
+    int fit_status = createFit(hit_list, marlinTrk, pre_fit, bfield_z, fit_backwards, maxChi2Increment);
     
     if( fit_status != IMarlinTrack::success ){ 
       
@@ -107,7 +107,7 @@ namespace MarlinTrk {
   
   
   
-  int createFit( std::vector<EVENT::TrackerHit*>& hit_list, IMarlinTrack* marlinTrk, IMPL::TrackStateImpl* pre_fit, float bfield_z, bool fit_backwards ){
+  int createFit( std::vector<EVENT::TrackerHit*>& hit_list, IMarlinTrack* marlinTrk, IMPL::TrackStateImpl* pre_fit, float bfield_z, bool fit_backwards, double maxChi2Increment){
     
     
     ///////////////////////////////////////////////////////
@@ -218,7 +218,7 @@ namespace MarlinTrk {
     // try fit and return error
     ///////////////////////////////////////////////////////
     
-    return marlinTrk->fit() ;
+    return marlinTrk->fit(maxChi2Increment) ;
     
   }
   
