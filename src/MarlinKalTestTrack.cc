@@ -288,7 +288,7 @@ namespace MarlinTrk {
     double z0        =    0.0 ;
     double tanLambda =    helstart.GetTanLambda()  ;
     
-    Cov.Print();
+//    Cov.Print();
     
     _ktest->_diagnostics.set_intial_track_parameters(d0,
                                                      phi,
