@@ -269,7 +269,7 @@ namespace MarlinTrk {
     const double* x2 = twoD_hits[ twoD_hits.size()/2 ]->getPosition();
     const double* x3 = twoD_hits.back()->getPosition();
     
-    HelixTrack helixTrack( x1, x2, x3, bfield_z, fit_backwards );
+    HelixTrack helixTrack( x1, x2, x3, bfield_z, HelixTrack::forwards );
     
     helixTrack.moveRefPoint(hit_list.back()->getPosition()[0], hit_list.back()->getPosition()[1], hit_list.back()->getPosition()[2]);
     
@@ -332,10 +332,10 @@ namespace MarlinTrk {
     
     return_error = marlintrk->propagate(point, *trkStateIP, chi2, ndf ) ;
     
-    if ( return_error != 0 || ndf < 0 ) { 
+    if ( return_error != IMarlinTrack::success || ndf < 0 ) { 
       streamlog_out(DEBUG4) << "MarlinTrk::finaliseLCIOTrack: return_code for propagation = " << return_error << " NDF = " << ndf << std::endl;
       delete trkStateIP;
-      return return_error;
+      return return_error != IMarlinTrack::success ? return_error : -1 ;
     }
     
     trkStateIP->setLocation(  lcio::TrackState::AtIP ) ;
