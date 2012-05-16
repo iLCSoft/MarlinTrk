@@ -14,7 +14,7 @@ public:
     while ( _phi0 >= M_PI ) _phi0 -= 2.0*M_PI;
   } 
   
-  HelixTrack( const double* x1, const double* x2, const double* x3, double Bz, bool fitDirection );
+  HelixTrack( const double* x1, const double* x2, const double* x3, double Bz, bool direction );
   
   
   
@@ -30,6 +30,9 @@ public:
   double  getPhi0() const { return  _phi0; }    
   double  getOmega() const { return _omega ; }  
   double  getTanLambda() const { return _tanLambda ; } 
+  
+  // defines if s of the helix increases in the direction of x2 to x3 
+  static bool forwards;
   
 private:
   

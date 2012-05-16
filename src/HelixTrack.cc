@@ -5,8 +5,10 @@
 #include <TVector3.h>
 #include <kaltest/THelicalTrack.h>
 
+// defines if s of the helix increases in the direction of x2 to x3 
+bool HelixTrack::forwards = true;
 
-HelixTrack::HelixTrack( const double* x1, const double* x2, const double* x3, double Bz, bool fitDirection ){
+HelixTrack::HelixTrack( const double* x1, const double* x2, const double* x3, double Bz, bool direction ){
 
   // Make a KalTest THelicalTrack
   TVector3 p1( x1[0], x1[1], x1[2] );
@@ -14,16 +16,9 @@ HelixTrack::HelixTrack( const double* x1, const double* x2, const double* x3, do
   TVector3 p3( x3[0], x3[1], x3[2] );
   
   THelicalTrack*  helicalTrack;
-  
-  if ( fitDirection == MarlinTrk::IMarlinTrack::forward ) {
-    helicalTrack = new THelicalTrack( p1, p2, p3, Bz, fitDirection ); 
-  }
-  else {
-    helicalTrack = new THelicalTrack( p3, p2, p1, Bz, fitDirection ); 
-  }
 
-
-  
+  helicalTrack = new THelicalTrack( p1, p2, p3, Bz, direction ); 
+    
   // Set the track parameters and convert from the KalTest system to the lcio system
   
   _phi0 = toBaseRange( helicalTrack->GetPhi0() + M_PI/2. ) ;
@@ -37,7 +32,6 @@ HelixTrack::HelixTrack( const double* x1, const double* x2, const double* x3, do
   _ref_point_z =  helicalTrack->GetPivot().Z() ;
   
   delete helicalTrack;
-  
   
 }
   
