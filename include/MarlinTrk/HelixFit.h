@@ -47,7 +47,7 @@ namespace MarlinTrk {
     
   public:
     
-    int fastHelixFit(int& npt, double* xf, double* yf, float* rf, float* pf, double* wf, float* zf , float* wzf, int iopt,
+    int fastHelixFit(int npt, double* xf, double* yf, float* rf, float* pf, double* wf, float* zf , float* wzf, int iopt,
                      float* vv0, float* ee0, float& ch2ph, float& ch2z);
     
   };

@@ -16,7 +16,7 @@
 namespace MarlinTrk{
   
   
-  int HelixFit::fastHelixFit(int& npt, double* xf, double* yf, float* rf, float* pf, double* wf, float* zf , float* wzf,int iopt, 
+  int HelixFit::fastHelixFit(int npt, double* xf, double* yf, float* rf, float* pf, double* wf, float* zf , float* wzf,int iopt, 
                              float* vv0, float* ee0, float& ch2ph, float& ch2z){
     
     
@@ -47,7 +47,6 @@ namespace MarlinTrk{
     ya,yb,yd,yi,ym,yy,y1,y2,wn,sa2b2,dd0,phic,aaa;
     
     
-    int n = npt;
     xm = 0.;
     ym = 0.;
     
@@ -64,7 +63,7 @@ namespace MarlinTrk{
     ch2ph = 0.0;
     ch2z = 0.0;
     
-    for (int i = 0; i<n; ++i) {
+    for (int i = 0; i<npt; ++i) {
       sp2[i] = wf[i]*(rf[i]*rf[i]);
     }
     
@@ -84,7 +83,7 @@ namespace MarlinTrk{
     
     wn=0.0;
     
-    for (int i =0; i<n; ++i) {
+    for (int i =0; i<npt; ++i) {
       xm = xm + xf[i]*wf[i];
       ym = ym + yf[i]*wf[i];
       wn = wn + wf[i];
@@ -105,7 +104,7 @@ namespace MarlinTrk{
     //std::cout << "ym = " <<  ym <<  std::endl; 
     //std::cout << "rn = " <<  rn <<  std::endl; 
     
-    for (int i =0; i<n; ++i) {
+    for (int i =0; i<npt; ++i) {
       xi = xf[i] - xm;
       yi = yf[i] - ym;
       xx = xi*xi;
@@ -276,7 +275,7 @@ namespace MarlinTrk{
     //  std::cout << "hh0 = " <<  hh0 <<  std::endl; 
     //  std::cout << "gg0 = " <<  gg0 <<  std::endl; 
     
-    for (int i = 0 ; i < n ; ++i) {
+    for (int i = 0 ; i < npt ; ++i) {
       
       asym   = bet*xf[i]-alf*yf[i] ;
       ss0[i] = 1.0 ;
@@ -315,7 +314,7 @@ namespace MarlinTrk{
     //  
     
     
-    for (int i = 0 ; i < n ; ++i) {
+    for (int i = 0 ; i < npt ; ++i) {
       
       eee[i] = 0.5*vv0[0] * sqrt( fabs( (rf[i] * rf[i]-vv0[3]*vv0[3]) / (1.0-aa0*vv0[0]*vv0[3]) ) );
       
@@ -334,7 +333,7 @@ namespace MarlinTrk{
     double sumsz = 0.0;
     double sumw  = 0.0;
     
-    for (int i = 0; i<n; ++i) {
+    for (int i = 0; i<npt; ++i) {
       sumw  = sumw  +                 wzf[i];
       sums  = sums  + sxy[i]        * wzf[i];
       sumss = sumss + sxy[i]*sxy[i] * wzf[i];
@@ -361,7 +360,7 @@ namespace MarlinTrk{
     //  
     //  -----> calculation chi**2
     //  
-    for (int i = 0 ; i<n; ++i) {
+    for (int i = 0 ; i<npt; ++i) {
       
       delz[i]= zz0+dzds*sxy[i]-zf[i];
       ch2ph = ch2ph + sp2[i]*del[i]*del[i];
@@ -377,7 +376,7 @@ namespace MarlinTrk{
       return 1;
     }
     
-    for (int i = 0 ; i<n; ++i) {
+    for (int i = 0 ; i<npt; ++i) {
       
       double ff0 = ome*(rf[i]*rf[i]-dd0*dd0)/(2.0*rf[i]*gg0) + dd0/rf[i];
       
@@ -500,7 +499,7 @@ namespace MarlinTrk{
     
     gg0 = vv1[0]*vv1[3]-aa0;
     
-    for (int i=0; i<n; ++i) {
+    for (int i=0; i<npt; ++i) {
       double ff0 = vv1[0]*(rf[i]*rf[i]-vv1[3]*vv1[3]) / (2.0*rf[i]*gg0) + vv1[3]/rf[i];
       
       if (ff0 >  1) ff0 =  1.0;
