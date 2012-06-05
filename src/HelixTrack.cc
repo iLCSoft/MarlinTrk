@@ -5,6 +5,8 @@
 #include <TVector3.h>
 #include <kaltest/THelicalTrack.h>
 
+#include "streamlog/streamlog.h"
+
 // defines if s of the helix increases in the direction of x2 to x3 
 bool HelixTrack::forwards = true;
 
@@ -14,6 +16,16 @@ HelixTrack::HelixTrack( const double* x1, const double* x2, const double* x3, do
   TVector3 p1( x1[0], x1[1], x1[2] );
   TVector3 p2( x2[0], x2[1], x2[2] );
   TVector3 p3( x3[0], x3[1], x3[2] );
+
+  streamlog_out(DEBUG2) << "HelixTrack::HelixTrack Create from his: \n " 
+  << "P1 x = " << p1.x() << " y = " << p1.y() << " z = " << p1.z() << " r = " << p1.Perp() << "\n " 
+  << "P2 x = " << p2.x() << " y = " << p2.y() << " z = " << p2.z() << " r = " << p2.Perp() << "\n " 
+  << "P3 x = " << p3.x() << " y = " << p3.y() << " z = " << p3.z() << " r = " << p3.Perp() << "\n "
+  << "Bz = " << Bz << " direction = " << direction 
+  << std::endl;
+
+
+
   
   THelicalTrack*  helicalTrack;
 
