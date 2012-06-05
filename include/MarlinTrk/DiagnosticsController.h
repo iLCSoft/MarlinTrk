@@ -16,11 +16,13 @@ namespace EVENT {
 
 class ILDVTrackHit;
 class TKalTrackSite;
+class MarlinTrkNtuple;
 
 namespace MarlinTrk{
 
   class MarlinKalTestTrack;
   class IMarlinTrack;
+ 
   
   class DiagnosticsController {
     
@@ -30,7 +32,7 @@ namespace MarlinTrk{
     DiagnosticsController(); 
     
     /** Destructor */
-    ~DiagnosticsController(){ /* no-op */ }   
+    virtual ~DiagnosticsController();  
     
     
     void init(std::string root_file_name, std::string root_Tree_name, bool _recording_on=true ) ;
@@ -65,13 +67,15 @@ namespace MarlinTrk{
     
     std::string _root_file_name;
     std::string _root_tree_name;
-    TFile* _root_file;
 
+    TFile* _root_file;
     TTree* _tree;
+    MarlinTrkNtuple* _track_record;
     
     MarlinKalTestTrack* _current_track;
     
     EVENT::MCParticle* _currentMCP;
+
     bool _mcpInfoStored;
     bool _skip_track;
     
