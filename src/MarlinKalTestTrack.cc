@@ -45,7 +45,7 @@ public:
     
     double deltaChi2 = site.GetDeltaChi2();
     
-    streamlog_out( DEBUG1 ) << " KalTrackFilter::IsAccepted called  !  deltaChi2 = "  <<  deltaChi2  << std::endl;
+    streamlog_out( DEBUG1 ) << " KalTrackFilter::IsAccepted called  !  deltaChi2 = "  <<  deltaChi2  << " _maxDeltaChi2 = " << _maxDeltaChi2 << std::endl;
     _used_for_last_filter_step = true;
     
     return ( deltaChi2 < _maxDeltaChi2 )   ; 
@@ -324,6 +324,18 @@ namespace MarlinTrk {
       throw MarlinTrk::Exception("Track fit already initialised");   
       
     }
+        
+    streamlog_out( DEBUG2 ) << " track parameters used for init : "
+    << "\t D0 "          <<  ts.getD0()         
+    << "\t Phi :"        <<  ts.getPhi()        
+    << "\t Omega "       <<  ts.getOmega()      
+    << "\t Z0 "          <<  ts.getZ0()         
+    << "\t tan(Lambda) " <<  ts.getTanLambda()  
+    
+    << "\t pivot : [" << ts.getReferencePoint()[0] << ", " << ts.getReferencePoint()[1] << ", "  << ts.getReferencePoint()[2] 
+    << " - r: " << std::sqrt( ts.getReferencePoint()[0]*ts.getReferencePoint()[0]+ts.getReferencePoint()[1]*ts.getReferencePoint()[1] ) << "]" 
+    << std::endl ;
+
     
     _fitDirection = fitDirection ;
     
@@ -514,7 +526,7 @@ namespace MarlinTrk {
   
   int MarlinKalTestTrack::addAndFit( ILDVTrackHit* kalhit, double& chi2increment, TKalTrackSite*& site, double maxChi2Increment) {
     
-    streamlog_out(DEBUG1) << "MarlinKalTestTrack::addAndFit called " << std::endl ;
+    streamlog_out(DEBUG1) << "MarlinKalTestTrack::addAndFit called : maxChi2Increment = " << maxChi2Increment << std::endl ;
     
     if ( ! _initialised ) {
       
