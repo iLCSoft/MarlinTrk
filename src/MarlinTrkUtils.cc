@@ -22,9 +22,6 @@
 
 namespace MarlinTrk {
   
-  
-  int finaliseLCIOTrack( IMarlinTrack* marlinTrk, IMPL::TrackImpl* track, std::vector<EVENT::TrackerHit*>& hit_list);
-  
   int createTrackStateAtCaloFace( IMarlinTrack* marlinTrk, IMPL::TrackStateImpl* track, EVENT::TrackerHit* trkhit, bool tanL_is_positive);
   
   int createFinalisedLCIOTrack( IMarlinTrack* marlinTrk, std::vector<EVENT::TrackerHit*>& hit_list, IMPL::TrackImpl* track, bool fit_backwards, const EVENT::FloatVec& initial_cov_for_prefit, float bfield_z, double maxChi2Increment){
@@ -270,8 +267,15 @@ namespace MarlinTrk {
     const double* x3 = twoD_hits.back()->getPosition();
     
     HelixTrack helixTrack( x1, x2, x3, bfield_z, HelixTrack::forwards );
+
+    if ( fit_backwards == IMarlinTrack::backward ) {
+      pre_fit->setLocation(lcio::TrackState::AtLastHit);
+      helixTrack.moveRefPoint(hit_list.back()->getPosition()[0], hit_list.back()->getPosition()[1], hit_list.back()->getPosition()[2]);      
+    } else {
+      pre_fit->setLocation(lcio::TrackState::AtFirstHit);
+      helixTrack.moveRefPoint(hit_list.front()->getPosition()[0], hit_list.front()->getPosition()[1], hit_list.front()->getPosition()[2]);      
+    }
     
-    helixTrack.moveRefPoint(hit_list.back()->getPosition()[0], hit_list.back()->getPosition()[1], hit_list.back()->getPosition()[2]);
     
     const float referencePoint[3] = { helixTrack.getRefPointX() , helixTrack.getRefPointY() , helixTrack.getRefPointZ() };
     
@@ -283,11 +287,6 @@ namespace MarlinTrk {
     
     pre_fit->setReferencePoint(referencePoint) ;
     
-    if ( fit_backwards == IMarlinTrack::backward ) {
-      pre_fit->setLocation(lcio::TrackState::AtLastHit);
-    } else {
-      pre_fit->setLocation(lcio::TrackState::AtFirstHit);
-    }
     
     
     return 0;
@@ -428,7 +427,7 @@ namespace MarlinTrk {
     ///////////////////////////////////////////////////////
     
     IMPL::TrackStateImpl* trkStateAtFirstHit = new IMPL::TrackStateImpl() ;
-    EVENT::TrackerHit* firstHit = hits_in_fit.front().first;
+    EVENT::TrackerHit* firstHit = hits_in_fit.back().first;
     
     
     return_error = marlintrk->getTrackState(firstHit, *trkStateAtFirstHit, chi2, ndf ) ;
@@ -446,7 +445,7 @@ namespace MarlinTrk {
     ///////////////////////////////////////////////////////  
     
     IMPL::TrackStateImpl* trkStateAtLastHit = new IMPL::TrackStateImpl() ;
-    EVENT::TrackerHit* lastHit = hits_in_fit.back().first;
+    EVENT::TrackerHit* lastHit = hits_in_fit.front().first;
     
     return_error = marlintrk->getTrackState(lastHit, *trkStateAtLastHit, chi2, ndf ) ;
     
