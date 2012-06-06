@@ -238,7 +238,7 @@ namespace MarlinTrk {
     
     EVENT::TrackerHitVec twoD_hits;
     
-    for (int ihit=0; ihit < hit_list.size(); ++ihit) {
+    for (unsigned ihit=0; ihit < hit_list.size(); ++ihit) {
       
       // check if this a space point or 2D hit 
       if(UTIL::BitSet32( hit_list[ihit]->getType() )[ UTIL::ILDTrkHitTypeBit::ONE_DIMENSIONAL ] == false ){
