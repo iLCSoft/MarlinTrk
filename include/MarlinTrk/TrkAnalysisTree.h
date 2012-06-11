@@ -203,6 +203,7 @@ class TrkAnalysisTree {
 //  TBranch        *b_track_mc_link_bank_rel_weight; //!
   
   TrkAnalysisTree(TTree *tree=0);
+  
   ~TrkAnalysisTree(); // no longer virtual 
   virtual Int_t    Cut(Long64_t entry);
   virtual Int_t    GetEntry(Long64_t entry);
@@ -270,12 +271,12 @@ void TrkAnalysisTree::CreateBranches(TTree *tree)
   tree->Branch("mcp_omega", mcp_omega ,"mcp_omega[nmcp]/F" );
   tree->Branch("mcp_z0", mcp_z0 ,"mcp_z0[nmcp]/F" );
   tree->Branch("mcp_tanL", mcp_tanL ,"mcp_tanL[nmcp]/F" );
-  tree->Branch("mcp_nhit_vxd", mcp_nhit_vxd ,"mcp_nhit_vxd[nmcp]/F" );
-  tree->Branch("mcp_nhit_sit", mcp_nhit_sit ,"mcp_nhit_sit[nmcp]/F" );
-  tree->Branch("mcp_nhit_ftd", mcp_nhit_ftd ,"mcp_nhit_ftd[nmcp]/F" );
-  tree->Branch("mcp_nhit_tpc", mcp_nhit_tpc ,"mcp_nhit_tpc[nmcp]/F" );
-  tree->Branch("mcp_nhit_set", mcp_nhit_set ,"mcp_nhit_set[nmcp]/F" );
-  tree->Branch("mcp_nhit_etd", mcp_nhit_etd ,"mcp_nhit_etd[nmcp]/F" );  
+  tree->Branch("mcp_nhit_vxd", mcp_nhit_vxd ,"mcp_nhit_vxd[nmcp]/I" );
+  tree->Branch("mcp_nhit_sit", mcp_nhit_sit ,"mcp_nhit_sit[nmcp]/I" );
+  tree->Branch("mcp_nhit_ftd", mcp_nhit_ftd ,"mcp_nhit_ftd[nmcp]/I" );
+  tree->Branch("mcp_nhit_tpc", mcp_nhit_tpc ,"mcp_nhit_tpc[nmcp]/I" );
+  tree->Branch("mcp_nhit_set", mcp_nhit_set ,"mcp_nhit_set[nmcp]/I" );
+  tree->Branch("mcp_nhit_etd", mcp_nhit_etd ,"mcp_nhit_etd[nmcp]/I" );  
   tree->Branch("mcp_ntrk_linked", mcp_ntrk_linked ,"mcp_ntrk_linked[nmcp]/I" );
   
   tree->Branch("mcp_track_index_first", mcp_track_index_first ,"mcp_track_index_first[nmcp]/I" );
