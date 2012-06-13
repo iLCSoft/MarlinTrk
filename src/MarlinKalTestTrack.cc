@@ -86,6 +86,9 @@ namespace MarlinTrk {
     _initialised = false ;
     _smoothed = false ;
     
+    _trackHitAtPositiveNDF = 0;
+    _hitIndexAtPositiveNDF = 0;
+    
 #ifdef MARLINTRK_DIAGNOSTICS_ON
       _ktest->_diagnostics.new_track(this) ;
 #endif
@@ -357,25 +360,35 @@ namespace MarlinTrk {
 
     EVENT::FloatVec covLCIO = ts.getCovMatrix();
     
-    cov( 0 , 0 ) =   covLCIO[ 0] ; //   d0,   d0
+    cov( 0 , 0 ) =   covLCIO[ 0] ;                   //   d0, d0
+    cov( 0 , 1 ) = - covLCIO[ 1] ;                   //   d0, phi
+    cov( 0 , 2 ) = - covLCIO[ 3] / alpha ;           //   d0, kappa
+    cov( 0 , 3 ) = - covLCIO[ 6] ;                   //   d0, z0
+    cov( 0 , 4 ) = - covLCIO[10] ;                   //   d0, tanl
     
-    cov( 1 , 0 ) = - covLCIO[ 1] ; //   phi0, d0
-    cov( 1 , 1 ) =   covLCIO[ 2] ; //   phi0, phi 
+    cov( 1 , 0 ) = - covLCIO[ 1] ;                   //   phi, d0
+    cov( 1 , 1 ) =   covLCIO[ 2] ;                   //   phi, phi
+    cov( 1 , 2 ) =   covLCIO[ 4] / alpha ;           //   phi, kappa
+    cov( 1 , 3 ) =   covLCIO[ 7] ;                   //   phi, z0
+    cov( 1 , 4 ) =   covLCIO[11] ;                   //   tanl, phi
     
     cov( 2 , 0 ) = - covLCIO[ 3] / alpha ;           //   kappa, d0
     cov( 2 , 1 ) =   covLCIO[ 4] / alpha ;           //   kappa, phi
     cov( 2 , 2 ) =   covLCIO[ 5] / (alpha * alpha) ; //   kappa, kappa
+    cov( 2 , 3 ) =   covLCIO[ 8] / alpha ;           //   kappa, z0
+    cov( 2 , 3 ) =   covLCIO[12] / alpha ;           //   kappa, tanl    
     
-    cov( 3 , 0 ) = - covLCIO[ 6] ;         //   z0  , d0
-    cov( 3 , 1 ) =   covLCIO[ 7] ;         //   z0  , phi
-    cov( 3 , 2 ) =   covLCIO[ 8] / alpha ; //   z0  , kappa
-    cov( 3 , 3 ) =   covLCIO[ 9] ;         //   z0  , z0
+    cov( 3 , 0 ) = - covLCIO[ 6] ;                   //   z0, d0
+    cov( 3 , 1 ) =   covLCIO[ 7] ;                   //   z0, phi
+    cov( 3 , 2 ) =   covLCIO[ 8] / alpha ;           //   z0, kappa
+    cov( 3 , 3 ) =   covLCIO[ 9] ;                   //   z0, z0
+    cov( 3 , 4 ) =   covLCIO[13] ;                   //   z0, tanl
     
-    cov( 4 , 0 ) = - covLCIO[10] ;         //   tanl, d0 
-    cov( 4 , 1 ) =   covLCIO[11] ;         //   tanl, phi
-    cov( 4 , 2 ) =   covLCIO[12] / alpha ; //   tanl, kappa    
-    cov( 4 , 3 ) =   covLCIO[13] ;         //   tanl, z0
-    cov( 4 , 4 ) =   covLCIO[14] ;         //   tanl, tanl
+    cov( 4 , 0 ) = - covLCIO[10] ;                   //   tanl, d0 
+    cov( 4 , 1 ) =   covLCIO[11] ;                   //   tanl, phi
+    cov( 4 , 2 ) =   covLCIO[12] / alpha ;           //   tanl, kappa    
+    cov( 4 , 3 ) =   covLCIO[13] ;                   //   tanl, z0
+    cov( 4 , 4 ) =   covLCIO[14] ;                   //   tanl, tanl
     
     
     // move the helix to either the position of the last hit or the first depending on initalise_at_end
@@ -663,6 +676,22 @@ namespace MarlinTrk {
       _hit_chi2_values.push_back(std::make_pair(trkhit, chi2increment));
     }
     
+    // set the values for the point at which the fit becomes constained 
+    if( _trackHitAtPositiveNDF == 0 && _kaltrack->GetNDF() >= 0){
+
+      _trackHitAtPositiveNDF = trkhit;
+      _hitIndexAtPositiveNDF = _kaltrack->IndexOf( site );
+      
+      streamlog_out( ERROR ) << ">>>>>>>>>>>  Fit is now constrained at : " 
+      << decodeILD( trkhit->getCellID0() ) 
+      << " pos " << gear::Vector3D( trkhit->getPosition() )
+      << " trkhit = " << _trackHitAtPositiveNDF
+      << " index of kalhit = " << _hitIndexAtPositiveNDF
+      <<  std::endl; 
+    
+    }
+
+    
     return success ;
     
   }
@@ -781,7 +810,7 @@ namespace MarlinTrk {
     //SJA:FIXME: in the current implementation it is only possible to smooth back to the 4th site.
     // This is due to the fact that the covariance matrix is not well defined at the first 3 measurement sites filtered.
     
-    _kaltrack->SmoothBackTo( 4 ) ;
+    _kaltrack->SmoothBackTo( _hitIndexAtPositiveNDF + 1 ) ;
     
     return success ;
     
@@ -791,6 +820,9 @@ namespace MarlinTrk {
   /** smooth track states from the last filtered hit back to the measurement site associated with the given hit 
    */
   int MarlinKalTestTrack::smooth( EVENT::TrackerHit* trkhit ) {
+    
+    streamlog_out( DEBUG2 )  << "MarlinKalTestTrack::smooth( EVENT::TrackerHit* " << trkhit << "  ) " << std::endl ;
+
     
     if ( !trkhit ) {
       return bad_intputs ;
@@ -851,20 +883,64 @@ namespace MarlinTrk {
   int MarlinKalTestTrack::getHitsInFit( std::vector<std::pair<EVENT::TrackerHit*, double> >& hits ) {
     
     std::copy( _hit_chi2_values.begin() , _hit_chi2_values.end() , std::back_inserter(  hits  )  ) ;
+
+    // this needs more thought. What about when the hits are added using addAndFit?
+
+    // need to check the order so that we can return the list ordered in time
+    // as they will be added to _hit_chi2_values in the order of fitting 
+    // not in the order of time
+//    
+//    if( _fitDirection == IMarlinTrack::backward ){    
+//      std::reverse_copy( _hit_chi2_values.begin() , _hit_chi2_values.end() , std::back_inserter(  hits  )  ) ;
+//    } else {
+//      std::copy( _hit_chi2_values.begin() , _hit_chi2_values.end() , std::back_inserter(  hits  )  ) ;
+//    }
     
     return success ;
     
   }
   
   int MarlinKalTestTrack::getOutliers( std::vector<std::pair<EVENT::TrackerHit*, double> >& hits ) {
-    
+
     std::copy( _outlier_chi2_values.begin() , _outlier_chi2_values.end() , std::back_inserter(  hits  )  ) ;
+
     
+    // this needs more thought. What about when the hits are added using addAndFit?
+//    // need to check the order so that we can return the list ordered in time
+//    // as they will be added to _hit_chi2_values in the order of fitting 
+//    // not in the order of time
+//
+//    if( _fitDirection == IMarlinTrack::backward ){    
+//      std::reverse_copy( _outlier_chi2_values.begin() , _outlier_chi2_values.end() , std::back_inserter(  hits  )  ) ;
+//    } else {
+//      std::copy( _outlier_chi2_values.begin() , _outlier_chi2_values.end() , std::back_inserter(  hits  )  ) ;
+//    }
+
+        
     return success ;
     
   }
   
   
+  int MarlinKalTestTrack::getNDF( int& ndf ){
+    
+    if( _initialised == false ) { 
+      return error;
+    } else {
+      
+      ndf = _kaltrack->GetNDF();
+      return success;
+      
+    }
+    
+  }
+  
+  int MarlinKalTestTrack::getTrackerHitAtPositiveNDF( EVENT::TrackerHit*& trkhit ) {
+
+      trkhit = _trackHitAtPositiveNDF;
+      return success;    
+
+  }
   
   
   int MarlinKalTestTrack::extrapolate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ){  
@@ -1418,7 +1494,7 @@ namespace MarlinTrk {
     
     //============== convert parameters to LCIO convention ====
     
-    // fill 5x5 covariance matrix from the 6x6 covariance matrix return by trkState.GetCovMat()  above
+    // fill 5x5 covariance matrix from the 6x6 covariance matrix above
     TMatrixD covK(5,5) ;  for(int i=0;i<5;++i) for(int j=0;j<5;++j) covK[i][j] = cov[i][j] ;
     
     //  this is for incomming tracks ...
@@ -1525,7 +1601,7 @@ namespace MarlinTrk {
         return site_discarded ;
       }
       else {
-        streamlog_out( DEBUG2 )  << "MarlinKalTestTrack::getSiteFromLCIOHit: hit not in list of supplied hits" << std::endl ;
+        streamlog_out( DEBUG2 )  << "MarlinKalTestTrack::getSiteFromLCIOHit: hit " << trkhit << " not in list of supplied hits" << std::endl ;
         return bad_intputs ; 
       }
     } 

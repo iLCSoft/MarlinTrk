@@ -41,7 +41,7 @@ namespace MarlinTrk{
   int createFit( std::vector<EVENT::TrackerHit*>& hit_list, IMarlinTrack* marlinTrk, IMPL::TrackStateImpl* pre_fit, float bfield_z, bool fit_backwards, double maxChi2Increment=DBL_MAX );
 
   /** Takes a fitted MarlinTrack, TrackImpl to record the fit and the hits which have been added to the fit. The TrackImpl will have the 4 trackstates added to it @IP, @First_Hit, @Last_Hit and @CaloFace. Note: the hit list is needed as the IMarlinTrack only contains the hits used in the fit, not the spacepoints (if any have been included) so as the strip hits cannot point to the space points we need to have the list so that they can be recoreded in the LCIO TrackImpl */ 
-  int finaliseLCIOTrack( IMarlinTrack* marlinTrk, IMPL::TrackImpl* track, std::vector<EVENT::TrackerHit*>& hit_list);
+  int finaliseLCIOTrack( IMarlinTrack* marlinTrk, IMPL::TrackImpl* track, std::vector<EVENT::TrackerHit*>& hit_list, IMPL::TrackStateImpl* atLastHit=0, IMPL::TrackStateImpl* atCaloFace=0);
   
   /** Set the subdetector hit numbers for the TrackImpl */
   void addHitNumbersToTrack(IMPL::TrackImpl* track, std::vector<EVENT::TrackerHit*>& hit_list, bool hits_in_fit, UTIL::BitField64& cellID_encoder);

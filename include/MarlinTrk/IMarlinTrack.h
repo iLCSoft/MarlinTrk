@@ -128,6 +128,14 @@ namespace MarlinTrk{
      */
     virtual int getOutliers( std::vector<std::pair<EVENT::TrackerHit*, double> >& hits ) = 0 ;
     
+    /** get the current number of degrees of freedom for the fit.
+     */
+    virtual int getNDF( int& ndf ) = 0 ;
+    
+    /** get TrackeHit at which fit became constrained, i.e. ndf >= 0
+     */
+    virtual int getTrackerHitAtPositiveNDF( EVENT::TrackerHit*& trkhit ) = 0 ;
+    
     // PROPAGATORS 
     
     /** propagate the fit to the point of closest approach to the given point, returning TrackState, chi2 and ndf via reference    

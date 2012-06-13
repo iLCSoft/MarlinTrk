@@ -146,6 +146,14 @@ private:
    */
   int getOutliers( std::vector<std::pair<EVENT::TrackerHit*, double> >& hits ) ;
 
+
+  /** get the current number of degrees of freedom for the fit.
+   */
+  int getNDF( int& ndf ) ;
+  
+  /** get TrackeHit at which fit became constrained, i.e. ndf >= 0
+   */
+  int getTrackerHitAtPositiveNDF( EVENT::TrackerHit*& trkhit ) ;
   
   // PROPAGATORS 
   
@@ -321,6 +329,9 @@ private:
   TObjArray* _kalhits;
   
   MarlinKalTest* _ktest;
+  
+  EVENT::TrackerHit* _trackHitAtPositiveNDF;
+  int _hitIndexAtPositiveNDF;
   
   /** used to store whether initial track state has been supplied or created 
    */
