@@ -576,7 +576,7 @@ namespace MarlinTrk {
         trkStateAtLastHit->setLocation(  lcio::TrackState::AtLastHit ) ;
         track->trackStates().push_back(trkStateAtLastHit);
       } else {
-        streamlog_out( DEBUG5 ) << "  >>>>>>>>>>> MarlinTrk::finaliseLCIOTrack:  could not get TrackState at Last Hit " << lastHit << std::endl ;
+        streamlog_out( DEBUG5 ) << "  >>>>>>>>>>> MarlinTrk::finaliseLCIOTrack:  could not get TrackState at Last Hit " << last_constrained_hit << std::endl ;
         delete trkStateAtLastHit;
       }
       

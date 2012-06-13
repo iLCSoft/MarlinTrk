@@ -687,11 +687,11 @@ namespace MarlinTrk {
       << " pos " << gear::Vector3D( trkhit->getPosition() )
       << " trkhit = " << _trackHitAtPositiveNDF
       << " index of kalhit = " << _hitIndexAtPositiveNDF
+      << " NDF = " << _kaltrack->GetNDF() 
       <<  std::endl; 
     
     }
 
-    
     return success ;
     
   }
@@ -777,6 +777,23 @@ namespace MarlinTrk {
       if( error_code == 0 ){ // add trkhit to map associating trkhits and sites
         _hit_used_for_sites[trkhit] = site;
         _hit_chi2_values.push_back(std::make_pair(trkhit, chi2increment));
+
+        // set the values for the point at which the fit becomes constained 
+        if( _trackHitAtPositiveNDF == 0 && _kaltrack->GetNDF() >= 0){
+          
+          _trackHitAtPositiveNDF = trkhit;
+          _hitIndexAtPositiveNDF = _kaltrack->IndexOf( site );
+          
+          streamlog_out( DEBUG1 ) << ">>>>>>>>>>>  Fit is now constrained at : " 
+          << decodeILD( trkhit->getCellID0() ) 
+          << " pos " << gear::Vector3D( trkhit->getPosition() )
+          << " trkhit = " << _trackHitAtPositiveNDF
+          << " index of kalhit = " << _hitIndexAtPositiveNDF
+          << " NDF = " << _kaltrack->GetNDF() 
+          <<  std::endl; 
+          
+        }
+            
       } 
       else { // hit rejected by the filter, so store in the list of rejected hits
         if( error_code == site_fails_chi2_cut ) _outlier_chi2_values.push_back(std::make_pair(trkhit, chi2increment));
