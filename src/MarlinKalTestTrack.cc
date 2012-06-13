@@ -682,7 +682,7 @@ namespace MarlinTrk {
       _trackHitAtPositiveNDF = trkhit;
       _hitIndexAtPositiveNDF = _kaltrack->IndexOf( site );
       
-      streamlog_out( ERROR ) << ">>>>>>>>>>>  Fit is now constrained at : " 
+      streamlog_out( DEBUG1 ) << ">>>>>>>>>>>  Fit is now constrained at : " 
       << decodeILD( trkhit->getCellID0() ) 
       << " pos " << gear::Vector3D( trkhit->getPosition() )
       << " trkhit = " << _trackHitAtPositiveNDF
