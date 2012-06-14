@@ -559,6 +559,9 @@ namespace MarlinTrk {
       delete trkStateAtFirstHit;
     }
     
+    double r_first = firstHit->getPosition()[0]*firstHit->getPosition()[0] + firstHit->getPosition()[1]*firstHit->getPosition()[1];
+    
+    track->setRadiusOfInnermostHit(sqrt(r_first));
     
     if ( atLastHit == 0 ) {
     
