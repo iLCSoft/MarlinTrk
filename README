@@ -27,12 +27,23 @@ specifically RefitProcessor which takes a track collection and refits each track
  | v01-07 |
   -------- 
 
+  	  - IMarlinTrack
+	    - Added two new methods to IMarlinTrack interface:  int getNDF( int& ndf ) and int getTrackerHitAtPositiveNDF( EVENT::TrackerHit*& trkhit ).                                   
+	  - MarlinKalTestTrack
+	    - smooth() no longer smooths back to 4th hit, but goes back the the hit at which the fit was constrained, meaning that it can adapt to 1D hits properly.
+	    - Fixed the issue where the upper part of the triangular symmetric cov matrix was not copied into the square TMatrixD cov(5,5).                                  
+
   	  - HelixFit
 	    - Correct pass by reference in argument list
 
 	  - MarlinTrkUtils
 	    - laced definition of finaliseLCIOTrack in header making it publicly available. 
 	    - Corrected track state at first and last hit.
+	    - finaliseLCIOTrack now has the option to take the state at the last hit and calo face as input, 
+	      for the case where these have been calculated separately, e.g. in an in-out out-in strategy.
+            - Due to occasional problems in the covariance matrix when smoothing back to sites added before the fit was fully constrained, 
+	      the last hit and the calo face use the smoothed values from the site at which the fit was fully constrained. 
+              The fit is propagated to the point of closest approach to the last hit, and to the calo face.                	    
 
    	  - Improved Diagnostics.
 
