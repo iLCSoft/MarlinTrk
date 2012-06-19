@@ -37,7 +37,7 @@ specifically RefitProcessor which takes a track collection and refits each track
 	    - Correct pass by reference in argument list
 
 	  - MarlinTrkUtils
-	    - laced definition of finaliseLCIOTrack in header making it publicly available. 
+	    - placed definition of finaliseLCIOTrack in header making it publicly available. 
 	    - Corrected track state at first and last hit.
 	    - finaliseLCIOTrack now has the option to take the state at the last hit and calo face as input, 
 	      for the case where these have been calculated separately, e.g. in an in-out out-in strategy.
