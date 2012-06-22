@@ -28,6 +28,10 @@ class TrkAnalysisTree {
   
   Int_t nmcp;
   Int_t mcp_pdg[MAX_MCPARTICLES];
+  Int_t mcp_generator_status[MAX_MCPARTICLES];
+  Int_t mcp_simulator_status[MAX_MCPARTICLES];
+  Int_t mcp_ndaughters[MAX_MCPARTICLES];
+  Int_t mcp_nparents[MAX_MCPARTICLES];
   Float_t mcp_mass[MAX_MCPARTICLES];
   Float_t mcp_charge[MAX_MCPARTICLES];
   Float_t mcp_energy[MAX_MCPARTICLES];
@@ -115,7 +119,11 @@ class TrkAnalysisTree {
   // List of branches
   
   TBranch        *b_nmcp;    //!
-  TBranch        *b_mcp_pdg;    //!
+  TBranch        *b_mcp_pdg;    //!  
+  TBranch        *b_mcp_generator_status; //!
+  TBranch        *b_mcp_simulator_status; //!
+  TBranch        *b_mcp_ndaughters; //!
+  TBranch        *b_mcp_nparents; //!  
   TBranch        *b_mcp_mass;    //! 
   TBranch        *b_mcp_charge;    //!
   TBranch        *b_mcp_energy;    //!
@@ -256,7 +264,12 @@ void TrkAnalysisTree::CreateBranches(TTree *tree)
 {
 
   tree->Branch("nmcp", &nmcp ,"nmcp/I" );
+
   tree->Branch("mcp_pdg", mcp_pdg ,"mcp_pdg[nmcp]/I" );
+  tree->Branch("mcp_generator_status", mcp_generator_status ,"mcp_generator_status[nmcp]/I" );
+  tree->Branch("mcp_simulator_status", mcp_simulator_status ,"mcp_simulator_status[nmcp]/I" );
+  tree->Branch("mcp_ndaughters", mcp_ndaughters ,"mcp_ndaughters[nmcp]/I" );
+  tree->Branch("mcp_nparents", mcp_nparents ,"mcp_nparents[nmcp]/I" );
   tree->Branch("mcp_mass", mcp_mass ,"mcp_mass[nmcp]/F" );
   tree->Branch("mcp_charge", mcp_charge ,"mcp_charge[nmcp]/F" );
   tree->Branch("mcp_energy", mcp_energy ,"mcp_energy[nmcp]/F" );
@@ -372,7 +385,12 @@ void TrkAnalysisTree::Init(TTree *tree)
   fChain->SetMakeClass(1);
     
   fChain->SetBranchAddress("nmcp", &nmcp, &b_nmcp );
+
   fChain->SetBranchAddress("mcp_pdg", mcp_pdg, &b_mcp_pdg );
+  fChain->SetBranchAddress("mcp_generator_status", mcp_generator_status, &b_mcp_generator_status );
+  fChain->SetBranchAddress("mcp_simulator_status", mcp_simulator_status, &b_mcp_simulator_status );
+  fChain->SetBranchAddress("mcp_ndaughters", mcp_ndaughters, &b_mcp_ndaughters );
+  fChain->SetBranchAddress("mcp_nparents", mcp_nparents, &b_mcp_nparents );
   fChain->SetBranchAddress("mcp_mass", mcp_mass, &b_mcp_mass );
   fChain->SetBranchAddress("mcp_charge", mcp_charge, &b_mcp_charge );
   fChain->SetBranchAddress("mcp_energy", mcp_energy, &b_mcp_energy );
@@ -502,7 +520,11 @@ void TrkAnalysisTree::Clear(){
   
   for (int i=0; i<MAX_MCPARTICLES; ++i) {
     
-    mcp_pdg[i]=0;
+    mcp_pdg[i]=0;    
+    mcp_generator_status[i]=0;
+    mcp_simulator_status[i]=0;
+    mcp_ndaughters[i]=0;
+    mcp_nparents[i]=0;      
     mcp_mass[i]=0;
     mcp_charge[i]=0;
     mcp_energy[i]=0;
