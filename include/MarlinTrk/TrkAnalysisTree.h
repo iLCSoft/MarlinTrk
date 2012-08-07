@@ -552,8 +552,8 @@ Int_t TrkAnalysisTree::Cut(Long64_t entry)
 
 void TrkAnalysisTree::Clear(){
   
-  eventNumber = 0;
-  runNumber = 0;
+  eventNumber = -1;
+  runNumber = -1;
   
   nmcp = 0;
   
@@ -585,9 +585,9 @@ void TrkAnalysisTree::Clear(){
     mcp_nhit_set[i]=0;
     mcp_nhit_etd[i]=0;
     mcp_ntrk_linked[i]=0;
-    mcp_track_index_first[i]=0;
-    mcp_track_index_second[i]=0;
-    mcp_track_index_third[i]=0;
+    mcp_track_index_first[i]=-1;
+    mcp_track_index_second[i]=-1;
+    mcp_track_index_third[i]=-1;
     mcp_track_weight_first[i]=0;
     mcp_track_weight_second[i]=0;
     mcp_track_weight_third[i]=0;
@@ -648,9 +648,9 @@ void TrkAnalysisTree::Clear(){
     tracks_cov_tanLz0[i]=0;      
     tracks_cov_tanLtanL[i]=0;
     tracks_nmcp_linked[i]=0;
-    tracks_mcp_index_first[i]=0;
-    tracks_mcp_index_second[i]=0;
-    tracks_mcp_index_third[i]=0;
+    tracks_mcp_index_first[i]=-1;
+    tracks_mcp_index_second[i]=-1;
+    tracks_mcp_index_third[i]=-1;
     tracks_mcp_weight_first[i]=0;
     tracks_mcp_weight_second[i]=0;
     tracks_mcp_weight_third[i]=0;
