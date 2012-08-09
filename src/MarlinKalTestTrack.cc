@@ -117,7 +117,7 @@ namespace MarlinTrk {
   
   int MarlinKalTestTrack::addHit( EVENT::TrackerHit * trkhit, const ILDVMeasLayer* ml) {
 
-    streamlog_out(DEBUG1) << "MarlinKalTestTrack::addHit: trkhit = "  << trkhit << " ml = " << ml << std::endl ;
+    streamlog_out(DEBUG1) << "MarlinKalTestTrack::addHit: trkhit = "  << trkhit->id() << " addr: " << trkhit << " ml = " << ml << std::endl ;
     
     if( trkhit && ml ) {
       return this->addHit( trkhit, ml->ConvertLCIOTrkHit(trkhit), ml) ;
@@ -390,6 +390,7 @@ namespace MarlinTrk {
     cov( 4 , 3 ) =   covLCIO[13] ;                   //   tanl, z0
     cov( 4 , 4 ) =   covLCIO[14] ;                   //   tanl, tanl
     
+//    cov.Print();
     
     // move the helix to either the position of the last hit or the first depending on initalise_at_end
     
@@ -498,6 +499,8 @@ namespace MarlinTrk {
     }
     if (kSdim == 6) covK(5,5) = 1.e6; // t0
         
+//    covK.Print();
+    
     // Add initial states to the site 
     initialSite.Add(new TKalTrackState(initialState,covK,initialSite,TVKalSite::kPredicted));
     initialSite.Add(new TKalTrackState(initialState,covK,initialSite,TVKalSite::kFiltered));
