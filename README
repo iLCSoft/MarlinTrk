@@ -24,6 +24,19 @@ specifically RefitProcessor which takes a track collection and refits each track
  =============================================================================================================
 
   --------
+ | v01-08 |
+  -------- 
+
+  	  Improvements in Diagnostics.
+
+  	  - MarlinKalTestTrack
+	    - Print trkhit id in add hit
+
+	  - TrkAnalysisTree
+	    - Initialise the index values with -1
+	    - Added run and event number, added reciprocal weights for relations, corrected array sizes in places.
+
+  --------
  | v01-07 |
   -------- 
 
