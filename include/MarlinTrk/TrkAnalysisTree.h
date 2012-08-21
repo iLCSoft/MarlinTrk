@@ -31,37 +31,52 @@ class TrkAnalysisTree {
   Int_t eventNumber;
   
   Int_t mcp_pdg[MAX_MCPARTICLES];
+
   Int_t mcp_generator_status[MAX_MCPARTICLES];
   Int_t mcp_simulator_status[MAX_MCPARTICLES];
+
   Int_t mcp_ndaughters[MAX_MCPARTICLES];
   Int_t mcp_nparents[MAX_MCPARTICLES];
+
   Float_t mcp_mass[MAX_MCPARTICLES];
   Float_t mcp_charge[MAX_MCPARTICLES];
   Float_t mcp_energy[MAX_MCPARTICLES];
+
   Float_t mcp_px[MAX_MCPARTICLES];
   Float_t mcp_py[MAX_MCPARTICLES];
   Float_t mcp_pz[MAX_MCPARTICLES];
+
   Float_t mcp_vx[MAX_MCPARTICLES];
   Float_t mcp_vy[MAX_MCPARTICLES];
   Float_t mcp_vz[MAX_MCPARTICLES];
+
+  Float_t mcp_fx[MAX_MCPARTICLES];
+  Float_t mcp_fy[MAX_MCPARTICLES];
+  Float_t mcp_fz[MAX_MCPARTICLES];
+  
   Float_t mcp_d0[MAX_MCPARTICLES];
   Float_t mcp_phi0[MAX_MCPARTICLES];
   Float_t mcp_omega[MAX_MCPARTICLES];
   Float_t mcp_z0[MAX_MCPARTICLES];
   Float_t mcp_tanL[MAX_MCPARTICLES];
+
   Int_t mcp_nhit_vxd[MAX_MCPARTICLES];
   Int_t mcp_nhit_sit[MAX_MCPARTICLES];
   Int_t mcp_nhit_ftd[MAX_MCPARTICLES];
   Int_t mcp_nhit_tpc[MAX_MCPARTICLES];
   Int_t mcp_nhit_set[MAX_MCPARTICLES];
   Int_t mcp_nhit_etd[MAX_MCPARTICLES];
+
   Int_t mcp_ntrk_linked[MAX_MCPARTICLES];
+
   Int_t mcp_track_index_first[MAX_MCPARTICLES];
   Int_t mcp_track_index_second[MAX_MCPARTICLES];
   Int_t mcp_track_index_third[MAX_MCPARTICLES];
+
   Float_t mcp_track_weight_first[MAX_MCPARTICLES];
   Float_t mcp_track_weight_second[MAX_MCPARTICLES];
   Float_t mcp_track_weight_third[MAX_MCPARTICLES];
+
   Float_t mcp_track_weight_recp_first[MAX_MCPARTICLES];
   Float_t mcp_track_weight_recp_second[MAX_MCPARTICLES];
   Float_t mcp_track_weight_recp_third[MAX_MCPARTICLES];
@@ -74,6 +89,7 @@ class TrkAnalysisTree {
 //  Float_t mc_track_link_bank_rel_weight[MAX_MC_TRACK_RELS]; 
   
   Int_t   ntracks;
+
   Float_t tracks_d0[MAX_NTRACKS];
   Float_t tracks_phi0[MAX_NTRACKS];
   Float_t tracks_omega[MAX_NTRACKS];
@@ -82,18 +98,23 @@ class TrkAnalysisTree {
   Float_t tracks_ref_point_x[MAX_NTRACKS];
   Float_t tracks_ref_point_y[MAX_NTRACKS];
   Float_t tracks_ref_point_z[MAX_NTRACKS];
+
   Int_t   tracks_type[MAX_NTRACKS];
+
   Float_t tracks_chi2[MAX_NTRACKS];
   Float_t tracks_prob[MAX_NTRACKS];
   Int_t   tracks_ndf[MAX_NTRACKS];
+
   Float_t tracks_radius_innermost_hit[MAX_NTRACKS];
+
   Int_t tracks_nhit_vxd[MAX_NTRACKS];
   Int_t tracks_nhit_sit[MAX_NTRACKS];
   Int_t tracks_nhit_ftd[MAX_NTRACKS];
   Int_t tracks_nhit_tpc[MAX_NTRACKS];
   Int_t tracks_nhit_set[MAX_NTRACKS];
   Int_t tracks_nhit_etd[MAX_NTRACKS];
-  Float_t tracks_cov_d0d0[MAX_NTRACKS];      
+
+  Float_t tracks_cov_d0d0[MAX_NTRACKS];
   Float_t tracks_cov_phi0d0[MAX_NTRACKS];      
   Float_t tracks_cov_phi0phi0[MAX_NTRACKS];      
   Float_t tracks_cov_omegad0[MAX_NTRACKS];      
@@ -108,14 +129,17 @@ class TrkAnalysisTree {
   Float_t tracks_cov_tanLomega[MAX_NTRACKS];      
   Float_t tracks_cov_tanLz0[MAX_NTRACKS];      
   Float_t tracks_cov_tanLtanL[MAX_NTRACKS];
+
   Int_t tracks_nmcp_linked[MAX_NTRACKS];
 
   Int_t tracks_mcp_index_first[MAX_NTRACKS];
   Int_t tracks_mcp_index_second[MAX_NTRACKS];
   Int_t tracks_mcp_index_third[MAX_NTRACKS];
+
   Float_t tracks_mcp_weight_first[MAX_NTRACKS];
   Float_t tracks_mcp_weight_second[MAX_NTRACKS];
   Float_t tracks_mcp_weight_third[MAX_NTRACKS];
+
   Float_t tracks_mcp_weight_recp_first[MAX_NTRACKS];
   Float_t tracks_mcp_weight_recp_second[MAX_NTRACKS];
   Float_t tracks_mcp_weight_recp_third[MAX_NTRACKS];
@@ -146,6 +170,9 @@ class TrkAnalysisTree {
   TBranch        *b_mcp_vx;    //!
   TBranch        *b_mcp_vy;    //!
   TBranch        *b_mcp_vz;    //!
+  TBranch        *b_mcp_fx;    //!
+  TBranch        *b_mcp_fy;    //!
+  TBranch        *b_mcp_fz;    //!
   TBranch        *b_mcp_d0;    //!
   TBranch        *b_mcp_phi0;    //!
   TBranch        *b_mcp_omega;    //!
@@ -299,6 +326,9 @@ void TrkAnalysisTree::CreateBranches(TTree *tree)
   tree->Branch("mcp_vx", mcp_vx ,"mcp_vx[nmcp]/F" );
   tree->Branch("mcp_vy", mcp_vy ,"mcp_vy[nmcp]/F" );
   tree->Branch("mcp_vz", mcp_vz ,"mcp_vz[nmcp]/F" );
+  tree->Branch("mcp_fx", mcp_fx ,"mcp_fx[nmcp]/F" );
+  tree->Branch("mcp_fy", mcp_fy ,"mcp_fy[nmcp]/F" );
+  tree->Branch("mcp_fz", mcp_fz ,"mcp_fz[nmcp]/F" );
   tree->Branch("mcp_d0", mcp_d0 ,"mcp_d0[nmcp]/F" );
   tree->Branch("mcp_phi0", mcp_phi0 ,"mcp_phi0[nmcp]/F" );
   tree->Branch("mcp_omega", mcp_omega ,"mcp_omega[nmcp]/F" );
@@ -430,6 +460,9 @@ void TrkAnalysisTree::Init(TTree *tree)
   fChain->SetBranchAddress("mcp_vx", mcp_vx, &b_mcp_vx );
   fChain->SetBranchAddress("mcp_vy", mcp_vy, &b_mcp_vy );
   fChain->SetBranchAddress("mcp_vz", mcp_vz, &b_mcp_vz );
+  fChain->SetBranchAddress("mcp_fx", mcp_fx, &b_mcp_fx );
+  fChain->SetBranchAddress("mcp_fy", mcp_fy, &b_mcp_fy );
+  fChain->SetBranchAddress("mcp_fz", mcp_fz, &b_mcp_fz );
   fChain->SetBranchAddress("mcp_d0", mcp_d0, &b_mcp_d0 );
   fChain->SetBranchAddress("mcp_phi0", mcp_phi0, &b_mcp_phi0 );
   fChain->SetBranchAddress("mcp_omega", mcp_omega, &b_mcp_omega );
@@ -573,6 +606,9 @@ void TrkAnalysisTree::Clear(){
     mcp_vx[i]=0;
     mcp_vy[i]=0;
     mcp_vz[i]=0;
+    mcp_fx[i]=0;
+    mcp_fy[i]=0;
+    mcp_fz[i]=0;
     mcp_d0[i]=0;
     mcp_phi0[i]=0;
     mcp_omega[i]=0;
