@@ -264,12 +264,20 @@ namespace MarlinTrk {
       Cov.GetMatrixArray()[i] = 0.0;
     }
     
-    for (Int_t i=0; i<kSdim; i++) {
-      // fg: if the error is too large the initial helix parameters might be changed extremely by the first three (or so) hits,
-      //     such that the fit will not work because the helix curls away and does not hit the next layer !!!
-      Cov(i,i) = 1.e2 ;   // initialise diagonal elements of dummy error matrix
-    }
+//    for (Int_t i=0; i<kSdim; i++) {
+//      // fg: if the error is too large the initial helix parameters might be changed extremely by the first three (or so) hits,
+//      //     such that the fit will not work because the helix curls away and does not hit the next layer !!!
+//      Cov(i,i) = 1.e2 ;   // initialise diagonal elements of dummy error matrix
+//    }
+
+    // prefer translation over rotation of the trackstate early in the fit 
     
+    Cov(0,0) = 1.e6 ; // d0
+    Cov(1,1) = 1.e2 ; // dphi0
+    Cov(2,2) = 1.e2 ; // dkappa
+    Cov(3,3) = 1.e6 ; // dz
+    Cov(4,4) = 1.e2 ; // dtanL
+    if (kSdim == 6) Cov(5,5) = 1.e2;  // t0
           
     // Add initial states to the site 
     initialSite.Add(new TKalTrackState(initialState,Cov,initialSite,TVKalSite::kPredicted));
