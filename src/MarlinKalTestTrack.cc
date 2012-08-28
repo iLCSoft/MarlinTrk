@@ -289,6 +289,17 @@ namespace MarlinTrk {
     
     _initialised = true ;
     
+    streamlog_out( DEBUG2 ) << " track parameters used for init : "
+    << "\t D0 "          <<  0.0
+    << "\t Phi :"        <<  toBaseRange( helstart.GetPhi0() + M_PI/2. )
+    << "\t Omega "       <<  1. /helstart.GetRho() 
+    << "\t Z0 "          <<  0.0
+    << "\t tan(Lambda) " <<  helstart.GetTanLambda()
+    
+    << "\t pivot : [" << helstart.GetPivot().X() << ", " << helstart.GetPivot().Y() << ", "  << helstart.GetPivot().Z()
+    << " - r: " << std::sqrt( helstart.GetPivot().X()*helstart.GetPivot().X()+helstart.GetPivot().Y()*helstart.GetPivot().Y() ) << "]"
+    << std::endl ;
+    
 #ifdef MARLINTRK_DIAGNOSTICS_ON
     
     // convert to LICO parameters first
