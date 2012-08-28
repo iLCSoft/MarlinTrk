@@ -237,6 +237,14 @@ namespace MarlinTrk {
       
     }
     
+    
+    streamlog_out(DEBUG2) << "MarlinKalTestTrack::initialise Create initial helix from hits: \n "
+    << "P1 x = " << x1.x() << " y = " << x1.y() << " z = " << x1.z() << " r = " << x1.Perp() << "\n "
+    << "P2 x = " << x2.x() << " y = " << x2.y() << " z = " << x2.z() << " r = " << x2.Perp() << "\n "
+    << "P3 x = " << x3.x() << " y = " << x3.y() << " z = " << x3.z() << " r = " << x3.Perp() << "\n "
+    << "Bz = " << h1.GetBfield() << " direction = " << _fitDirection
+    << std::endl;
+    
     // create helix using 3 global space points 
     THelicalTrack helstart(x1, x2, x3, h1.GetBfield(), _fitDirection); // initial helix 
     
@@ -833,7 +841,7 @@ namespace MarlinTrk {
       
     }
     
-    return success ;
+    return _hit_used_for_sites.empty() == false ? success : all_sites_fail_fit ;
     
   }
   

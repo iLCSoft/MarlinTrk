@@ -47,7 +47,8 @@ namespace MarlinTrk{
     static const int no_intersection = 4 ; // no intersection found
     static const int site_discarded = 5 ;  // measurement discarded by the fitter
     static const int site_fails_chi2_cut = 6 ;  // measurement discarded by the fitter due to chi2 cut
-    
+    static const int all_sites_fail_fit = 7 ;   // no single measurement added to the fit
+
     
     
     
