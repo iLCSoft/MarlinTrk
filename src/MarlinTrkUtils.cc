@@ -252,13 +252,13 @@ namespace MarlinTrk {
         added_hits.push_back(trkHit);
       }        
       else{
-        streamlog_out(DEBUG4) << "Hit " << it - hit_list.begin() << " Dropped " << std::endl;          
+        streamlog_out(DEBUG2) << "Hit " << it - hit_list.begin() << " Dropped " << std::endl;
       }
       
     }
       
     if( ndof_added < MIN_NDF ) {
-      streamlog_out(DEBUG4) << "MarlinTrk::createFit : Cannot fit less with less than " << MIN_NDF << " degrees of freedom. Number of hits =  " << added_hits.size() << " ndof = " << ndof_added << std::endl;
+      streamlog_out(DEBUG2) << "MarlinTrk::createFit : Cannot fit less with less than " << MIN_NDF << " degrees of freedom. Number of hits =  " << added_hits.size() << " ndof = " << ndof_added << std::endl;
       return IMarlinTrack::bad_intputs;
     }
       
@@ -396,13 +396,13 @@ namespace MarlinTrk {
     return_error = marlintrk->getNDF(ndf);
 
     if ( return_error != IMarlinTrack::success) {
-      streamlog_out(DEBUG4) << "MarlinTrk::finaliseLCIOTrack: getNDF returns " << return_error << std::endl;
+      streamlog_out(DEBUG3) << "MarlinTrk::finaliseLCIOTrack: getNDF returns " << return_error << std::endl;
       return return_error;
     } else if( ndf < 0 ) {
-      streamlog_out(DEBUG4) << "MarlinTrk::finaliseLCIOTrack: number of degrees of freedom less than 0 track dropped : NDF = " << ndf << std::endl;
+      streamlog_out(DEBUG2) << "MarlinTrk::finaliseLCIOTrack: number of degrees of freedom less than 0 track dropped : NDF = " << ndf << std::endl;
       return IMarlinTrack::error;
     } else {
-      streamlog_out(DEBUG4) << "MarlinTrk::finaliseLCIOTrack: NDF = " << ndf << std::endl;
+      streamlog_out(DEBUG1) << "MarlinTrk::finaliseLCIOTrack: NDF = " << ndf << std::endl;
     }
     
     

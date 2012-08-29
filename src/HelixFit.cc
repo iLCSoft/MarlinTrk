@@ -430,6 +430,15 @@ namespace MarlinTrk{
     }
     
     if (iopt < 3) {
+
+      streamlog_out(DEBUG1) << "HelixFit: " <<
+      " d0 = " << vv0[3] <<
+      " phi0 = " << vv0[2] <<
+      " omega = " << vv0[0] <<
+      " z0 = " << vv0[4] <<
+      " tanL = " << vv0[1] <<
+      std::endl;
+      
       return 0 ;
     }
     
@@ -537,6 +546,14 @@ namespace MarlinTrk{
       chi2 = chi1;      
     }
     
+    streamlog_out(DEBUG1) << "HelixFit: " <<
+    " d0 = " << vv0[3] <<
+    " phi0 = " << vv0[2] <<
+    " omega = " << vv0[0] <<
+    " z0 = " << vv0[4] <<
+    " tanL = " << vv0[1] <<
+    std::endl;
+
                                 
     return 0;
     

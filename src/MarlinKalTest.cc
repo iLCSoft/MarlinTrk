@@ -478,7 +478,7 @@ namespace MarlinTrk{
         
       }
       if( ! surf_found ){ // print out debug info
-        streamlog_out(DEBUG3) << "MarlinKalTest::findMeasLayer point not found to be on any surface matching moduleID = "
+        streamlog_out(DEBUG1) << "MarlinKalTest::findMeasLayer point not found to be on any surface matching moduleID = "
         << detElementID
         << ": x = " << point.x()
         << " y = " << point.y()
@@ -486,7 +486,7 @@ namespace MarlinTrk{
         << std::endl ;
       }
       else{
-        streamlog_out(DEBUG3) << "MarlinKalTest::findMeasLayer point found to be on surface matching moduleID = "
+        streamlog_out(DEBUG1) << "MarlinKalTest::findMeasLayer point found to be on surface matching moduleID = "
         << detElementID
         << ": x = " << point.x()
         << " y = " << point.y()

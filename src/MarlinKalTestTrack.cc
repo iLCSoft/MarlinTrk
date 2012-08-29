@@ -612,7 +612,7 @@ namespace MarlinTrk {
       // get the measurement layer of the current hit
       const ILDVMeasLayer* ml =  dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) ) ;
       TVector3 pos = ml->HitToXv(*kalhit);
-      streamlog_out( DEBUG2 )  << "Kaltrack::fit : site discarded! at index : " << ml->GetIndex() 
+      streamlog_out( DEBUG1 )  << "Kaltrack::fit : site discarded! at index : " << ml->GetIndex()
       << " for type " << ml->GetName() 
       << " chi2increment = " << chi2increment
       << " maxChi2Increment = " << maxChi2Increment
@@ -712,7 +712,7 @@ namespace MarlinTrk {
       _trackHitAtPositiveNDF = trkhit;
       _hitIndexAtPositiveNDF = _kaltrack->IndexOf( site );
       
-      streamlog_out( DEBUG1 ) << ">>>>>>>>>>>  Fit is now constrained at : " 
+      streamlog_out( DEBUG2 ) << ">>>>>>>>>>>  Fit is now constrained at : "
       << decodeILD( trkhit->getCellID0() ) 
       << " pos " << gear::Vector3D( trkhit->getPosition() )
       << " trkhit = " << _trackHitAtPositiveNDF
@@ -814,7 +814,7 @@ namespace MarlinTrk {
           _trackHitAtPositiveNDF = trkhit;
           _hitIndexAtPositiveNDF = _kaltrack->IndexOf( site );
           
-          streamlog_out( DEBUG1 ) << ">>>>>>>>>>>  Fit is now constrained at : " 
+          streamlog_out( DEBUG2 ) << ">>>>>>>>>>>  Fit is now constrained at : "
           << decodeILD( trkhit->getCellID0() ) 
           << " pos " << gear::Vector3D( trkhit->getPosition() )
           << " trkhit = " << _trackHitAtPositiveNDF
@@ -834,7 +834,7 @@ namespace MarlinTrk {
     } // end of Kalman filter
     
     if( _ktest->getOption(  MarlinTrk::IMarlinTrkSystem::CFG::useSmoothing ) ){
-      streamlog_out( DEBUG1 )  << "Perform Smoothing for All Previous Measurement Sites " << std::endl ;
+      streamlog_out( DEBUG2 )  << "Perform Smoothing for All Previous Measurement Sites " << std::endl ;
       int error = this->smooth() ;
       
       if( error != success ) return error ;
@@ -1461,9 +1461,9 @@ namespace MarlinTrk {
     int crossing_exist = meas_module.getIntersectionAndCellID(helix, xto, dphi, detElementID, mode);
     //  int crossing_exist = surf->CalcXingPointWith(helix, xto, dphi, mode) ;
     
-    streamlog_out(DEBUG2) << "MarlinKalTestTrack::intersectionWithLayer crossing_exist = " << crossing_exist << " dphi " << dphi << " with detElementIDs: " <<  detElementID ;
+    streamlog_out(DEBUG1) << "MarlinKalTestTrack::intersectionWithLayer crossing_exist = " << crossing_exist << " dphi " << dphi << " with detElementIDs: " <<  detElementID ;
     
-    streamlog_out(DEBUG2) << std::endl ;
+    streamlog_out(DEBUG1) << std::endl ;
     
     
     if( crossing_exist == 0 ) { 
