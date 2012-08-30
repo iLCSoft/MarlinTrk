@@ -841,7 +841,14 @@ namespace MarlinTrk {
       
     }
     
-    return _hit_used_for_sites.empty() == false ? success : all_sites_fail_fit ;
+    //return _hit_used_for_sites.empty() == false ? success : all_sites_fail_fit ;
+    if( _hit_used_for_sites.empty() == false )
+    {
+        return success ;
+    }
+    else{
+        return all_sites_fail_fit ;
+    }
     
   }
   
