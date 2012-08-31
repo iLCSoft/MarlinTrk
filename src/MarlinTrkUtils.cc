@@ -189,21 +189,21 @@ namespace MarlinTrk {
     int return_error = 0;
     
     
-    ///////////////////////////////////////////////////////
-    // check that the prefit has the reference point at the correct location 
-    ///////////////////////////////////////////////////////
-    
-    if (( fit_backwards == IMarlinTrack::backward && pre_fit->getLocation() != lcio::TrackState::AtLastHit ) 
-        ||  
-        ( fit_backwards == IMarlinTrack::forward && pre_fit->getLocation() != lcio::TrackState::AtFirstHit )) {            
-      std::stringstream ss ;
-      
-      ss << "MarlinTrk::createFinalisedLCIOTrack track state must be set at either first or last hit. Location = ";
-      ss << pre_fit->getLocation();
-      
-      throw EVENT::Exception( ss.str() );
-      
-    } 
+//    ///////////////////////////////////////////////////////
+//    // check that the prefit has the reference point at the correct location 
+//    ///////////////////////////////////////////////////////
+//    
+//    if (( fit_backwards == IMarlinTrack::backward && pre_fit->getLocation() != lcio::TrackState::AtLastHit ) 
+//        ||  
+//        ( fit_backwards == IMarlinTrack::forward && pre_fit->getLocation() != lcio::TrackState::AtFirstHit )) {            
+//      std::stringstream ss ;
+//      
+//      ss << "MarlinTrk::createFinalisedLCIOTrack track state must be set at either first or last hit. Location = ";
+//      ss << pre_fit->getLocation();
+//      
+//      throw EVENT::Exception( ss.str() );
+//      
+//    } 
     
     ///////////////////////////////////////////////////////
     // add hits to IMarlinTrk  
