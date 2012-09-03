@@ -108,32 +108,31 @@ namespace MarlinTrk {
     // produce prefit parameters
     ///////////////////////////////////////////////////////
     
-    IMPL::TrackStateImpl* pre_fit = new IMPL::TrackStateImpl();
+    IMPL::TrackStateImpl pre_fit ;
     
-    pre_fit->setCovMatrix(initial_cov_for_prefit);
+      
+    return_error = createPrefit(hit_list, &pre_fit, bfield_z, fit_backwards);
     
-    return_error = createPrefit(hit_list, pre_fit, bfield_z, fit_backwards);
-    
-    
+    pre_fit.setCovMatrix(initial_cov_for_prefit);
+
     ///////////////////////////////////////////////////////
     // use prefit parameters to produce Finalised track
     ///////////////////////////////////////////////////////
     
     if( return_error == 0 ) {
       
-      return_error = createFinalisedLCIOTrack( marlinTrk, hit_list, track, fit_backwards, pre_fit, bfield_z, maxChi2Increment);
+      return_error = createFinalisedLCIOTrack( marlinTrk, hit_list, track, fit_backwards, &pre_fit, bfield_z, maxChi2Increment);
       
     } else {
       streamlog_out(DEBUG3) << "MarlinTrk::createFinalisedLCIOTrack : Prefit failed error = " << return_error << std::endl;
     }
     
-    delete pre_fit;
     
     return return_error;
     
   }
   
-  int createFinalisedLCIOTrack( IMarlinTrack* marlinTrk, std::vector<EVENT::TrackerHit*>& hit_list, IMPL::TrackImpl* track, bool fit_backwards, IMPL::TrackStateImpl* pre_fit, float bfield_z, double maxChi2Increment){
+  int createFinalisedLCIOTrack( IMarlinTrack* marlinTrk, std::vector<EVENT::TrackerHit*>& hit_list, IMPL::TrackImpl* track, bool fit_backwards, EVENT::TrackState* pre_fit, float bfield_z, double maxChi2Increment){
     
     
     ///////////////////////////////////////////////////////
@@ -170,7 +169,7 @@ namespace MarlinTrk {
   
   
   
-  int createFit( std::vector<EVENT::TrackerHit*>& hit_list, IMarlinTrack* marlinTrk, IMPL::TrackStateImpl* pre_fit, float bfield_z, bool fit_backwards, double maxChi2Increment){
+  int createFit( std::vector<EVENT::TrackerHit*>& hit_list, IMarlinTrack* marlinTrk, EVENT::TrackState* pre_fit, float bfield_z, bool fit_backwards, double maxChi2Increment){
     
     
     ///////////////////////////////////////////////////////
@@ -563,7 +562,7 @@ namespace MarlinTrk {
     
     track->setRadiusOfInnermostHit(sqrt(r_first));
     
-    if ( atLastHit == 0 ) {
+    if ( atLastHit == 0 && atCaloFace == 0 ) {
     
       ///////////////////////////////////////////////////////
       // @ last hit
