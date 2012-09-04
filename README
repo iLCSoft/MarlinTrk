@@ -23,6 +23,25 @@ specifically RefitProcessor which takes a track collection and refits each track
 
  =============================================================================================================
 
+  ---------
+ | v01-09  |
+  ---------
+
+	  - General 
+	    - Made Debug output more consistent
+						
+  	  - IMarlinTrack
+	    - Moved constant definitions of return codes outside of the header file. 
+	    - Added additional error return, for the case where no site are filtered when calling fit.
+
+	  - MarlinKalTestTrack
+	    - Prefer translation over rotation of the trackstate early in the fit, when using simple helix initialisation.
+
+	  - MarlinTrkUtils
+	    - Use EVENT::TrackState in place of IMPL::TrackStateImpl where appropriate. 
+	    - The TrackState for the initialisation can be at any reference point.
+
+	  
   --------
  | v01-08 |
   -------- 
