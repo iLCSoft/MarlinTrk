@@ -226,16 +226,11 @@ namespace MarlinTrk{
   private:
     
     IMarlinTrack& operator=( const IMarlinTrack&) ; // disallow assignment operator 
-    
-    std::string errorCode( int error );
-    
-    
+                
   } ;
   
-  
-  
-  
-
+  /** Helper function to convert error return code to string */
+  std::string errorCode( int error );
   
   
   

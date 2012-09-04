@@ -19,8 +19,9 @@ namespace MarlinTrk{
   const int IMarlinTrack::site_fails_chi2_cut = 6 ;  // measurement discarded by the fitter due to chi2 cut
   const int IMarlinTrack::all_sites_fail_fit = 7 ;   // no single measurement added to the fit
   
+  
   /** Helper function to convert error return code to string */
-  std::string IMarlinTrack::errorCode( int error ){
+  std::string errorCode( int error ){
     
     switch ( error ){
       case IMarlinTrack::success                : return "IMarlinTrack::success";             break;
