@@ -36,20 +36,18 @@ namespace MarlinTrk{
     
     
     
-    static  const int modeBackward = - 1 ;
-    static  const int modeClosest  =   0 ;
-    static  const int modeForward  = + 1 ;
+    static  const int modeBackward ;
+    static  const int modeClosest  ;
+    static  const int modeForward  ;
     
     
-    static const int success  = 0 ;  // no error
-    static const int error = 1 ;
-    static const int bad_intputs = 3 ;
-    static const int no_intersection = 4 ; // no intersection found
-    static const int site_discarded = 5 ;  // measurement discarded by the fitter
-    static const int site_fails_chi2_cut = 6 ;  // measurement discarded by the fitter due to chi2 cut
-    static const int all_sites_fail_fit = 7 ;   // no single measurement added to the fit
-
-    
+    static const int success ;  // no error
+    static const int error ;
+    static const int bad_intputs ;
+    static const int no_intersection ; // no intersection found
+    static const int site_discarded ;  // measurement discarded by the fitter
+    static const int site_fails_chi2_cut ;  // measurement discarded by the fitter due to chi2 cut
+    static const int all_sites_fail_fit ;   // no single measurement added to the fit
     
     
     /**default d'tor*/
