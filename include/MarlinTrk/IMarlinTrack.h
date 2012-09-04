@@ -29,16 +29,16 @@ namespace MarlinTrk{
   public:
     
     /** boolean constant for defining backward direction - to be used for intitialise */
-    static const bool backward = false ;
+    static const bool backward ;
     
     /** boolean constant for defining backward direction - to be used for intitialise */
-    static const bool forward  = ! backward  ;
+    static const bool forward ;
     
     
     
-    static  const int modeBackward ;
-    static  const int modeClosest  ;
-    static  const int modeForward  ;
+    static const int modeBackward ;
+    static const int modeClosest  ;
+    static const int modeForward  ;
     
     
     static const int success ;  // no error
@@ -227,23 +227,15 @@ namespace MarlinTrk{
     
     IMarlinTrack& operator=( const IMarlinTrack&) ; // disallow assignment operator 
     
+    std::string errorCode( int error );
+    
+    
   } ;
   
   
   
   
-  /** Helper function to convert error return code to string */
-  inline std::string errorCode( int error ){
-    
-    switch ( error ){ 
-      case IMarlinTrack::success           : return "IMarlinTrack::success";         break;
-      case IMarlinTrack::error             : return "IMarlinTrack::error";           break;
-      case IMarlinTrack::bad_intputs       : return "IMarlinTrack::bad_intputs";     break;
-      case IMarlinTrack::no_intersection   : return "IMarlinTrack::no_intersection"; break;
-      case IMarlinTrack::site_discarded    : return "IMarlinTrack::site_discarded";  break;
-      default: return "UNKNOWN" ; 
-    }
-  }
+
   
   
   
