@@ -45,7 +45,7 @@ public:
     
     double deltaChi2 = site.GetDeltaChi2();
     
-    streamlog_out( DEBUG1 ) << " KalTrackFilter::IsAccepted called  !  deltaChi2 = "  <<  deltaChi2  << " _maxDeltaChi2 = " << _maxDeltaChi2 << std::endl;
+    streamlog_out( DEBUG1 ) << " KalTrackFilter::IsAccepted called  !  deltaChi2 = "  << std::scientific <<  deltaChi2  << " _maxDeltaChi2 = " << _maxDeltaChi2 << std::endl;
     _used_for_last_filter_step = true;
     
     return ( deltaChi2 < _maxDeltaChi2 )   ; 
@@ -123,7 +123,8 @@ namespace MarlinTrk {
       return this->addHit( trkhit, ml->ConvertLCIOTrkHit(trkhit), ml) ;
     }
     else {
-      return bad_intputs ;
+      streamlog_out( ERROR ) << " MarlinKalTestTrack::addHit - bad inputs " <<  trkhit << " ml : " << ml << std::endl ;
+       return bad_intputs ;
     }
     
   }
@@ -297,16 +298,16 @@ namespace MarlinTrk {
     
     _initialised = true ;
     
-    streamlog_out( DEBUG2 ) << " track parameters used for init : "
-    << "\t D0 "          <<  0.0
-    << "\t Phi :"        <<  toBaseRange( helstart.GetPhi0() + M_PI/2. )
-    << "\t Omega "       <<  1. /helstart.GetRho() 
-    << "\t Z0 "          <<  0.0
-    << "\t tan(Lambda) " <<  helstart.GetTanLambda()
-    
-    << "\t pivot : [" << helstart.GetPivot().X() << ", " << helstart.GetPivot().Y() << ", "  << helstart.GetPivot().Z()
-    << " - r: " << std::sqrt( helstart.GetPivot().X()*helstart.GetPivot().X()+helstart.GetPivot().Y()*helstart.GetPivot().Y() ) << "]"
-    << std::endl ;
+    streamlog_out( DEBUG2 ) << " track parameters used for init : " << std::scientific << std::setprecision(6) 
+			    << "\t D0 "          <<  0.0
+			    << "\t Phi :"        <<  toBaseRange( helstart.GetPhi0() + M_PI/2. )
+			    << "\t Omega "       <<  1. /helstart.GetRho() 
+			    << "\t Z0 "          <<  0.0
+			    << "\t tan(Lambda) " <<  helstart.GetTanLambda()
+      
+			    << "\t pivot : [" << helstart.GetPivot().X() << ", " << helstart.GetPivot().Y() << ", "  << helstart.GetPivot().Z()
+			    << " - r: " << std::sqrt( helstart.GetPivot().X()*helstart.GetPivot().X()+helstart.GetPivot().Y()*helstart.GetPivot().Y() ) << "]"
+			    << std::endl ;
     
 #ifdef MARLINTRK_DIAGNOSTICS_ON
     
@@ -334,6 +335,7 @@ namespace MarlinTrk {
     
 #endif
     
+
     return success ;
     
   }
@@ -562,14 +564,14 @@ namespace MarlinTrk {
     
 
 #endif
-    
+
     return success ;
     
   } 
   
   int MarlinKalTestTrack::addAndFit( ILDVTrackHit* kalhit, double& chi2increment, TKalTrackSite*& site, double maxChi2Increment) {
     
-    streamlog_out(DEBUG1) << "MarlinKalTestTrack::addAndFit called : maxChi2Increment = " << maxChi2Increment << std::endl ;
+    streamlog_out(DEBUG1) << "MarlinKalTestTrack::addAndFit called : maxChi2Increment = "  << std::scientific << maxChi2Increment << std::endl ;
     
     if ( ! _initialised ) {
       
@@ -859,13 +861,19 @@ namespace MarlinTrk {
     
     streamlog_out( DEBUG2 )  << "MarlinKalTestTrack::smooth() " << std::endl ;
     
-    //    _kaltrack->SmoothAll() ;
+    //fg: we should actually smooth all sites - it is then up to the user which smoothed tracks state to take 
+    //    for any furthter extrapolation/propagation ...
+ 
+    if( !_smoothed ) 
+      _kaltrack->SmoothAll() ;
     
     //SJA:FIXME: in the current implementation it is only possible to smooth back to the 4th site.
     // This is due to the fact that the covariance matrix is not well defined at the first 3 measurement sites filtered.
     
-    _kaltrack->SmoothBackTo( _hitIndexAtPositiveNDF + 1 ) ;
+    //    _kaltrack->SmoothBackTo( _hitIndexAtPositiveNDF + 1 ) ;
     
+   _smoothed = true ;
+
     return success ;
     
   }
