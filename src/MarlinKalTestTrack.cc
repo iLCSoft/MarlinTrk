@@ -357,7 +357,7 @@ namespace MarlinTrk {
       
     }
         
-    streamlog_out( DEBUG2 ) << " track parameters used for init : "
+    streamlog_out( DEBUG2 ) << "MarlinKalTestTrack::initialise using TrackState: track parameters used for init : "
     << "\t D0 "          <<  ts.getD0()         
     << "\t Phi :"        <<  ts.getPhi()        
     << "\t Omega "       <<  ts.getOmega()      
