@@ -508,7 +508,7 @@ namespace MarlinTrk {
     return_error = marlintrk->smooth(lastHit);
     
     if ( return_error != IMarlinTrack::success ) { 
-      streamlog_out(DEBUG4) << "MarlinTrk::finaliseLCIOTrack: return_code for smoothing to " << last_constrained_hit << " = " << return_error << " NDF = " << ndf << std::endl;
+      streamlog_out(DEBUG4) << "MarlinTrk::finaliseLCIOTrack: return_code for smoothing to " << lastHit << " = " << return_error << " NDF = " << ndf << std::endl;
       return return_error ;
     }
 
