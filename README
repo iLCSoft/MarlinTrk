@@ -24,6 +24,18 @@ specifically RefitProcessor which takes a track collection and refits each track
  =============================================================================================================
 
   ---------
+ | v01-10  |
+  ---------
+
+	 - General 
+	   - Made Debug output more consistent
+
+	 - MarlinKalTestTrack
+	   - Changed smooth() to do _kaltrack->SmoothAll(), previously _hitIndexAtPositiveNDF + 1 
+	   - Corrected orientation regarding transporting inwards or outwards in propagate. 
+
+
+  ---------
  | v01-09  |
   ---------
 
