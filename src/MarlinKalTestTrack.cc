@@ -1215,16 +1215,16 @@ namespace MarlinTrk {
     
     TMatrixD dxdphi = helix.CalcDxDphi(0);                        // tangent vector at last surface                       
     TVector3 dxdphiv(dxdphi(0,0),dxdphi(1,0),dxdphi(2,0));        // convert matirix diagonal to vector
-    Double_t cpa = helix.GetKappa();                              // get pt 
-    
-    Bool_t isout = -cpa*dxdphiv.Dot(sfp->GetOutwardNormal(x0)) < 0 ? kTRUE : kFALSE;  // out-going or in-coming at the destination surface
+//    Double_t cpa = helix.GetKappa();                              // get pt 
+
+    Bool_t isout = -dPhi*dxdphiv.Dot(sfp->GetOutwardNormal(x0)) < 0 ? kTRUE : kFALSE;  // out-going or in-coming at the destination surface
     
     // now move to the point
     TKalMatrix  DF(sdim,sdim);  
     DF.UnitMatrix();                           
     helix.MoveTo(  tpoint , dPhi , &DF , 0) ;  // move helix to desired point, and get propagator matrix
-    
-    TKalMatrix Qms(sdim, sdim);                                       
+
+    TKalMatrix Qms(sdim, sdim);
     ml->CalcQms(isout, helix, dPhi, Qms);     // calculate MS for the final step through the present material 
     
     TKalMatrix DFt  = TKalMatrix(TMatrixD::kTransposed, DF);
