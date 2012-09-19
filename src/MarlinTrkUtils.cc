@@ -548,13 +548,16 @@ namespace MarlinTrk {
     // @ first hit
     ///////////////////////////////////////////////////////
     
+    streamlog_out( DEBUG5 ) << "  >>>>>>>>>>> create TrackState AtFirstHit" << std::endl ;
+
+    
     return_error = marlintrk->getTrackState(firstHit, *trkStateAtFirstHit, chi2, ndf ) ;
     
     if ( return_error == 0 ) {
       trkStateAtFirstHit->setLocation(  lcio::TrackState::AtFirstHit ) ;
       track->trackStates().push_back(trkStateAtFirstHit);
     } else {
-      streamlog_out( DEBUG5 ) << "  >>>>>>>>>>> MarlinTrk::finaliseLCIOTrack:  could not get TrackState at First Hit " << firstHit << std::endl ;
+      streamlog_out( WARNING ) << "  >>>>>>>>>>> MarlinTrk::finaliseLCIOTrack:  could not get TrackState at First Hit " << firstHit << std::endl ;
       delete trkStateAtFirstHit;
     }
     
@@ -567,6 +570,8 @@ namespace MarlinTrk {
       ///////////////////////////////////////////////////////
       // @ last hit
       ///////////////////////////////////////////////////////  
+      
+      streamlog_out( DEBUG5 ) << "  >>>>>>>>>>> create TrackState AtLastHit : using trkhit " << last_constrained_hit << std::endl ;
       
       gear::Vector3D last_hit_pos(lastHit->getPosition());
       
@@ -600,7 +605,7 @@ namespace MarlinTrk {
         trkStateCalo->setLocation(  lcio::TrackState::AtCalorimeter ) ;
         track->trackStates().push_back(trkStateCalo);
       } else {
-        streamlog_out( DEBUG5 ) << "  >>>>>>>>>>> MarlinTrk::finaliseLCIOTrack:  could not get TrackState at Calo Face "  << std::endl ;
+        streamlog_out( WARNING ) << "  >>>>>>>>>>> MarlinTrk::finaliseLCIOTrack:  could not get TrackState at Calo Face "  << std::endl ;
         delete trkStateCalo;
       }
     
@@ -626,6 +631,8 @@ namespace MarlinTrk {
   
   
   int createTrackStateAtCaloFace( IMarlinTrack* marlintrk, IMPL::TrackStateImpl* trkStateCalo, EVENT::TrackerHit* trkhit, bool tanL_is_positive ){
+    
+    streamlog_out( DEBUG5 ) << "  >>>>>>>>>>> createTrackStateAtCaloFace : using trkhit " << trkhit << " tanL_is_positive = " << tanL_is_positive << std::endl ;
     
     ///////////////////////////////////////////////////////
     // check inputs 
