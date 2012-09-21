@@ -405,7 +405,7 @@ namespace MarlinTrk {
     cov( 2 , 1 ) =   covLCIO[ 4] / alpha ;           //   kappa, phi
     cov( 2 , 2 ) =   covLCIO[ 5] / (alpha * alpha) ; //   kappa, kappa
     cov( 2 , 3 ) =   covLCIO[ 8] / alpha ;           //   kappa, z0
-    cov( 2 , 3 ) =   covLCIO[12] / alpha ;           //   kappa, tanl    
+    cov( 2 , 4 ) =   covLCIO[12] / alpha ;           //   kappa, tanl
     
     cov( 3 , 0 ) = - covLCIO[ 6] ;                   //   z0, d0
     cov( 3 , 1 ) =   covLCIO[ 7] ;                   //   z0, phi
