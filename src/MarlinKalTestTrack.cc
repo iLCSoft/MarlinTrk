@@ -37,7 +37,7 @@ public:
   
   /** C'tor - takes as optional argument the maximum allowed delta chi2 for adding the hit (in IsAccepted() )
    */
-  KalTrackFilter(double maxDeltaChi2 = DBL_MAX) : _maxDeltaChi2( maxDeltaChi2 ), _used_for_last_filter_step(false) {
+  KalTrackFilter(double maxDeltaChi2 = DBL_MAX) : _maxDeltaChi2( maxDeltaChi2 ), _passed_last_filter_step(true) {
   } 
   virtual ~KalTrackFilter() {} 
   
@@ -46,18 +46,19 @@ public:
     double deltaChi2 = site.GetDeltaChi2();
     
     streamlog_out( DEBUG1 ) << " KalTrackFilter::IsAccepted called  !  deltaChi2 = "  << std::scientific <<  deltaChi2  << " _maxDeltaChi2 = " << _maxDeltaChi2 << std::endl;
-    _used_for_last_filter_step = true;
-    
-    return ( deltaChi2 < _maxDeltaChi2 )   ; 
+
+    _passed_last_filter_step = deltaChi2 < _maxDeltaChi2;
+        
+    return ( _passed_last_filter_step )   ; 
   }
   
-  void resetUsedStatus() { _used_for_last_filter_step = false; }
-  bool usedForLastFilterStep() const { return _used_for_last_filter_step; } 
+  void resetFilterStatus() { _passed_last_filter_step = true; }
+  bool passedLastFilterStep() const { return _passed_last_filter_step; }
   
 protected:
   
   double _maxDeltaChi2 ;
-  bool _used_for_last_filter_step;
+  bool _passed_last_filter_step;
   
 } ;
 
@@ -581,7 +582,7 @@ namespace MarlinTrk {
     
     // here do dynamic cast repeatedly in DEBUG statement as this will be stripped out any way for production code
     // otherwise we have to do the cast outside of the DEBUG statement and it won't be stripped out 
-    streamlog_out( DEBUG1 )  << "Kaltrack::fit :  add site to track at index : " 
+    streamlog_out( DEBUG1 )  << "Kaltrack::addAndFit :  add site to track at index : " 
     << (dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) ))->GetIndex() 
     << " for type " 
     << dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) )->GetName() ;
@@ -598,6 +599,7 @@ namespace MarlinTrk {
     TKalTrackSite* temp_site = new TKalTrackSite(*kalhit); // create new site for this hit
     
     KalTrackFilter filter( maxChi2Increment );
+    filter.resetFilterStatus();
     
     temp_site->SetFilterCond( &filter ) ;
     
@@ -614,7 +616,7 @@ namespace MarlinTrk {
       // get the measurement layer of the current hit
       const ILDVMeasLayer* ml =  dynamic_cast<const ILDVMeasLayer*>( &(kalhit->GetMeasLayer() ) ) ;
       TVector3 pos = ml->HitToXv(*kalhit);
-      streamlog_out( DEBUG1 )  << "Kaltrack::fit : site discarded! at index : " << ml->GetIndex()
+      streamlog_out( DEBUG1 )  << "Kaltrack::addAndFit : site discarded! at index : " << ml->GetIndex()
       << " for type " << ml->GetName() 
       << " chi2increment = " << chi2increment
       << " maxChi2Increment = " << maxChi2Increment
@@ -653,7 +655,13 @@ namespace MarlinTrk {
       //return ( true ? site_fails_chi2_cut : site_discarded);
       
       // and this also works..
-      if( filter.usedForLastFilterStep() ) { return site_fails_chi2_cut ; } else { return site_discarded ; }
+      streamlog_out(DEBUG2) << " addAndFit : Site Fails Chi2 cut ? " << filter.passedLastFilterStep() << std::endl;
+
+      if( filter.passedLastFilterStep() == false ) {
+        return site_fails_chi2_cut ;
+      } else {
+        return site_discarded ;
+      }
       
     }
     
@@ -698,8 +706,19 @@ namespace MarlinTrk {
     int error_code = this->addAndFit( kalhit, chi2increment, site, maxChi2Increment);
     
     if( error_code != success ){
+
       delete kalhit;
-      if( error_code == site_fails_chi2_cut ) _outlier_chi2_values.push_back(std::make_pair(trkhit, chi2increment));
+
+      // if the hit fails for any reason other than the Chi2 cut record the Chi2 contibution as DBL_MAX
+      if( error_code != site_fails_chi2_cut ) {
+        chi2increment = DBL_MAX;
+      }
+
+      _outlier_chi2_values.push_back(std::make_pair(trkhit, chi2increment));
+
+      streamlog_out( DEBUG2 ) << ">>>>>>>>>>>  addAndFit Number of Outliers : "
+      << _outlier_chi2_values.size() << std::endl;
+      
       return error_code ;
     }
     else {
@@ -828,7 +847,16 @@ namespace MarlinTrk {
             
       } 
       else { // hit rejected by the filter, so store in the list of rejected hits
-        if( error_code == site_fails_chi2_cut ) _outlier_chi2_values.push_back(std::make_pair(trkhit, chi2increment));
+
+        // if the hit fails for any reason other than the Chi2 cut record the Chi2 contibution as DBL_MAX
+        if( error_code != site_fails_chi2_cut ) {
+          chi2increment = DBL_MAX;
+        }
+        
+        _outlier_chi2_values.push_back(std::make_pair(trkhit, chi2increment));
+        streamlog_out( DEBUG2 ) << ">>>>>>>>>>>  fit(): Number of Outliers : "
+        << _outlier_chi2_values.size() << std::endl;
+
         _hit_not_used_for_sites.push_back(trkhit) ;
         
       }
