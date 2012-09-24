@@ -8,6 +8,8 @@
 #ifndef TrkAnalysisTree_h
 #define TrkAnalysisTree_h
 
+#include <cstdlib>
+
 #include <TROOT.h>
 #include <TChain.h>
 #include <TFile.h>
