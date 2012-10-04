@@ -23,6 +23,13 @@ specifically RefitProcessor which takes a track collection and refits each track
 
  =============================================================================================================
 
+  ------------
+ | v01-10-01  |
+  ------------
+
+         - Added some more diagnostics, no change to algorithms.
+
+
   ---------
  | v01-10  |
   ---------
