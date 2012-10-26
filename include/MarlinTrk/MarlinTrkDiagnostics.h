@@ -8,6 +8,7 @@
 
 #include "lcio.h"
 #include "EVENT/SimTrackerHit.h"
+#include "EVENT/TrackerHit.h"
 
 
 namespace MarlinTrk{
@@ -20,6 +21,8 @@ namespace MarlinTrk{
   } ; 
   struct MCTruth4HitExt : lcio::LCOwnedExtension<MCTruth4HitExt, MCTruth4HitExtStruct> {} ;
   
+  // fills a vector of MCParticle pointers with the MCParticles assosiated with the provided tracker hit using MCTruth4HitExtStruct
+  void getMCParticlesForTrackerHit(EVENT::TrackerHit* trkhit, std::vector<EVENT::MCParticle*>& mcps) ;
   
 }
 
