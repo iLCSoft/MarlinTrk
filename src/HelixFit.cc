@@ -42,7 +42,7 @@ namespace MarlinTrk{
     
     double alf,a0,a1,a2,a22,bet,cur,
     dd,den,det,dy,d2,f,fact,fg,f1,g,gam,gam0,g1,
-    h,h2,p2,q2,rm,rn,root,
+    h,h2,p2,q2,rm,rn,
     xa,xb,xd,xi,xm,xx,xy,x1,x2,den2,
     ya,yb,yd,yi,ym,yy,y1,y2,wn,sa2b2,dd0,phic,aaa;
     
@@ -173,8 +173,6 @@ namespace MarlinTrk{
     
     //  **      
     
-    
-    root = xb;
     gam = gam0*xb;
     f1 = f - gam;
     g1 = g - gam;
