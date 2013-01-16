@@ -1196,7 +1196,7 @@ namespace MarlinTrk {
     TKalTrackState& trkState = (TKalTrackState&) site.GetCurState(); // this segfaults if no hits are present
     
     THelicalTrack helix = trkState.GetHelix() ;
-    double dPhi ;
+    double dPhi = 0.0;
     
     
     Int_t sdim = trkState.GetDimension();  // dimensions of the track state, it will be 5 or 6
