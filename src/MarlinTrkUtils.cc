@@ -509,6 +509,8 @@ namespace MarlinTrk {
     
     if ( return_error != IMarlinTrack::success ) { 
       streamlog_out(DEBUG4) << "MarlinTrk::finaliseLCIOTrack: return_code for smoothing to " << lastHit << " = " << return_error << " NDF = " << ndf << std::endl;
+      delete trkStateAtFirstHit;
+      delete trkStateAtLastHit;
       return return_error ;
     }
 
@@ -531,6 +533,9 @@ namespace MarlinTrk {
     if ( return_error != IMarlinTrack::success ) { 
       streamlog_out(DEBUG4) << "MarlinTrk::finaliseLCIOTrack: return_code for propagation = " << return_error << " NDF = " << ndf << std::endl;
       delete trkStateIP;
+      delete trkStateAtFirstHit;
+      delete trkStateAtLastHit;
+
       return return_error ;
     }
     
