@@ -85,6 +85,7 @@ namespace MarlinTrk {
     _kalhits->SetOwner() ;
     
     _initialised = false ;
+    _fitDirection = false ;
     _smoothed = false ;
     
     _trackHitAtPositiveNDF = 0;
