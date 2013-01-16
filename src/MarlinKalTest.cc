@@ -38,6 +38,7 @@ namespace MarlinTrk{
   
   
   MarlinKalTest::MarlinKalTest( const gear::GearMgr& gearMgr) : 
+  _ipLayer(NULL) ,
   _gearMgr( &gearMgr ) {
     
     streamlog_out( DEBUG4 ) << "  MarlinKalTest - initializing the detector ..." << std::endl ;
