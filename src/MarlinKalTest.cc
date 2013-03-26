@@ -16,6 +16,8 @@
 #include "kaldet/ILDFTDDiscBasedKalDetector.h"
 #include "kaldet/ILDTPCKalDetector.h"
 
+#include "kaldet/LCTPCKalDetector.h"
+
 //SJA:FIXME: only needed for storing the modules in the layers map
 #include <UTIL/BitField64.h>
 #include "UTIL/ILDConf.h"
@@ -85,103 +87,116 @@ namespace MarlinTrk{
        streamlog_out( DEBUG4 ) << "  MarlinKalTest - MeasurementSurfaceStore is already full. Using store as filled by MeasurementSurfaceStoreFiller " << surfstore.getFillerName() << std::endl ;
       
     }
-  
-    
-    try{
-      ILDSupportKalDetector* supportdet = new ILDSupportKalDetector( *_gearMgr )  ;   
-      // get the dedicated ip layer
-      _ipLayer = supportdet->getIPLayer() ;
-      // store the measurement layer id's for the active layers, Calo is defined as active
-      this->storeActiveMeasurementModuleIDs(supportdet);
-      _det->Install( *supportdet ) ;  
-    }
-    catch( gear::UnknownParameterException& e){   
-      
-      streamlog_out( ERROR ) << "MarlinKalTest - Support Material missing in gear file: Cannot proceed as propagations and extrapolations for cannonical track states are impossible: exit(1) called" << std::endl ; 
-      exit(1);  
-      
-    }
-    
-    try{
-      ILDVXDKalDetector* vxddet = new ILDVXDKalDetector( *_gearMgr )  ;
-      // store the measurement layer id's for the active layers 
-      this->storeActiveMeasurementModuleIDs(vxddet); 
-      _det->Install( *vxddet ) ;  
-    }
-    catch( gear::UnknownParameterException& e){   
-      streamlog_out( MESSAGE ) << "  MarlinKalTest - VXD missing in gear file: VXD Material Not Built " << std::endl ;
-    }
-    
-    
-    bool SIT_found = false ;
-    try{
-      ILDSITKalDetector* sitdet = new ILDSITKalDetector( *_gearMgr )  ;
-      // store the measurement layer id's for the active layers 
-      this->storeActiveMeasurementModuleIDs(sitdet);
-      _det->Install( *sitdet ) ; 
-      SIT_found = true ;
-    }
-    catch( gear::UnknownParameterException& e){   
-      streamlog_out( MESSAGE ) << "  MarlinKalTest - SIT missing in gear file: SIT Not Built " << std::endl ;  
-    }
-    
-    if( ! SIT_found ){
+
+    if (_gearMgr -> getDetectorName() == "LPTPC") {
       try{
-        ILDSITCylinderKalDetector* sitdet = new ILDSITCylinderKalDetector( *_gearMgr )  ;
+        kaldet::LCTPCKalDetector* tpcdet = new kaldet::LCTPCKalDetector( *_gearMgr )  ;
+        // store the measurement layer id's for the active layers
+        this->storeActiveMeasurementModuleIDs(tpcdet);
+        _det->Install( *tpcdet ) ;
+      }
+      catch( gear::UnknownParameterException& e){
+        streamlog_out( MESSAGE ) << "  MarlinKalTest - TPC missing in gear file: TPC Not Built " << std::endl ;
+      }
+    }
+    else {
+    
+      try{
+        ILDSupportKalDetector* supportdet = new ILDSupportKalDetector( *_gearMgr )  ;
+        // get the dedicated ip layer
+        _ipLayer = supportdet->getIPLayer() ;
+        // store the measurement layer id's for the active layers, Calo is defined as active
+        this->storeActiveMeasurementModuleIDs(supportdet);
+        _det->Install( *supportdet ) ;
+      }
+      catch( gear::UnknownParameterException& e){
+
+        streamlog_out( ERROR ) << "MarlinKalTest - Support Material missing in gear file: Cannot proceed as propagations and extrapolations for cannonical track states are impossible: exit(1) called" << std::endl ;
+        exit(1);
+
+      }
+
+      try{
+        ILDVXDKalDetector* vxddet = new ILDVXDKalDetector( *_gearMgr )  ;
+        // store the measurement layer id's for the active layers
+        this->storeActiveMeasurementModuleIDs(vxddet);
+        _det->Install( *vxddet ) ;
+      }
+      catch( gear::UnknownParameterException& e){
+        streamlog_out( MESSAGE ) << "  MarlinKalTest - VXD missing in gear file: VXD Material Not Built " << std::endl ;
+      }
+      
+      
+      bool SIT_found = false ;
+      try{
+        ILDSITKalDetector* sitdet = new ILDSITKalDetector( *_gearMgr )  ;
         // store the measurement layer id's for the active layers 
         this->storeActiveMeasurementModuleIDs(sitdet);
-        _det->Install( *sitdet ) ;    
+        _det->Install( *sitdet ) ;
+        SIT_found = true ;
+      }
+      catch( gear::UnknownParameterException& e){
+        streamlog_out( MESSAGE ) << "  MarlinKalTest - SIT missing in gear file: SIT Not Built " << std::endl ;
+      }
+
+      if( ! SIT_found ){
+        try{
+          ILDSITCylinderKalDetector* sitdet = new ILDSITCylinderKalDetector( *_gearMgr )  ;
+          // store the measurement layer id's for the active layers
+          this->storeActiveMeasurementModuleIDs(sitdet);
+          _det->Install( *sitdet ) ;
+        }
+        catch( gear::UnknownParameterException& e){
+          streamlog_out( MESSAGE ) << "  MarlinKalTest - Simple Cylinder Based SIT missing in gear file: Simple Cylinder Based SIT Not Built " << std::endl ;
+        }
+      }
+
+      try{
+        ILDSETKalDetector* setdet = new ILDSETKalDetector( *_gearMgr )  ;
+        // store the measurement layer id's for the active layers
+        this->storeActiveMeasurementModuleIDs(setdet);
+        _det->Install( *setdet ) ;
       }
       catch( gear::UnknownParameterException& e){   
-        streamlog_out( MESSAGE ) << "  MarlinKalTest - Simple Cylinder Based SIT missing in gear file: Simple Cylinder Based SIT Not Built " << std::endl ;
+        streamlog_out( MESSAGE ) << "  MarlinKalTest - SET missing in gear file: SET Not Built " << std::endl ;
       }
-    }
-    
-    try{
-      ILDSETKalDetector* setdet = new ILDSETKalDetector( *_gearMgr )  ;
-      // store the measurement layer id's for the active layers 
-      this->storeActiveMeasurementModuleIDs(setdet);
-      _det->Install( *setdet ) ; 
-    }
-    catch( gear::UnknownParameterException& e){   
-      streamlog_out( MESSAGE ) << "  MarlinKalTest - SET missing in gear file: SET Not Built " << std::endl ;  
-    }
 
-    
-    bool FTD_found = false ;
-    try{
-      ILDFTDKalDetector* ftddet = new ILDFTDKalDetector( *_gearMgr )  ;
-      // store the measurement layer id's for the active layers 
-      this->storeActiveMeasurementModuleIDs(ftddet);
-      _det->Install( *ftddet ) ;    
-      FTD_found = true ;
-    }
-    catch( gear::UnknownParameterException& e){   
-      streamlog_out( MESSAGE ) << "  MarlinKalTest - Petal Based FTD missing in gear file: Petal Based FTD Not Built " << std::endl ;
-    }
-    
-    if( ! FTD_found ){
+
+      bool FTD_found = false ;
       try{
-        ILDFTDDiscBasedKalDetector* ftddet = new ILDFTDDiscBasedKalDetector( *_gearMgr )  ;
+        ILDFTDKalDetector* ftddet = new ILDFTDKalDetector( *_gearMgr )  ;
         // store the measurement layer id's for the active layers 
         this->storeActiveMeasurementModuleIDs(ftddet);
         _det->Install( *ftddet ) ;    
+        FTD_found = true ;
+      }
+      catch( gear::UnknownParameterException& e){
+        streamlog_out( MESSAGE ) << "  MarlinKalTest - Petal Based FTD missing in gear file: Petal Based FTD Not Built " << std::endl ;
+      }
+
+      if( ! FTD_found ){
+        try{
+          ILDFTDDiscBasedKalDetector* ftddet = new ILDFTDDiscBasedKalDetector( *_gearMgr )  ;
+          // store the measurement layer id's for the active layers
+          this->storeActiveMeasurementModuleIDs(ftddet);
+          _det->Install( *ftddet ) ;
+        }
+        catch( gear::UnknownParameterException& e){
+          streamlog_out( MESSAGE ) << "  MarlinKalTest - Simple Disc Based FTD missing in gear file: Simple Disc Based FTD Not Built " << std::endl ;
+        }
+      }
+
+      try{
+        ILDTPCKalDetector* tpcdet = new ILDTPCKalDetector( *_gearMgr )  ;
+        // store the measurement layer id's for the active layers
+        this->storeActiveMeasurementModuleIDs(tpcdet);
+        _det->Install( *tpcdet ) ;
       }
       catch( gear::UnknownParameterException& e){   
-        streamlog_out( MESSAGE ) << "  MarlinKalTest - Simple Disc Based FTD missing in gear file: Simple Disc Based FTD Not Built " << std::endl ;
+        streamlog_out( MESSAGE ) << "  MarlinKalTest - TPC missing in gear file: TPC Not Built " << std::endl ;
       }
     }
-    
-    try{
-      ILDTPCKalDetector* tpcdet = new ILDTPCKalDetector( *_gearMgr )  ;
-      // store the measurement layer id's for the active layers 
-      this->storeActiveMeasurementModuleIDs(tpcdet);
-      _det->Install( *tpcdet ) ;  
-    }
-    catch( gear::UnknownParameterException& e){   
-      streamlog_out( MESSAGE ) << "  MarlinKalTest - TPC missing in gear file: TPC Not Built " << std::endl ;
-    }
-    
+
     _det->Close() ;          // close the cradle
     _det->Sort() ;           // sort meas. layers from inside to outside
     
