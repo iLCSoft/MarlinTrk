@@ -375,7 +375,10 @@ namespace MarlinTrk {
     
     // for GeV, Tesla, R in mm  
     double alpha = bfield_z * 2.99792458E-4 ;
-    double kappa = ts.getOmega() / alpha ;
+    double kappa;
+    if ( bfield_z == 0.0 )
+      kappa = DBL_MAX;
+    else kappa = ts.getOmega() / alpha ;
     
     THelicalTrack helix( -ts.getD0(),
                         toBaseRange( ts.getPhi() - M_PI/2. ) ,
@@ -1181,7 +1184,13 @@ namespace MarlinTrk {
     
     // check if the point is inside the beampipe
     // SJA:FIXME: really we should also check if the PCA to the point is also less than R
-    const ILDVMeasLayer* ml = (point.r() < _ktest->getIPLayer()->GetR()) ? _ktest->getIPLayer() : 0;
+
+    const ILDVMeasLayer* ml = _ktest->getIPLayer();
+
+    if ( ml )
+      if (point.r() > _ktest->getIPLayer()->GetR()) ml = NULL;
+
+//    const ILDVMeasLayer* ml = (point.r() < _ktest->getIPLayer()->GetR()) ? _ktest->getIPLayer() : 0;
     
     return this->propagate( point, *site, ts, chi2, ndf, ml ) ;
     
@@ -1440,9 +1449,8 @@ namespace MarlinTrk {
     
     if( meas_modules.size() == 0 ) {
       
-      std::stringstream errorMsg;
-      errorMsg << "MarlinKalTestTrack::intersectionWithLayer layer id unkown: layerID = " << decodeILD( layerID ) << std::endl ; 
-      throw MarlinTrk::Exception(errorMsg.str());
+      streamlog_out(DEBUG5)<< "MarlinKalTestTrack::intersectionWithLayer layer id unknown: layerID = " << decodeILD( layerID ) << std::endl ;
+      return no_intersection;
       
     } 
     
