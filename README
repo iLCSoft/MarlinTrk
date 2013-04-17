@@ -23,6 +23,19 @@ specifically RefitProcessor which takes a track collection and refits each track
 
  =============================================================================================================
 
+  ---------
+ | v01-11  |
+  ---------
+
+         - Improved readability of the MarlinTrkUtils functions
+         - Added LCTPC-specific modifications:
+           - geometry building is now based on the detector name from GEAR
+           - Magnetic field may be zero -> avoid the value of infinity for kappa
+           - Interaction Point (IP) meas. layer may not exist for LCTPC
+           - Do not throw exception if the layer is not found, return "no_intersection" code
+             instead. This avoids the problem if some of the state is not or cannot be available,
+             e.g. the IP and CaloFace states are not (yet?) defined for the LCTPC geometry
+
   ------------
  | v01-10-01  |
   ------------
