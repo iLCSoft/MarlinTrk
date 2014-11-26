@@ -28,7 +28,7 @@ namespace MarlinTrk{
      *  For now only KalTest.
      */
     static IMarlinTrkSystem* createMarlinTrkSystem(const std::string& systemType,  
-                                                   const gear::GearMgr* mgr , 
+                                                   const gear::GearMgr* gearMgr,
                                                    const std::string& options ) ;
     
     

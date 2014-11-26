@@ -15,6 +15,7 @@
 #include <UTIL/BitField64.h>
 #include <UTIL/ILDConf.h>
 #include <UTIL/BitSet32.h>
+#include <UTIL/Operators.h>
 
 #include "streamlog/streamlog.h"
 
@@ -113,6 +114,10 @@ namespace MarlinTrk {
       
     return_error = createPrefit(hit_list, &pre_fit, bfield_z, fit_backwards);
     
+
+    streamlog_out( DEBUG0 ) << " **** createFinalisedLCIOTrack - created pre-fit: " << pre_fit << std::endl ;
+
+
     pre_fit.setCovMatrix(initial_cov_for_prefit);
 
     ///////////////////////////////////////////////////////
@@ -234,7 +239,7 @@ namespace MarlinTrk {
             
             isSuccessful = true; //if at least one hit from the spacepoint gets added
             ++ndof_added;
-//            streamlog_out(DEBUG4) << "MarlinTrk::createFit ndof_added = " << ndof_added << std::endl;
+            streamlog_out(DEBUG4) << "MarlinTrk::createFit ndof_added = " << ndof_added << std::endl;
           }
         }
       }
@@ -243,7 +248,7 @@ namespace MarlinTrk {
         if (marlinTrk->addHit( trkHit ) == IMarlinTrack::success ) {
           isSuccessful = true;
           ndof_added += 2;
-//          streamlog_out(DEBUG4) << "MarlinTrk::createFit ndof_added = " << ndof_added << std::endl;          
+	  streamlog_out(DEBUG4) << "MarlinTrk::createFit ndof_added = " << ndof_added << std::endl;          
         }
       }
       
