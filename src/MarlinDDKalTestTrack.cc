@@ -20,7 +20,7 @@
 #include "DDKalTest/DDCylinderMeasLayer.h" // needed for dedicated IP Layer
 #include "DDKalTest/DDCylinderHit.h"
 #include "DDKalTest/DDPlanarHit.h"
-#include "DDKalTest/DDPlanarStripHit.h"
+//#include "DDKalTest/DDPlanarStripHit.h"
 
 #include "gear/GEAR.h"
 #include "gear/BField.h"
@@ -201,9 +201,9 @@ namespace MarlinTrk {
     else if ( (pDummyHit = dynamic_cast<DDPlanarHit *>( startingHit )) ) {
       pDummyHit = (new DDPlanarHit(*static_cast<DDPlanarHit*>( startingHit )));
     }
-    else if ( DDPlanarStripHit_DIM == 2 && (pDummyHit = dynamic_cast<DDPlanarStripHit *>( startingHit )) ) {
-      pDummyHit = (new DDPlanarStripHit(*static_cast<DDPlanarStripHit*>( startingHit )));
-    }
+    // else if ( DDPlanarStripHit_DIM == 2 && (pDummyHit = dynamic_cast<DDPlanarStripHit *>( startingHit )) ) {
+    //   pDummyHit = (new DDPlanarStripHit(*static_cast<DDPlanarStripHit*>( startingHit )));
+    // }
     else {
       streamlog_out( ERROR) << "<<<<<<<<< MarlinDDKalTestTrack::initialise: dynamic_cast failed for hit type >>>>>>>" << std::endl;
       return error ;
@@ -463,26 +463,26 @@ namespace MarlinTrk {
     }
     else if ( (pDummyHit = dynamic_cast<DDPlanarHit *>( kalhit )) ) {
       pDummyHit = (new DDPlanarHit(*static_cast<DDPlanarHit*>( kalhit )));
-    }
-    else if ( (pDummyHit = dynamic_cast<DDPlanarStripHit *>( kalhit )) ) {
+      //}
+      //else if ( (pDummyHit = dynamic_cast<DDPlanarStripHit *>( kalhit )) ) {
+      //pDummyHit = (new DDPlanarStripHit(*static_cast<DDPlanarStripHit*>( kalhit )));
+      if( pDummyHit->GetDimension() == 1 ) {
       
-      pDummyHit = (new DDPlanarStripHit(*static_cast<DDPlanarStripHit*>( kalhit )));
-
-      const TVMeasLayer *ml = &pDummyHit->GetMeasLayer();
-      
-      const TVSurface* surf = dynamic_cast<const TVSurface*>(ml);
-      
-      if (surf) {
-        double phi;
-
-        surf->CalcXingPointWith(helix, initial_pivot, phi);        
-
-      } else {
-        streamlog_out( ERROR) << "<<<<<<<<< MarlinDDKalTestTrack::initialise: dynamic_cast failed for TVSurface  >>>>>>>" << std::endl;
-        return error ;        
+	const TVMeasLayer *ml = &pDummyHit->GetMeasLayer();
+	
+	const TVSurface* surf = dynamic_cast<const TVSurface*>(ml);
+	
+	if (surf) {
+	  double phi;
+	  
+	  surf->CalcXingPointWith(helix, initial_pivot, phi);        
+	  
+	} else {
+	  streamlog_out( ERROR) << "<<<<<<<<< MarlinDDKalTestTrack::initialise: dynamic_cast failed for TVSurface  >>>>>>>" << std::endl;
+	  return error ;        
+	}
+	
       }
-            
-    
     }
     else {
       streamlog_out( ERROR) << "<<<<<<<<< MarlinDDKalTestTrack::initialise: dynamic_cast failed for hit type >>>>>>>" << std::endl;
@@ -1168,7 +1168,7 @@ namespace MarlinTrk {
     
     // check if the point is inside the beampipe
     // SJA:FIXME: really we should also check if the PCA to the point is also less than R
-    const DDVMeasLayer* ml = (point.r() < _ktest->getIPLayer()->GetR()) ? _ktest->getIPLayer() : 0;
+    const DDVMeasLayer* ml = (  (_ktest->getIPLayer() ) && point.r() < _ktest->getIPLayer()->GetR()) ? _ktest->getIPLayer() : 0;
     
     return this->propagate( point, site, ts, chi2, ndf, ml ) ;
     

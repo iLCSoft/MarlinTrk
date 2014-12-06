@@ -120,6 +120,7 @@ namespace MarlinTrk {
 
     pre_fit.setCovMatrix(initial_cov_for_prefit);
 
+
     ///////////////////////////////////////////////////////
     // use prefit parameters to produce Finalised track
     ///////////////////////////////////////////////////////
@@ -281,6 +282,21 @@ namespace MarlinTrk {
       
     }
     
+    
+#if 0 // DEBUG code:
+
+    IMPL::TrackStateImpl ts ; 
+    double chi2(0) ;
+    int ndf(0) ;
+    int ii = marlinTrk->propagate( gear::Vector3D(),  ts, chi2, ndf ) ;
+    
+    streamlog_out(DEBUG5) << " MarlinTrk::createFit:   pre-fit, propagated to the IP : " << ts << std::endl ;
+
+    
+    return IMarlinTrack::success ;
+#endif
+
+
     ///////////////////////////////////////////////////////
     // try fit and return error
     ///////////////////////////////////////////////////////
