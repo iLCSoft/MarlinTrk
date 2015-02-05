@@ -579,7 +579,7 @@ namespace MarlinTrk {
     
     return_error = marlintrk->getTrackState(firstHit, *trkStateAtFirstHit, chi2, ndf ) ;
     
-    if ( return_error == 0 ) {
+    if ( return_error == IMarlinTrack::success ) {
       trkStateAtFirstHit->setLocation(  lcio::TrackState::AtFirstHit ) ;
       track->trackStates().push_back(trkStateAtFirstHit);
     } else {
@@ -605,7 +605,7 @@ namespace MarlinTrk {
             
 //      return_error = marlintrk->getTrackState(lastHit, *trkStateAtLastHit, chi2, ndf ) ;
       
-      if ( return_error == 0 ) {
+      if ( return_error == IMarlinTrack::success ) {
         trkStateAtLastHit->setLocation(  lcio::TrackState::AtLastHit ) ;
         track->trackStates().push_back(trkStateAtLastHit);
       } else {
@@ -617,6 +617,8 @@ namespace MarlinTrk {
 //      
 //      Matrix_Is_Positive_Definite( ma );
 
+
+
       ///////////////////////////////////////////////////////
       // set the track state at Calo Face 
       ///////////////////////////////////////////////////////
@@ -625,16 +627,23 @@ namespace MarlinTrk {
       bool tanL_is_positive = trkStateIP->getTanLambda()>0 ;
       
       return_error = createTrackStateAtCaloFace(marlintrk, trkStateCalo, last_constrained_hit, tanL_is_positive);
-//      return_error = createTrackStateAtCaloFace(marlintrk, trkStateCalo, lastHit, tanL_is_positive);
+      //      return_error = createTrackStateAtCaloFace(marlintrk, trkStateCalo, lastHit, tanL_is_positive);
       
-      if ( return_error == 0 ) {
+      if ( return_error == IMarlinTrack::success ) {
         trkStateCalo->setLocation(  lcio::TrackState::AtCalorimeter ) ;
         track->trackStates().push_back(trkStateCalo);
       } else {
         streamlog_out( WARNING ) << "  >>>>>>>>>>> MarlinTrk::finaliseLCIOTrack:  could not get TrackState at Calo Face "  << std::endl ;
         delete trkStateCalo;
+
+	//FIXME: ignore track state at Calo face for debugging new tracking ...
+#if 1
+	return_error = IMarlinTrack::success ;
+        streamlog_out( WARNING ) << "                ignore missing TrackState at Calo Face  for debugging " << std::endl ;
+#endif    
+
       }
-    
+
       
     } else {
       track->trackStates().push_back(atLastHit);

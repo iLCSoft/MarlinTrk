@@ -476,7 +476,8 @@ namespace MarlinTrk {
 	  double phi;
 	  
 	  surf->CalcXingPointWith(helix, initial_pivot, phi);        
-	  
+	  streamlog_out( DEBUG ) <<  "  MarlinDDKalTestTrack::initialise - CalcXingPointWith called for 1d hit ... " << std::endl ;
+
 	} else {
 	  streamlog_out( ERROR) << "<<<<<<<<< MarlinDDKalTestTrack::initialise: dynamic_cast failed for TVSurface  >>>>>>>" << std::endl;
 	  return error ;        
