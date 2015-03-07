@@ -36,7 +36,7 @@ namespace MarlinTrk{
       IMarlinTrack* marlinTrk,
       std::vector<EVENT::TrackerHit*>& hit_list,
       IMPL::TrackImpl* track,
-      bool fit_backwards,
+      bool fit_direction,
       EVENT::TrackState* pre_fit,
       float bfield_z,
       double maxChi2Increment=DBL_MAX);
@@ -48,16 +48,16 @@ namespace MarlinTrk{
       IMarlinTrack* marlinTrk,
       std::vector<EVENT::TrackerHit*>& hit_list,
       IMPL::TrackImpl* track,
-      bool fit_backwards,
+      bool fit_direction,
       const EVENT::FloatVec& initial_cov_for_prefit,
       float bfield_z,
       double maxChi2Increment=DBL_MAX);
   
   /** Provides the values of a track state from the first, middle and last hits in the hit_list. */
-  int createPrefit( std::vector<EVENT::TrackerHit*>& hit_list, IMPL::TrackStateImpl* pre_fit, float bfield_z, bool fit_backwards );
+  int createPrefit( std::vector<EVENT::TrackerHit*>& hit_list, IMPL::TrackStateImpl* pre_fit, float bfield_z, bool fit_direction );
 
   /** Takes a list of hits and uses the IMarlinTrack inferface to fit them using a supplied prefit containing a covariance matrix for the initialisation. */  
-  int createFit( std::vector<EVENT::TrackerHit*>& hit_list, IMarlinTrack* marlinTrk, EVENT::TrackState* pre_fit, float bfield_z, bool fit_backwards, double maxChi2Increment=DBL_MAX );
+  int createFit( std::vector<EVENT::TrackerHit*>& hit_list, IMarlinTrack* marlinTrk, EVENT::TrackState* pre_fit, float bfield_z, bool fit_direction, double maxChi2Increment=DBL_MAX );
 
   /** Takes a fitted MarlinTrack, TrackImpl to record the fit and the hits which have been added to the fit.
    *  The TrackImpl will have the 4 trackstates added to it @IP, @First_Hit, @Last_Hit and @CaloFace.
@@ -68,6 +68,7 @@ namespace MarlinTrk{
       IMarlinTrack* marlinTrk,
       IMPL::TrackImpl* track,
       std::vector<EVENT::TrackerHit*>& hit_list,
+      bool fit_direction,
       IMPL::TrackStateImpl* atLastHit=0,
       IMPL::TrackStateImpl* atCaloFace=0);
   

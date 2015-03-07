@@ -91,7 +91,7 @@ namespace MarlinTrk {
   
   int createTrackStateAtCaloFace( IMarlinTrack* marlinTrk, IMPL::TrackStateImpl* track, EVENT::TrackerHit* trkhit, bool tanL_is_positive );
   
-  int createFinalisedLCIOTrack( IMarlinTrack* marlinTrk, std::vector<EVENT::TrackerHit*>& hit_list, IMPL::TrackImpl* track, bool fit_backwards, const EVENT::FloatVec& initial_cov_for_prefit, float bfield_z, double maxChi2Increment){
+  int createFinalisedLCIOTrack( IMarlinTrack* marlinTrk, std::vector<EVENT::TrackerHit*>& hit_list, IMPL::TrackImpl* track, bool fit_direction, const EVENT::FloatVec& initial_cov_for_prefit, float bfield_z, double maxChi2Increment){
     
     ///////////////////////////////////////////////////////
     // check inputs 
@@ -112,7 +112,7 @@ namespace MarlinTrk {
     IMPL::TrackStateImpl pre_fit ;
     
       
-    return_error = createPrefit(hit_list, &pre_fit, bfield_z, fit_backwards);
+    return_error = createPrefit(hit_list, &pre_fit, bfield_z, fit_direction);
     
 
     streamlog_out( DEBUG0 ) << " **** createFinalisedLCIOTrack - created pre-fit: " << pre_fit << std::endl ;
@@ -127,7 +127,7 @@ namespace MarlinTrk {
     
     if( return_error == 0 ) {
       
-      return_error = createFinalisedLCIOTrack( marlinTrk, hit_list, track, fit_backwards, &pre_fit, bfield_z, maxChi2Increment);
+      return_error = createFinalisedLCIOTrack( marlinTrk, hit_list, track, fit_direction, &pre_fit, bfield_z, maxChi2Increment);
       
     } else {
       streamlog_out(DEBUG3) << "MarlinTrk::createFinalisedLCIOTrack : Prefit failed error = " << return_error << std::endl;
@@ -138,7 +138,7 @@ namespace MarlinTrk {
     
   }
   
-  int createFinalisedLCIOTrack( IMarlinTrack* marlinTrk, std::vector<EVENT::TrackerHit*>& hit_list, IMPL::TrackImpl* track, bool fit_backwards, EVENT::TrackState* pre_fit, float bfield_z, double maxChi2Increment){
+  int createFinalisedLCIOTrack( IMarlinTrack* marlinTrk, std::vector<EVENT::TrackerHit*>& hit_list, IMPL::TrackImpl* track, bool fit_direction, EVENT::TrackState* pre_fit, float bfield_z, double maxChi2Increment){
     
     
     ///////////////////////////////////////////////////////
@@ -155,7 +155,7 @@ namespace MarlinTrk {
     }
     
     
-    int fit_status = createFit(hit_list, marlinTrk, pre_fit, bfield_z, fit_backwards, maxChi2Increment);
+    int fit_status = createFit(hit_list, marlinTrk, pre_fit, bfield_z, fit_direction, maxChi2Increment);
     
     if( fit_status != IMarlinTrack::success ){ 
       
@@ -165,7 +165,7 @@ namespace MarlinTrk {
       
     } 
     
-    int error = finaliseLCIOTrack(marlinTrk, track, hit_list);
+    int error = finaliseLCIOTrack(marlinTrk, track, hit_list, fit_direction );
     
     
     return error;
@@ -175,7 +175,7 @@ namespace MarlinTrk {
   
   
   
-  int createFit( std::vector<EVENT::TrackerHit*>& hit_list, IMarlinTrack* marlinTrk, EVENT::TrackState* pre_fit, float bfield_z, bool fit_backwards, double maxChi2Increment){
+  int createFit( std::vector<EVENT::TrackerHit*>& hit_list, IMarlinTrack* marlinTrk, EVENT::TrackState* pre_fit, float bfield_z, bool fit_direction, double maxChi2Increment){
     
     
     ///////////////////////////////////////////////////////
@@ -198,9 +198,9 @@ namespace MarlinTrk {
 //    // check that the prefit has the reference point at the correct location 
 //    ///////////////////////////////////////////////////////
 //    
-//    if (( fit_backwards == IMarlinTrack::backward && pre_fit->getLocation() != lcio::TrackState::AtLastHit ) 
+//    if (( fit_direction == IMarlinTrack::backward && pre_fit->getLocation() != lcio::TrackState::AtLastHit ) 
 //        ||  
-//        ( fit_backwards == IMarlinTrack::forward && pre_fit->getLocation() != lcio::TrackState::AtFirstHit )) {            
+//        ( fit_direction == IMarlinTrack::forward && pre_fit->getLocation() != lcio::TrackState::AtFirstHit )) {            
 //      std::stringstream ss ;
 //      
 //      ss << "MarlinTrk::createFinalisedLCIOTrack track state must be set at either first or last hit. Location = ";
@@ -273,7 +273,7 @@ namespace MarlinTrk {
     // set the initial track parameters  
     ///////////////////////////////////////////////////////
     
-    return_error = marlinTrk->initialise( *pre_fit, bfield_z, IMarlinTrack::backward ) ;
+    return_error = marlinTrk->initialise( *pre_fit, bfield_z, fit_direction ) ;//IMarlinTrack::backward ) ;
     if (return_error != IMarlinTrack::success) {
       
       streamlog_out(DEBUG5) << "MarlinTrk::createFit Initialisation of track fit failed with error : " << return_error << std::endl;
@@ -307,7 +307,7 @@ namespace MarlinTrk {
   
   
   
-  int createPrefit( std::vector<EVENT::TrackerHit*>& hit_list, IMPL::TrackStateImpl* pre_fit, float bfield_z, bool fit_backwards){
+  int createPrefit( std::vector<EVENT::TrackerHit*>& hit_list, IMPL::TrackStateImpl* pre_fit, float bfield_z, bool fit_direction){
     
     ///////////////////////////////////////////////////////
     // check inputs 
@@ -354,7 +354,7 @@ namespace MarlinTrk {
     
     HelixTrack helixTrack( x1, x2, x3, bfield_z, HelixTrack::forwards );
 
-    if ( fit_backwards == IMarlinTrack::backward ) {
+    if ( fit_direction == IMarlinTrack::backward ) {
       pre_fit->setLocation(lcio::TrackState::AtLastHit);
       helixTrack.moveRefPoint(hit_list.back()->getPosition()[0], hit_list.back()->getPosition()[1], hit_list.back()->getPosition()[2]);      
     } else {
@@ -377,7 +377,7 @@ namespace MarlinTrk {
     
   }
   
-  int finaliseLCIOTrack( IMarlinTrack* marlintrk, IMPL::TrackImpl* track, std::vector<EVENT::TrackerHit*>& hit_list, IMPL::TrackStateImpl* atLastHit, IMPL::TrackStateImpl* atCaloFace){
+  int finaliseLCIOTrack( IMarlinTrack* marlintrk, IMPL::TrackImpl* track, std::vector<EVENT::TrackerHit*>& hit_list, bool fit_direction, IMPL::TrackStateImpl* atLastHit, IMPL::TrackStateImpl* atCaloFace){
     
     ///////////////////////////////////////////////////////
     // check inputs 
@@ -514,14 +514,14 @@ namespace MarlinTrk {
     ///////////////////////////////////////////////////////
     
     IMPL::TrackStateImpl* trkStateAtFirstHit = new IMPL::TrackStateImpl() ;
-    EVENT::TrackerHit* firstHit = hits_in_fit.back().first;
+    EVENT::TrackerHit* firstHit = ( fit_direction == IMarlinTrack::backward ? hits_in_fit.back().first : hits_in_fit.front().first ) ;
 
     ///////////////////////////////////////////////////////
     // last hit
     ///////////////////////////////////////////////////////
     
     IMPL::TrackStateImpl* trkStateAtLastHit = new IMPL::TrackStateImpl() ;
-    EVENT::TrackerHit* lastHit = hits_in_fit.front().first;
+    EVENT::TrackerHit* lastHit =  ( fit_direction == IMarlinTrack::backward ? hits_in_fit.front().first :  hits_in_fit.back().first ) ;
           
     EVENT::TrackerHit* last_constrained_hit = 0 ;     
     marlintrk->getTrackerHitAtPositiveNDF(last_constrained_hit);

@@ -659,7 +659,7 @@ namespace MarlinTrk {
       //return ( true ? site_fails_chi2_cut : site_discarded);
       
       // and this also works..
-      streamlog_out(DEBUG2) << " addAndFit : Site Fails Chi2 cut ? " << filter.passedLastFilterStep() << std::endl;
+      streamlog_out(DEBUG2) << " addAndFit : Site passed Chi2 filter step ? " << filter.passedLastFilterStep() << std::endl;
 
       if( filter.passedLastFilterStep() == false ) {
         return site_fails_chi2_cut ;
