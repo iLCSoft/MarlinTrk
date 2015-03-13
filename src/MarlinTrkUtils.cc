@@ -516,7 +516,7 @@ namespace MarlinTrk {
     IMPL::TrackStateImpl* trkStateAtFirstHit = new IMPL::TrackStateImpl() ;
     EVENT::TrackerHit* firstHit = ( fit_direction == IMarlinTrack::backward ? hits_in_fit.back().first : hits_in_fit.front().first ) ;
 
-    ///////////////////////////////////////////////////////
+     ///////////////////////////////////////////////////////
     // last hit
     ///////////////////////////////////////////////////////
     
@@ -525,6 +525,12 @@ namespace MarlinTrk {
           
     EVENT::TrackerHit* last_constrained_hit = 0 ;     
     marlintrk->getTrackerHitAtPositiveNDF(last_constrained_hit);
+
+
+    streamlog_out(DEBUG4) << "MarlinTrk::finaliseLCIOTrack: firstHit : " << *firstHit 
+			  << "   lastHit: " << *lastHit
+			  << " last constrained hit: " << *last_constrained_hit
+			  << " fit direction is forward : " << fit_direction << std::endl ;
 
     return_error = marlintrk->smooth(lastHit);
     

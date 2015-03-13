@@ -7,6 +7,7 @@
 
 #include "DDKalTest/DDVMeasLayer.h"
 #include "DDKalTest/DDKalDetector.h"
+#include "DDKalTest/DDCylinderMeasLayer.h"
 
 // #include "DDKalTest/DDSupportKalDetector.h"
 // #include "DDKalTest/DDVXDKalDetector.h"
@@ -65,6 +66,9 @@ namespace MarlinTrk{
 
     DD4hep::Geometry::DetElement::Children detectors = world.children() ;
 
+    double minS = 1.e99; 
+    DDCylinderMeasLayer* ipLayer = 0 ;
+
     for ( DD4hep::Geometry::DetElement::Children::const_iterator it=detectors.begin() ; it != detectors.end() ; ++it ){
 
       DD4hep::Geometry::DetElement det = (*it).second ;
@@ -74,133 +78,31 @@ namespace MarlinTrk{
       this->storeActiveMeasurementModuleIDs( kalDet ) ;
 
       _det->Install( *kalDet ) ;
-   }
 
 
-      // MeasurementSurfaceStore& surfstore = _gearMgr->getMeasurementSurfaceStore();
+      Int_t nLayers = kalDet->GetEntriesFast() ;
     
-    // // Check if the store is filled if not fill it. NOTE: In the case it is filled we just take what we are given and in debug print a message
-    // if( surfstore.isFilled() == false ) {
 
-    //   ILDMeasurementSurfaceStoreFiller filler( *_gearMgr );
-    //   streamlog_out( DEBUG4 ) << "  MarlinDDKalTest - set up gear surface store using " << filler.getName() << std::endl ;
-    //   surfstore.FillStore(&filler);
-      
-    // }
-    // else {
-      
-    //    streamlog_out( DEBUG4 ) << "  MarlinDDKalTest - MeasurementSurfaceStore is already full. Using store as filled by MeasurementSurfaceStoreFiller " << surfstore.getFillerName() << std::endl ;
-      
-    // }
+      // --- keep the cylinder meas layer with smallest sorting policy (radius) as ipLayer
+      // fixme: this should be implemented in a more explicit way ...
+      for( int i=0; i < nLayers; ++i ) {
+	const TVSurface* tvs = dynamic_cast<const TVSurface*>( kalDet->At( i ) ); 
+	double s = tvs->GetSortingPolicy() ;
+	if( s < minS ) {
+	  minS = s  ;
+	  ipLayer = dynamic_cast< DDCylinderMeasLayer* > (  kalDet->At( i) ) ;
+	}
+      }
+    }
 
-    // if (_gearMgr -> getDetectorName() == "LPTPC") {
-    //   try{
-    //     kaldet::LCTPCKalDetector* tpcdet = new kaldet::LCTPCKalDetector( *_gearMgr )  ;
-    //     // store the measurement layer id's for the active layers
-    //     this->storeActiveMeasurementModuleIDs(tpcdet);
-    //     _det->Install( *tpcdet ) ;
-    //   }
-    //   catch( gear::UnknownParameterException& e){
-    //     streamlog_out( MESSAGE ) << "  MarlinDDKalTest - TPC missing in gear file: TPC Not Built " << std::endl ;
-    //   }
-    // }
-    // else {
-    
-    //   try{
-    //     ILDSupportKalDetector* supportdet = new ILDSupportKalDetector( *_gearMgr )  ;
-    //     // get the dedicated ip layer
-    //     _ipLayer = supportdet->getIPLayer() ;
-    //     // store the measurement layer id's for the active layers, Calo is defined as active
-    //     this->storeActiveMeasurementModuleIDs(supportdet);
-    //     _det->Install( *supportdet ) ;
-    //   }
-    //   catch( gear::UnknownParameterException& e){
+    if( ipLayer) {
 
-    //     streamlog_out( ERROR ) << "MarlinDDKalTest - Support Material missing in gear file: Cannot proceed as propagations and extrapolations for cannonical track states are impossible: exit(1) called" << std::endl ;
-    //     exit(1);
+      _ipLayer = ipLayer ;
 
-    //   }
+      streamlog_out( MESSAGE ) << " MarlinDDKalTest: install IP layer at radius : " << minS << std::endl ;
+    }
+    //-------------------------------------------------------------------------------
 
-    //   try{
-    //     ILDVXDKalDetector* vxddet = new ILDVXDKalDetector( *_gearMgr )  ;
-    //     // store the measurement layer id's for the active layers
-    //     this->storeActiveMeasurementModuleIDs(vxddet);
-    //     _det->Install( *vxddet ) ;
-    //   }
-    //   catch( gear::UnknownParameterException& e){
-    //     streamlog_out( MESSAGE ) << "  MarlinDDKalTest - VXD missing in gear file: VXD Material Not Built " << std::endl ;
-    //   }
-      
-      
-    //   bool SIT_found = false ;
-    //   try{
-    //     ILDSITKalDetector* sitdet = new ILDSITKalDetector( *_gearMgr )  ;
-    //     // store the measurement layer id's for the active layers 
-    //     this->storeActiveMeasurementModuleIDs(sitdet);
-    //     _det->Install( *sitdet ) ;
-    //     SIT_found = true ;
-    //   }
-    //   catch( gear::UnknownParameterException& e){
-    //     streamlog_out( MESSAGE ) << "  MarlinDDKalTest - SIT missing in gear file: SIT Not Built " << std::endl ;
-    //   }
-
-    //   if( ! SIT_found ){
-    //     try{
-    //       ILDSITCylinderKalDetector* sitdet = new ILDSITCylinderKalDetector( *_gearMgr )  ;
-    //       // store the measurement layer id's for the active layers
-    //       this->storeActiveMeasurementModuleIDs(sitdet);
-    //       _det->Install( *sitdet ) ;
-    //     }
-    //     catch( gear::UnknownParameterException& e){
-    //       streamlog_out( MESSAGE ) << "  MarlinDDKalTest - Simple Cylinder Based SIT missing in gear file: Simple Cylinder Based SIT Not Built " << std::endl ;
-    //     }
-    //   }
-
-    //   try{
-    //     ILDSETKalDetector* setdet = new ILDSETKalDetector( *_gearMgr )  ;
-    //     // store the measurement layer id's for the active layers
-    //     this->storeActiveMeasurementModuleIDs(setdet);
-    //     _det->Install( *setdet ) ;
-    //   }
-    //   catch( gear::UnknownParameterException& e){   
-    //     streamlog_out( MESSAGE ) << "  MarlinDDKalTest - SET missing in gear file: SET Not Built " << std::endl ;
-    //   }
-
-
-    //   bool FTD_found = false ;
-    //   try{
-    //     ILDFTDKalDetector* ftddet = new ILDFTDKalDetector( *_gearMgr )  ;
-    //     // store the measurement layer id's for the active layers 
-    //     this->storeActiveMeasurementModuleIDs(ftddet);
-    //     _det->Install( *ftddet ) ;    
-    //     FTD_found = true ;
-    //   }
-    //   catch( gear::UnknownParameterException& e){
-    //     streamlog_out( MESSAGE ) << "  MarlinDDKalTest - Petal Based FTD missing in gear file: Petal Based FTD Not Built " << std::endl ;
-    //   }
-
-    //   if( ! FTD_found ){
-    //     try{
-    //       ILDFTDDiscBasedKalDetector* ftddet = new ILDFTDDiscBasedKalDetector( *_gearMgr )  ;
-    //       // store the measurement layer id's for the active layers
-    //       this->storeActiveMeasurementModuleIDs(ftddet);
-    //       _det->Install( *ftddet ) ;
-    //     }
-    //     catch( gear::UnknownParameterException& e){
-    //       streamlog_out( MESSAGE ) << "  MarlinDDKalTest - Simple Disc Based FTD missing in gear file: Simple Disc Based FTD Not Built " << std::endl ;
-    //     }
-    //   }
-
-    //   try{
-    //     ILDTPCKalDetector* tpcdet = new ILDTPCKalDetector( *_gearMgr )  ;
-    //     // store the measurement layer id's for the active layers
-    //     this->storeActiveMeasurementModuleIDs(tpcdet);
-    //     _det->Install( *tpcdet ) ;
-    //   }
-    //   catch( gear::UnknownParameterException& e){   
-    //     streamlog_out( MESSAGE ) << "  MarlinDDKalTest - TPC missing in gear file: TPC Not Built " << std::endl ;
-    //   }
-    // }
 
     _det->Close() ;          // close the cradle
     _det->Sort() ;           // sort meas. layers from inside to outside
