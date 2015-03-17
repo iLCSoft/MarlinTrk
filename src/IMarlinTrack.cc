@@ -1,5 +1,7 @@
 
 #include "MarlinTrk/IMarlinTrack.h"
+#include <sstream>
+#include "UTIL/Operators.h"
 
 namespace MarlinTrk{
 
@@ -35,4 +37,39 @@ namespace MarlinTrk{
     }
   }
   
+  std::string IMarlinTrack::toString() {
+    
+    std::stringstream str ;
+    
+    int ndf ;    
+    double chi2 ; 
+    std::vector<std::pair<EVENT::TrackerHit*, double> > hits ;  
+    IMPL::TrackStateImpl ts ;
+    EVENT::TrackerHit* lcHit ;
+
+    getTrackerHitAtPositiveNDF( lcHit  ) ;
+
+    getHitsInFit( hits ) ;
+    
+    getTrackState( ts, chi2, ndf ) ;
+    
+    str << " ------------------- MarlinDDKalTestTrack: ------------------------ " << std::endl ;
+    
+    str << "   ndf: "  << ndf   << std::endl
+	<< "   chi2: " << chi2  << std::endl
+	<< "   number of hits in fit : " << hits.size() << std::endl 
+	<< "   last constraned hit id : " <<  ( lcHit ? lcHit->id() : -9999 )   << std::endl ;
+    
+    for( unsigned i=0,n= hits.size() ; i<n ; ++i ){
+      
+      str << " hit at index: " << i  << " " <<   UTIL::toString(  hits[i].first ) << std::endl 
+	  << " track state : " <<  UTIL::toString( &ts )  << std::endl ;
+    } 
+    
+    str << " --------------------- " << std::endl ;
+    str << " current track state :"  <<  UTIL::toString( &ts ) << std::endl ;
+    str << " --------------------- " << std::endl ;
+    
+    return str.str() ;
+  }
 }

@@ -1,11 +1,12 @@
-
 #include "MarlinTrk/MarlinTrkUtils.h"
 
 #include <vector>
 #include <algorithm>
 
 #include "MarlinTrk/IMarlinTrack.h"
+#include "MarlinTrk/IMarlinTrkSystem.h"
 #include "MarlinTrk/HelixTrack.h"
+#include "MarlinTrk/Factory.h"
 
 #include "lcio.h"
 #include <IMPL/TrackImpl.h>
@@ -23,8 +24,10 @@
 
 #define MIN_NDF 6
 
+
 namespace MarlinTrk {
   
+  using namespace lcio ;
 
 //  // Check if a square matrix is Positive Definite 
 //  bool Matrix_Is_Positive_Definite(const EVENT::FloatVec& matrix){
@@ -111,12 +114,9 @@ namespace MarlinTrk {
     
     IMPL::TrackStateImpl pre_fit ;
     
-      
     return_error = createPrefit(hit_list, &pre_fit, bfield_z, fit_direction);
     
-
-    streamlog_out( DEBUG0 ) << " **** createFinalisedLCIOTrack - created pre-fit: " << pre_fit << std::endl ;
-
+    streamlog_out( DEBUG0 ) << " **** createFinalisedLCIOTrack - created pre-fit: " <<  toString( &pre_fit )  << std::endl ;
 
     pre_fit.setCovMatrix(initial_cov_for_prefit);
 
@@ -419,10 +419,10 @@ namespace MarlinTrk {
       streamlog_out(DEBUG3) << "MarlinTrk::finaliseLCIOTrack: getNDF returns " << return_error << std::endl;
       return return_error;
     } else if( ndf < 0 ) {
-      streamlog_out(DEBUG2) << "MarlinTrk::finaliseLCIOTrack: number of degrees of freedom less than 0 track dropped : NDF = " << ndf << std::endl;
+      streamlog_out(DEBUG8) << "MarlinTrk::finaliseLCIOTrack: number of degrees of freedom less than 0 track dropped : NDF = " << ndf << std::endl;
       return IMarlinTrack::error;
     } else {
-      streamlog_out(DEBUG1) << "MarlinTrk::finaliseLCIOTrack: NDF = " << ndf << std::endl;
+      streamlog_out(DEBUG4) << "MarlinTrk::finaliseLCIOTrack: NDF = " << ndf << std::endl;
     }
     
     
@@ -527,15 +527,18 @@ namespace MarlinTrk {
     marlintrk->getTrackerHitAtPositiveNDF(last_constrained_hit);
 
 
-    streamlog_out(DEBUG4) << "MarlinTrk::finaliseLCIOTrack: firstHit : " << *firstHit 
-			  << "   lastHit: " << *lastHit
-			  << " last constrained hit: " << *last_constrained_hit
+    streamlog_out(DEBUG3) << "MarlinTrk::finaliseLCIOTrack: firstHit : " << toString( firstHit ) 
+			  << " lastHit:                                " << toString( lastHit )
+			  << " last constrained hit:                   " << toString( last_constrained_hit )
 			  << " fit direction is forward : " << fit_direction << std::endl ;
 
-    return_error = marlintrk->smooth(lastHit);
+    //fgx    return_error = marlintrk->smooth(lastHit);
+    return_error = marlintrk->smooth( last_constrained_hit );
     
+    streamlog_out(DEBUG4) << "MarlinTrk::finaliseLCIOTrack: return_code for smoothing to last constrained hit " 
+			  << last_constrained_hit << " = " << return_error << " NDF = " << ndf << std::endl;
+
     if ( return_error != IMarlinTrack::success ) { 
-      streamlog_out(DEBUG4) << "MarlinTrk::finaliseLCIOTrack: return_code for smoothing to " << lastHit << " = " << return_error << " NDF = " << ndf << std::endl;
       delete trkStateAtFirstHit;
       delete trkStateAtLastHit;
       return return_error ;
@@ -551,12 +554,94 @@ namespace MarlinTrk {
     TrackStateImpl() ;
       
     
+
+    streamlog_out(DEBUG4) << "MarlinTrk::finaliseLCIOTrack: finalised kaltest track  : "
+			  << marlintrk->toString() << std::endl ;
+
+
+
     ///////////////////////////////////////////////////////
     // make sure that the track state can be propagated to the IP 
     ///////////////////////////////////////////////////////
     
-    return_error = marlintrk->propagate(point, firstHit, *trkStateIP, chi2, ndf ) ;
-    
+    // if we fitted backwards, the firstHit is the last one used in the fit and we simply propagate to the IP:
+
+    if(  fit_direction == IMarlinTrack::backward ) {   //
+
+      return_error = marlintrk->propagate(point, firstHit, *trkStateIP, chi2, ndf ) ;
+
+    } else { 
+
+      // if we fitted forward, we start from the last_constrained hit
+      // and then add the last inner hits with a Kalman step ... 
+      
+      // temporary IMarlinTrack  - fixme !!!
+      MarlinTrk::IMarlinTrkSystem* trksystem =  MarlinTrk::Factory::createMarlinTrkSystem( "DDKalTest" , 0 , "" ) ;
+      
+      std::auto_ptr<MarlinTrk::IMarlinTrack> mTrk( trksystem->createTrack()  ) ;
+      
+      IMPL::TrackStateImpl* ts = new IMPL::TrackStateImpl ;
+
+      double chi2Tmp = 0 ;
+      int ndfTmp = 0 ;
+      return_error = marlintrk->getTrackState( last_constrained_hit, *ts ,  chi2 , ndf ) ;
+      
+      streamlog_out( DEBUG3  )  << "  MarlinTrk::finaliseLCIOTrack:--  TrackState at last constrained hit : " << std::endl
+				<< toString( ts )    << std::endl ;
+      
+      //need to add a dummy hit to the track
+      mTrk->addHit( last_constrained_hit ) ;
+      
+      double _bfield = 3.5 ; // fixme: make parameter !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      mTrk->initialise( *ts ,  _bfield ,  fit_direction ) ;
+
+      std::vector<std::pair<EVENT::TrackerHit*, double> >::reverse_iterator hI = hits_in_fit.rbegin() ;
+
+      while( (*hI).first != last_constrained_hit ){
+
+	streamlog_out( DEBUG0  )  << "  MarlinTrk::finaliseLCIOTrack:--  hit in reverse_iterator : "  << std::endl
+				  << toString( (*hI).first ) << std::endl ; 
+	++hI ;
+      }
+
+      ++hI ;
+
+      while( hI != hits_in_fit.rend()  ){
+
+	EVENT::TrackerHit* h =  (*hI).first ;
+
+
+	double deltaChi ;
+	double maxChi2Increment = 1e10 ; // ???
+
+	int addHit = mTrk->addAndFit(  h , deltaChi, maxChi2Increment ) ; 
+
+
+	streamlog_out( DEBUG3 ) << " MarlinTrk::finaliseLCIOTrack: hit " << toString( h )   
+				<< "  added : " << MarlinTrk::errorCode( addHit )
+				<< "  deltaChi2: " << deltaChi 
+				<< std::endl ;
+
+	if( addHit !=  MarlinTrk::IMarlinTrack::success ){
+
+	  streamlog_out( ERROR ) << " ****  MarlinTrk::finaliseLCIOTrack:  could not add inner hit to track !!! " << std::endl ; 
+	}
+
+	++hI ;
+
+      }//------------------------------------
+
+      streamlog_out(DEBUG4) << "MarlinTrk::finaliseLCIOTrack: temporary kaltest track for track state at the IP: "
+			    <<  mTrk->toString() << std::endl ;
+
+      // now propagate the temporary track to the IP
+      return_error = mTrk->propagate( point, firstHit, *trkStateIP, chi2Tmp, ndfTmp ) ;
+
+      
+      streamlog_out( DEBUG4 ) << " ***  MarlinTrk::finaliseLCIOTrack: - propagated temporary track fromfirst hit to IP : " <<  toString( trkStateIP ) << std::endl ;
+    }
+
+
     if ( return_error != IMarlinTrack::success ) { 
       streamlog_out(DEBUG4) << "MarlinTrk::finaliseLCIOTrack: return_code for propagation = " << return_error << " NDF = " << ndf << std::endl;
       delete trkStateIP;
@@ -580,7 +665,7 @@ namespace MarlinTrk {
     // @ first hit
     ///////////////////////////////////////////////////////
     
-    streamlog_out( DEBUG5 ) << "  >>>>>>>>>>> create TrackState AtFirstHit" << std::endl ;
+    streamlog_out( DEBUG5 ) << "  >>>>>>>>>>>MarlinTrk::finaliseLCIOTrack:  create TrackState AtFirstHit" << std::endl ;
 
     
     return_error = marlintrk->getTrackState(firstHit, *trkStateAtFirstHit, chi2, ndf ) ;
@@ -589,7 +674,7 @@ namespace MarlinTrk {
       trkStateAtFirstHit->setLocation(  lcio::TrackState::AtFirstHit ) ;
       track->trackStates().push_back(trkStateAtFirstHit);
     } else {
-      streamlog_out( WARNING ) << "  >>>>>>>>>>> MarlinTrk::finaliseLCIOTrack:  could not get TrackState at First Hit " << firstHit << std::endl ;
+      streamlog_out( WARNING ) << "  >>>>>>>>>>>MarlinTrk::finaliseLCIOTrack:  MarlinTrk::finaliseLCIOTrack:  could not get TrackState at First Hit " << firstHit << std::endl ;
       delete trkStateAtFirstHit;
     }
     
@@ -603,7 +688,7 @@ namespace MarlinTrk {
       // @ last hit
       ///////////////////////////////////////////////////////  
       
-      streamlog_out( DEBUG5 ) << "  >>>>>>>>>>> create TrackState AtLastHit : using trkhit " << last_constrained_hit << std::endl ;
+      streamlog_out( DEBUG5 ) << "  >>>>>>>>>>> MarlinTrk::finaliseLCIOTrack: create TrackState AtLastHit : using trkhit " << last_constrained_hit << std::endl ;
       
       gear::Vector3D last_hit_pos(lastHit->getPosition());
       
@@ -645,7 +730,7 @@ namespace MarlinTrk {
 	//FIXME: ignore track state at Calo face for debugging new tracking ...
 #if 1
 	return_error = IMarlinTrack::success ;
-        streamlog_out( WARNING ) << "                ignore missing TrackState at Calo Face  for debugging " << std::endl ;
+        streamlog_out( WARNING ) << "     MarlinTrk::finaliseLCIOTrack:            ignore missing TrackState at Calo Face  for debugging " << std::endl ;
 #endif    
 
       }
@@ -673,7 +758,8 @@ namespace MarlinTrk {
   
   int createTrackStateAtCaloFace( IMarlinTrack* marlintrk, IMPL::TrackStateImpl* trkStateCalo, EVENT::TrackerHit* trkhit, bool tanL_is_positive ){
     
-    streamlog_out( DEBUG5 ) << "  >>>>>>>>>>> createTrackStateAtCaloFace : using trkhit " << trkhit << " tanL_is_positive = " << tanL_is_positive << std::endl ;
+    streamlog_out( DEBUG5 ) << "  >>>>>>>>>>> createTrackStateAtCaloFace : using trkhit " 
+			    << UTIL::toString( trkhit ) << " tanL_is_positive = " << tanL_is_positive << std::endl ;
     
     ///////////////////////////////////////////////////////
     // check inputs 

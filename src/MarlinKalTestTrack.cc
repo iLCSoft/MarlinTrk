@@ -1681,6 +1681,11 @@ namespace MarlinTrk {
   }
   
   
+  std::string MarlinKalTestTrack::toString() {
+    
+    return _kaltrack->toString()  ;
+  }
+
   int MarlinKalTestTrack::getSiteFromLCIOHit( EVENT::TrackerHit* trkhit, TKalTrackSite*& site ) const {
     
     std::map<EVENT::TrackerHit*,TKalTrackSite*>::const_iterator it;

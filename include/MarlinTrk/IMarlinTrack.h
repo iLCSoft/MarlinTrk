@@ -12,6 +12,7 @@
 
 
 #include <exception>
+#include <string>
 
 namespace MarlinTrk{
   
@@ -221,6 +222,10 @@ namespace MarlinTrk{
     virtual int intersectionWithDetElement( int detEementID, EVENT::TrackerHit* hit, gear::Vector3D& point, int mode=modeClosest ) = 0  ;
     
     
+    /** Dump this track to a string for debugging - implementation dependant.
+     */
+    virtual std::string toString() ;
+
   protected:
     
   private:

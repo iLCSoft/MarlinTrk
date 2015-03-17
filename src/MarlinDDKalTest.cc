@@ -58,6 +58,12 @@ namespace MarlinTrk{
   
   void MarlinDDKalTest::init() {
     
+    if( is_initialised ) {
+
+      streamlog_out( WARNING ) << "  MarlinDDKalTest::init() called  but system is already initialised - will do nothing !!!!! " << std::endl ;
+      return ;
+    }
+
     streamlog_out( DEBUG4 ) << "  MarlinDDKalTest - call  this init " << std::endl ;
     
     DD4hep::Geometry::LCDD& lcdd = DD4hep::Geometry::LCDD::getInstance();

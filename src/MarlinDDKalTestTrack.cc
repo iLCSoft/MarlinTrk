@@ -25,6 +25,8 @@
 #include "gear/GEAR.h"
 #include "gear/BField.h"
 
+#include <sstream>
+
 #include "streamlog/streamlog.h"
 
 
@@ -65,7 +67,7 @@ namespace MarlinTrk {
   
   //---------------------------------------------------------------------------------------------------------------
   
-  std::string toString( int detElementID ) {
+  std::string cellIDString( int detElementID ) {
     lcio::BitField64 bf(  UTIL::ILDCellID0::encoder_string ) ;
     bf.setValue( detElementID ) ;
     return bf.valueString() ;
@@ -694,7 +696,7 @@ namespace MarlinTrk {
       //     if point is not on surface and more than one surface exists ...
       
       streamlog_out( ERROR ) << ">>>>>>>>>>>  no measurment layer found for trkhit cellid0 : " 
-      << toString( trkhit->getCellID0() ) << " at " 
+      << cellIDString( trkhit->getCellID0() ) << " at " 
       << gear::Vector3D( trkhit->getPosition() ) << std::endl ;
       
       return  IMarlinTrack::bad_intputs ; 
@@ -738,7 +740,7 @@ namespace MarlinTrk {
       _hitIndexAtPositiveNDF = _kaltrack->IndexOf( site );
       
       streamlog_out( DEBUG2 ) << ">>>>>>>>>>>  Fit is now constrained at : "
-      << toString( trkhit->getCellID0() ) 
+      << cellIDString( trkhit->getCellID0() ) 
       << " pos " << gear::Vector3D( trkhit->getPosition() )
       << " trkhit = " << _trackHitAtPositiveNDF
       << " index of kalhit = " << _hitIndexAtPositiveNDF
@@ -767,7 +769,7 @@ namespace MarlinTrk {
       //     if point is not on surface and more than one surface exists ...
       
       streamlog_out( ERROR ) << ">>>>>>>>>>>  no measurment layer found for trkhit cellid0 : " 
-      << toString( trkhit->getCellID0() ) << " at " 
+      << cellIDString( trkhit->getCellID0() ) << " at " 
       << gear::Vector3D( trkhit->getPosition() ) << std::endl ;
       
       return  IMarlinTrack::bad_intputs ; 
@@ -840,7 +842,7 @@ namespace MarlinTrk {
           _hitIndexAtPositiveNDF = _kaltrack->IndexOf( site );
           
           streamlog_out( DEBUG2 ) << ">>>>>>>>>>>  Fit is now constrained at : "
-          << toString( trkhit->getCellID0() ) 
+          << cellIDString( trkhit->getCellID0() ) 
           << " pos " << gear::Vector3D( trkhit->getPosition() )
           << " trkhit = " << _trackHitAtPositiveNDF
           << " index of kalhit = " << _hitIndexAtPositiveNDF
@@ -1384,7 +1386,7 @@ namespace MarlinTrk {
       
       std::stringstream errorMsg;
       errorMsg << "MarlinDDKalTestTrack::intersectionWithDetElement detector element id unkown: detElementID = " 
-      << toString( detElementID )  << std::endl ; 
+      << cellIDString( detElementID )  << std::endl ; 
       
       throw MarlinTrk::Exception(errorMsg.str());
       
@@ -1397,7 +1399,7 @@ namespace MarlinTrk {
       
       
       streamlog_out(DEBUG1) << "MarlinDDKalTestTrack::intersectionWithDetElement intersection with detElementID = "
-      <<  toString( detElementID ) 
+      <<  cellIDString( detElementID ) 
       << ": at x = " << point.x()
       << " y = "     << point.y()
       << " z = "     << point.z()
@@ -1409,7 +1411,7 @@ namespace MarlinTrk {
       ml = 0;
       
       streamlog_out(DEBUG1) << "MarlinDDKalTestTrack::intersectionWithDetElement No intersection with detElementID = "
-      << toString( detElementID )
+      << cellIDString( detElementID )
       << std::endl ;
       
     }
@@ -1449,7 +1451,7 @@ namespace MarlinTrk {
     
     if( meas_modules.size() == 0 ) {
       
-      streamlog_out(DEBUG5)<< "MarlinDDKalTestTrack::intersectionWithLayer layer id unknown: layerID = " << toString( layerID ) << std::endl ;
+      streamlog_out(DEBUG5)<< "MarlinDDKalTestTrack::intersectionWithLayer layer id unknown: layerID = " << cellIDString( layerID ) << std::endl ;
       return no_intersection;
       
     } 
@@ -1467,7 +1469,7 @@ namespace MarlinTrk {
       << " z = "     << point.z()
       << " r = "     << point.rho()
       << " detElementID = " << detElementID 
-      << " " << toString( detElementID )
+      << " " << cellIDString( detElementID )
       << std::endl ;
       
     }
@@ -1476,7 +1478,7 @@ namespace MarlinTrk {
       ml = 0;
       streamlog_out(DEBUG1) << "MarlinDDKalTestTrack::intersectionWithLayer No intersection with layerID = "
       << layerID 
-      << " " << toString( layerID )
+      << " " << cellIDString( layerID )
       << std::endl ;
       
     }
@@ -1672,6 +1674,10 @@ namespace MarlinTrk {
                                                                      // Assuming everything has proceeded as expected 
                                                                      // this will be Predicted -> Filtered -> Smoothed 
     
+    
+    // streamlog_out( DEBUG3 ) << " MarlinDDKalTestTrack::ToLCIOTrackState : " << std::endl ;
+    // trkState.DebugPrint() ;
+
     THelicalTrack helix = trkState.GetHelix() ;
     
     TMatrixD c0(trkState.GetCovMat());  
@@ -1679,7 +1685,20 @@ namespace MarlinTrk {
     this->ToLCIOTrackState( helix, c0, ts, chi2, ndf );
     
   }
-  
+
+
+  std::string MarlinDDKalTestTrack::toString() {
+    
+    std::stringstream str ;
+    
+    str << IMarlinTrack::toString() ;
+    
+    str << _kaltrack->toString()  ;
+    
+    str << " --------------------- " << std::endl ;
+
+    return str.str() ;
+  }
   
   int MarlinDDKalTestTrack::getSiteFromLCIOHit( EVENT::TrackerHit* trkhit, TKalTrackSite*& site ) const {
     

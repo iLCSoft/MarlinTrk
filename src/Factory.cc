@@ -24,9 +24,17 @@ namespace MarlinTrk{
       
     } else if( systemType == std::string( "DDKalTest" ) ) {
       
-      streamlog_out(  DEBUG5 ) << " create IMarlinTrkSystem of type \"DDKalTest\"" << std::endl ;
+      static MarlinDDKalTest* ddkaltest_system = 0 ;
+
+      if( ! ddkaltest_system ) {
+
+	streamlog_out(  MESSAGE ) << " Factory::createMarlinTrkSystem:  creating IMarlinTrkSystem of type \"DDKalTest\"" << std::endl ;
+
+	ddkaltest_system = new MarlinDDKalTest ;
+      }
       
-      return new MarlinDDKalTest ;
+      return ddkaltest_system ;
+      //    return new MarlinDDKalTest ;
       
 
     }else{

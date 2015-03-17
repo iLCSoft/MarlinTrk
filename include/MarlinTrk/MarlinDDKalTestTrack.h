@@ -249,7 +249,10 @@ private:
   int extrapolateToDetElement( int detEementID, const TKalTrackSite& site, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int mode=modeClosest ) ;
   
   
-  
+  /** Dump this track to a string for debugging.
+   */
+  std::string toString() ;
+ 
   // INTERSECTORS
   
   
@@ -319,7 +322,8 @@ private:
     return phi ;
   }
   
-  
+
+
   // memeber variables 
   
   TKalTrack* _kaltrack;

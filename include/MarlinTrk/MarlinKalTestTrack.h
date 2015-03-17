@@ -294,7 +294,10 @@ private:
   int findIntersection( const ILDVMeasLayer& meas_module, const TKalTrackSite& site, gear::Vector3D& point, double& dphi, int& detElementIDconst, int mode=modeClosest ) ;
   
   
-  
+  /** Dump this track to a string for debugging.
+   */
+  std::string toString() ;
+
   
   //** end of memeber functions from IMarlinTrack interface
   
