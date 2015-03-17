@@ -69,7 +69,22 @@ namespace MarlinTrk{
   
   void MarlinKalTest::init() {
     
-    streamlog_out( DEBUG4 ) << "  MarlinKalTest - call  this init " << std::endl ;
+    this->includeMultipleScattering( getOption(IMarlinTrkSystem::CFG::useQMS) ) ;  
+
+    this->includeEnergyLoss( getOption(IMarlinTrkSystem::CFG::usedEdx) ) ; 
+
+    streamlog_out( DEBUG5 ) << " -------------------------------------------------------------------------------- " << std::endl ;
+    streamlog_out( DEBUG5 ) << "  MarlinDDKalTest::init() called with the following options :                     " << std::endl ;
+    streamlog_out( DEBUG5 ) <<    this->getOptions() ;
+    streamlog_out( DEBUG5 ) << " -------------------------------------------------------------------------------- " << std::endl ;
+
+    if( is_initialised ) {
+
+      streamlog_out( DEBUG5 ) << "  MarlinDDKalTest::init()  - already initialized - only options are set .. " << std::endl ;
+
+      return ;
+    }
+
     
     
     MeasurementSurfaceStore& surfstore = _gearMgr->getMeasurementSurfaceStore();
@@ -201,12 +216,6 @@ namespace MarlinTrk{
     _det->Sort() ;           // sort meas. layers from inside to outside
     
     streamlog_out( DEBUG4 ) << "  MarlinKalTest - number of layers = " << _det->GetEntriesFast() << std::endl ;
-    
-    streamlog_out( DEBUG4 ) << "Options: " << std::endl << this->getOptions() << std::endl ;
-    
-    this->includeMultipleScattering( getOption(IMarlinTrkSystem::CFG::useQMS) ) ;  
-    this->includeEnergyLoss( getOption(IMarlinTrkSystem::CFG::usedEdx) ) ; 
-    
     
     is_initialised = true; 
     

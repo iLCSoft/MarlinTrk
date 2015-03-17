@@ -575,8 +575,8 @@ namespace MarlinTrk {
       // if we fitted forward, we start from the last_constrained hit
       // and then add the last inner hits with a Kalman step ... 
       
-      // temporary IMarlinTrack  - fixme !!!
-      MarlinTrk::IMarlinTrkSystem* trksystem =  MarlinTrk::Factory::createMarlinTrkSystem( "DDKalTest" , 0 , "" ) ;
+      // create a temporary IMarlinTrack 
+      MarlinTrk::IMarlinTrkSystem* trksystem =  MarlinTrk::Factory::getCurrentMarlinTrkSystem() ;
       
       std::auto_ptr<MarlinTrk::IMarlinTrack> mTrk( trksystem->createTrack()  ) ;
       

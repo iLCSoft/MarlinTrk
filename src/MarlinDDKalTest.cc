@@ -58,14 +58,24 @@ namespace MarlinTrk{
   
   void MarlinDDKalTest::init() {
     
-    if( is_initialised ) {
+     
+    this->includeMultipleScattering( getOption(IMarlinTrkSystem::CFG::useQMS) ) ;  
 
-      streamlog_out( WARNING ) << "  MarlinDDKalTest::init() called  but system is already initialised - will do nothing !!!!! " << std::endl ;
+    this->includeEnergyLoss( getOption(IMarlinTrkSystem::CFG::usedEdx) ) ; 
+
+    streamlog_out( DEBUG5 ) << " -------------------------------------------------------------------------------- " << std::endl ;
+    streamlog_out( DEBUG5 ) << "  MarlinDDKalTest::init() called with the following options :                     " << std::endl ;
+    streamlog_out( DEBUG5 ) <<    this->getOptions() ;
+    streamlog_out( DEBUG5 ) << " -------------------------------------------------------------------------------- " << std::endl ;
+    
+    if( is_initialised ) {
+      
+      streamlog_out( DEBUG5 ) << "  MarlinDDKalTest::init()  - already initialized - only options are set .. " << std::endl ;
+      
       return ;
     }
-
-    streamlog_out( DEBUG4 ) << "  MarlinDDKalTest - call  this init " << std::endl ;
     
+
     DD4hep::Geometry::LCDD& lcdd = DD4hep::Geometry::LCDD::getInstance();
 
     DD4hep::Geometry::DetElement world = lcdd.world() ;
@@ -114,13 +124,7 @@ namespace MarlinTrk{
     _det->Sort() ;           // sort meas. layers from inside to outside
     
     streamlog_out( DEBUG4 ) << "  MarlinDDKalTest - number of layers = " << _det->GetEntriesFast() << std::endl ;
-    
-    streamlog_out( DEBUG4 ) << "Options: " << std::endl << this->getOptions() << std::endl ;
-    
-    this->includeMultipleScattering( getOption(IMarlinTrkSystem::CFG::useQMS) ) ;  
-    this->includeEnergyLoss( getOption(IMarlinTrkSystem::CFG::usedEdx) ) ; 
-    
-    
+           
     is_initialised = true; 
     
   }
