@@ -78,16 +78,24 @@ namespace MarlinTrk{
 
     DD4hep::Geometry::LCDD& lcdd = DD4hep::Geometry::LCDD::getInstance();
 
-    DD4hep::Geometry::DetElement world = lcdd.world() ;
-
-    DD4hep::Geometry::DetElement::Children detectors = world.children() ;
-
     double minS = 1.e99; 
     DDCylinderMeasLayer* ipLayer = 0 ;
 
-    for ( DD4hep::Geometry::DetElement::Children::const_iterator it=detectors.begin() ; it != detectors.end() ; ++it ){
 
-      DD4hep::Geometry::DetElement det = (*it).second ;
+    // for the tracking we get all tracking detectors and all passive detectors (beam pipe,...)
+
+    std::vector< DD4hep::Geometry::DetElement>  detectors         = lcdd.detectors( "tracker" ) ;
+    const std::vector< DD4hep::Geometry::DetElement>& passiveDets = lcdd.detectors( "passive" ) ;
+
+    detectors.reserve( detectors.size() + passiveDets.size() ) ;
+
+    std::copy( passiveDets.begin() , passiveDets.end() , std::back_inserter( detectors )  ) ;
+
+    for ( std::vector< DD4hep::Geometry::DetElement>::iterator it=detectors.begin() ; it != detectors.end() ; ++it ){
+
+      DD4hep::Geometry::DetElement det = *it ;
+
+      streamlog_out( DEBUG5 ) << "  MarlinDDKalTest::init() - creating DDKalDetector for : " << det.name() << std::endl ;
 
       DDKalDetector* kalDet = new DDKalDetector( det ) ;
 
