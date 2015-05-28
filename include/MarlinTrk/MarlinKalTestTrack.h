@@ -78,13 +78,15 @@ private:
    */
   int initialise( bool fitDirection ); 
   
-  /** initialise the fit with a track state, and z component of the B field in Tesla.
+  /** initialise the fit with a track state
    *  the fit direction has to be specified using IMarlinTrack::backward or IMarlinTrack::forward. 
    *  this is the order that will be used in the fit().
    *  it is the users responsibility that the track state is consistent with the order
    *  of the hits used in addHit() ( i.e. the direction of energy loss )
+   *  Note: the bfield_z is not taken from the argument but from the first hit 
+   *  should consider changing the interface ...
    */
-  int initialise( const EVENT::TrackState& ts, double bfield_z, bool fitDirection ) ;
+  int initialise( const EVENT::TrackState& ts, double /*bfield_z*/, bool fitDirection ) ;
   
   
   /** perform the fit of all current hits, returns error code ( IMarlinTrack::success if no error ) .

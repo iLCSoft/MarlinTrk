@@ -237,7 +237,7 @@ namespace MarlinTrk {
     
     if ( h1.GetDimension() == 1 || h2.GetDimension() == 1 || h3.GetDimension() == 1  ) {
       
-      throw MarlinTrk::Exception("Track fit cannot be initialised from 1 Dimentional hits. Use method MarlinDDKalTestTrack::initialise(  const EVENT::TrackState& ts, double bfield_z, bool fitDirection )");   
+      throw MarlinTrk::Exception("Track fit cannot be initialised from 1 Dimensional hits. Use method MarlinDDKalTestTrack::initialise( bool fitDirection )");   
       
     }
     
@@ -343,7 +343,10 @@ namespace MarlinTrk {
     
   }
   
-  int MarlinDDKalTestTrack::initialise(  const EVENT::TrackState& ts, double bfield_z, bool fitDirection ) {
+  int MarlinDDKalTestTrack::initialise(  const EVENT::TrackState& ts, double /*bfield_z*/, bool fitDirection ) {
+
+    // the bfield_z is not taken from the argument but from the first hit 
+    // should consider changing the interface ...
 
     if (_kalhits->GetEntries() == 0) {
       
@@ -374,12 +377,14 @@ namespace MarlinTrk {
     
     _fitDirection = fitDirection ;
     
+    // get Bz from first hit
+    TVTrackHit &h1 = *dynamic_cast<TVTrackHit *>(_kalhits->At(0)); 
+    double Bz  =  h1.GetBfield() ;
+
     // for GeV, Tesla, R in mm  
-    double alpha = bfield_z * 2.99792458E-4 ;
-    double kappa;
-    if ( bfield_z == 0.0 )
-      kappa = DBL_MAX;
-    else kappa = ts.getOmega() / alpha ;
+    double alpha = Bz * 2.99792458E-4 ;
+
+    double kappa = ( Bz == 0.0 ?  DBL_MAX : ts.getOmega() / alpha  ) ;
     
     THelicalTrack helix( -ts.getD0(),
                         toBaseRange( ts.getPhi() - M_PI/2. ) ,
@@ -389,7 +394,7 @@ namespace MarlinTrk {
                         ts.getReferencePoint()[0],
                         ts.getReferencePoint()[1],
                         ts.getReferencePoint()[2],
-                        bfield_z );
+                        Bz );
     
     TMatrixD cov(5,5) ;   
 

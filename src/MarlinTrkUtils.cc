@@ -593,7 +593,8 @@ namespace MarlinTrk {
       //need to add a dummy hit to the track
       mTrk->addHit( last_constrained_hit ) ;
       
-      double _bfield = 3.5 ; // fixme: make parameter !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      double _bfield = 42.0 ;   
+      // fixme: the implementation for DDKalTest does no longer need this value but the IMarlinTrk interface is not yet changed
       mTrk->initialise( *ts ,  _bfield ,  fit_direction ) ;
 
       std::vector<std::pair<EVENT::TrackerHit*, double> >::reverse_iterator hI = hits_in_fit.rbegin() ;
