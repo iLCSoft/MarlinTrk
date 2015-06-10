@@ -9,9 +9,6 @@
 #
 ############################################################################################################
 
-  ==== This is still Work in Progress =======
-
-
 ------------------------------------------------------------
  
 Examples of how to use MarlinTrk can be found in:
@@ -22,6 +19,53 @@ specifically RefitProcessor which takes a track collection and refits each track
 
 
  =============================================================================================================
+
+  ---------
+ | v02-00  |
+  ---------
+
+ - added implementation of MarlinDDKalTest:
+   KalTest implementation of MarlinTrk working
+   with DD4hep surfaces and DDKalTest
+
+
+  - changed Marlin(DD)KalTestTrack::initialise(  const EVENT::TrackState& ts, double bfield_z, bool fitDirection )
+    to ignore the bfield_z parameter and get it from the first hit
+  - fixes issue in MarlinTrkUtils/finaliseLCIOTrack() where the method above is used 
+    but the bfield is not available
+  - should consider changing IMarlinTrkTrack interface ...
+  
+  - use new LCDD detector lists to create DDKalDetectors only 
+    for "tracker" and "passive" sub detectors, 
+    i.e. calorimeters are ignored
+    
+   - made MarlinTrk::Factory a singleton
+   - sub sequent calls to init() can only change the options (MSQ,Eloss)
+   - Factory caches one IMarlinTrkSystem of every type 
+ 
+  - USERS SHOULD NO LONGER DELETE THE IMarlinTrkSystem POINTER
+    IN THEIR CODE (Marlin processor)
+  
+
+  - fixed MarlinTrkUtils::createFinalisedLCIOTrack for
+    fitting insode out (forward ):
+     - smooth back to last constrained hit 
+     - add innermost hits with a proper Kalman filter step
+       to get track state at the IP
+   - added fit_direction to finaliseLCIOTrack() et al
+   - made treatment of fit_direction more consistent
+
+
+ - added an IP layer to MarlinDDKalTest
+   ( DDCylinderMeasLayer w/ smallest radius )
+ - debug printout in MarlinTrkUtils
+
+
+ - ignore missing track state at calo face (for now)
+   -> just print warning
+ - added debug printout
+
+
 
   ---------
  | v01-11  |
