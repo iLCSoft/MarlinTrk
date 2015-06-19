@@ -521,7 +521,6 @@ namespace MarlinTrk {
     // last hit
     ///////////////////////////////////////////////////////
     
-    IMPL::TrackStateImpl* trkStateAtLastHit = new IMPL::TrackStateImpl() ;
     EVENT::TrackerHit* lastHit =  ( fit_direction == IMarlinTrack::backward ? hits_in_fit.front().first :  hits_in_fit.back().first ) ;
           
     EVENT::TrackerHit* last_constrained_hit = 0 ;     
@@ -541,7 +540,7 @@ namespace MarlinTrk {
 
     if ( return_error != IMarlinTrack::success ) { 
       delete trkStateAtFirstHit;
-      delete trkStateAtLastHit;
+      //      delete trkStateAtLastHit;
       return return_error ;
     }
 
@@ -648,7 +647,7 @@ namespace MarlinTrk {
       streamlog_out(DEBUG4) << "MarlinTrk::finaliseLCIOTrack: return_code for propagation = " << return_error << " NDF = " << ndf << std::endl;
       delete trkStateIP;
       delete trkStateAtFirstHit;
-      delete trkStateAtLastHit;
+      //      delete trkStateAtLastHit;
 
       return return_error ;
     }
@@ -694,6 +693,8 @@ namespace MarlinTrk {
       
       gear::Vector3D last_hit_pos(lastHit->getPosition());
       
+      IMPL::TrackStateImpl* trkStateAtLastHit = new IMPL::TrackStateImpl() ;
+
       return_error = marlintrk->propagate(last_hit_pos, last_constrained_hit, *trkStateAtLastHit, chi2, ndf);
             
 //      return_error = marlintrk->getTrackState(lastHit, *trkStateAtLastHit, chi2, ndf ) ;
