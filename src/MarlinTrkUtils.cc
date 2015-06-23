@@ -727,13 +727,13 @@ namespace MarlinTrk {
         trkStateCalo->setLocation(  lcio::TrackState::AtCalorimeter ) ;
         track->trackStates().push_back(trkStateCalo);
       } else {
-        streamlog_out( WARNING ) << "  >>>>>>>>>>> MarlinTrk::finaliseLCIOTrack:  could not get TrackState at Calo Face "  << std::endl ;
+        streamlog_out( DEBUG9 ) << "  >>>>>>>>>>> MarlinTrk::finaliseLCIOTrack:  could not get TrackState at Calo Face "  << std::endl ;
         delete trkStateCalo;
 
 	//FIXME: ignore track state at Calo face for debugging new tracking ...
 #if 1
 	return_error = IMarlinTrack::success ;
-        streamlog_out( WARNING ) << "     MarlinTrk::finaliseLCIOTrack:            ignore missing TrackState at Calo Face  for debugging " << std::endl ;
+        streamlog_out( DEBUG9 ) << "     MarlinTrk::finaliseLCIOTrack:            ignore missing TrackState at Calo Face  for debugging " << std::endl ;
 #endif    
 
       }
