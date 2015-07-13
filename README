@@ -20,6 +20,14 @@ specifically RefitProcessor which takes a track collection and refits each track
 
  =============================================================================================================
 
+ ------------
+| v02-00-01  |
+ ------------
+
+   - made createTrackStateAtCaloFace() work for DD4hep 
+     (and old Mokka/Gear ) based tracking
+
+
   ---------
  | v02-00  |
   ---------
