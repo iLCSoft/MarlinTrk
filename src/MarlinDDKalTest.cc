@@ -19,6 +19,8 @@
 #include "DD4hep/LCDD.h"
 #include "DDRec/SurfaceManager.h"
 
+#include <algorithm>
+#include <string>
 #include <math.h>
 #include <cmath>
 
@@ -76,6 +78,8 @@ namespace MarlinTrk{
     }
     
 
+    streamlog_out( DEBUG5 ) << " ##################### MarlinDDKalTest::init()  - initializing  " << std::endl ;
+
     DD4hep::Geometry::LCDD& lcdd = DD4hep::Geometry::LCDD::getInstance();
 
     double minS = 1.e99; 
@@ -84,12 +88,27 @@ namespace MarlinTrk{
 
     // for the tracking we get all tracking detectors and all passive detectors (beam pipe,...)
 
-    std::vector< DD4hep::Geometry::DetElement>  detectors         = lcdd.detectors( "tracker" ) ;
+    std::vector< DD4hep::Geometry::DetElement>        detectors   = lcdd.detectors( "tracker" ) ;
     const std::vector< DD4hep::Geometry::DetElement>& passiveDets = lcdd.detectors( "passive" ) ;
+//    const std::vector< DD4hep::Geometry::DetElement>& calos       = lcdd.detectors( "calorimeter" ) ;
 
-    detectors.reserve( detectors.size() + passiveDets.size() ) ;
+detectors.reserve( detectors.size() + passiveDets.size() ) ; //+ calos.size() ) ;
 
     std::copy( passiveDets.begin() , passiveDets.end() , std::back_inserter( detectors )  ) ;
+
+//    for ( std::vector< DD4hep::Geometry::DetElement>::const_iterator it=calos.begin() ; it != calos.end() ; ++it ){
+
+    for ( std::vector< DD4hep::Geometry::DetElement>::const_iterator it=passiveDets.begin() ; it != passiveDets.end() ; ++it ){
+
+      std::string name = it->name() ;
+      std::transform( name.begin() , name.end() , name.begin() , ::tolower ) ;
+      if( name.find( "ecal" ) != std::string::npos ){
+
+	detectors.push_back( *it ) ;
+      }
+    }  
+
+
 
     for ( std::vector< DD4hep::Geometry::DetElement>::iterator it=detectors.begin() ; it != detectors.end() ; ++it ){
 
