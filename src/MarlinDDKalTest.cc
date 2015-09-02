@@ -130,8 +130,9 @@ detectors.reserve( detectors.size() + passiveDets.size() ) ; //+ calos.size() ) 
       // fixme: this should be implemented in a more explicit way ...
       for( int i=0; i < nLayers; ++i ) {
 	const TVSurface* tvs = dynamic_cast<const TVSurface*>( kalDet->At( i ) ); 
+
 	double s = tvs->GetSortingPolicy() ;
-	if( s < minS ) {
+	if( s < minS &&  dynamic_cast< DDCylinderMeasLayer* > (  kalDet->At( i) )  ) {
 	  minS = s  ;
 	  ipLayer = dynamic_cast< DDCylinderMeasLayer* > (  kalDet->At( i) ) ;
 	}
