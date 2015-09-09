@@ -149,10 +149,28 @@ detectors.reserve( detectors.size() + passiveDets.size() ) ; //+ calos.size() ) 
 
 
     _det->Close() ;          // close the cradle
-    _det->Sort() ;           // sort meas. layers from inside to outside
+    //done in Close()    _det->Sort() ;           // sort meas. layers from inside to outside
     
     streamlog_out( DEBUG4 ) << "  MarlinDDKalTest - number of layers = " << _det->GetEntriesFast() << std::endl ;
            
+
+    if( streamlog_level( DEBUG ) ) {
+
+      lcio::BitField64 bf(  UTIL::ILDCellID0::encoder_string ) ;
+      
+      for( unsigned i=0,N=_det->GetEntriesFast() ; i<N ;++i){
+
+	DDVMeasLayer* ml = dynamic_cast<DDVMeasLayer*> ( _det->At( i ) ) ;
+	
+	bf.setValue( ml->getLayerID() ) ;
+
+	TVSurface* s =  dynamic_cast<TVSurface*> ( _det->At( i ) ) ;
+
+	streamlog_out( DEBUG ) << " *** meas. layer : " << bf.valueString() << "  sorting: " <<  s->GetSortingPolicy()  << std::endl ;
+      }
+
+    }
+
     is_initialised = true; 
     
   }
