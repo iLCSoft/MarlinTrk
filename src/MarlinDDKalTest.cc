@@ -90,15 +90,15 @@ namespace MarlinTrk{
 
     std::vector< DD4hep::Geometry::DetElement>        detectors   = lcdd.detectors( "tracker" ) ;
     const std::vector< DD4hep::Geometry::DetElement>& passiveDets = lcdd.detectors( "passive" ) ;
-//    const std::vector< DD4hep::Geometry::DetElement>& calos       = lcdd.detectors( "calorimeter" ) ;
+    const std::vector< DD4hep::Geometry::DetElement>& calos       = lcdd.detectors( "calorimeter" ) ;
 
-detectors.reserve( detectors.size() + passiveDets.size() ) ; //+ calos.size() ) ;
+    detectors.reserve( detectors.size() + passiveDets.size() + calos.size() ) ;
 
     std::copy( passiveDets.begin() , passiveDets.end() , std::back_inserter( detectors )  ) ;
 
-//    for ( std::vector< DD4hep::Geometry::DetElement>::const_iterator it=calos.begin() ; it != calos.end() ; ++it ){
+    for ( std::vector< DD4hep::Geometry::DetElement>::const_iterator it=calos.begin() ; it != calos.end() ; ++it ){
 
-    for ( std::vector< DD4hep::Geometry::DetElement>::const_iterator it=passiveDets.begin() ; it != passiveDets.end() ; ++it ){
+    // for ( std::vector< DD4hep::Geometry::DetElement>::const_iterator it=passiveDets.begin() ; it != passiveDets.end() ; ++it ){
 
       std::string name = it->name() ;
       std::transform( name.begin() , name.end() , name.begin() , ::tolower ) ;

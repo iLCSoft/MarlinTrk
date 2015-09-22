@@ -734,7 +734,7 @@ namespace MarlinTrk {
         delete trkStateCalo;
 
 	//FIXME: ignore track state at Calo face for debugging new tracking ...
-#if 1
+#if 0
 	return_error = IMarlinTrack::success ;
         streamlog_out( DEBUG9 ) << "     MarlinTrk::finaliseLCIOTrack:            ignore missing TrackState at Calo Face  for debugging " << std::endl ;
 #endif    
@@ -793,40 +793,40 @@ namespace MarlinTrk {
     // ================== need to get the correct ID(s) for the calorimeter face  ============================
 
     unsigned ecal_barrel_face_ID = lcio::ILDDetID::ECAL ;
-    unsigned ecal_endcap_face_ID = lcio::ILDDetID::ECAL ;
+    unsigned ecal_endcap_face_ID = lcio::ILDDetID::ECAL_ENDCAP ;
 
-    //
-    // FG: this is a temporary workaround for the time where we have Mokka/Gear based tracking systems and DD4hep based 
-    // ones. The reason for this being that DD4hep does not allow to use the same system ID for different subdetectors
-    // and we have introduced additional 'tagging' detectors just inside the Ecal barrel and endcap ...
-    //
-    MarlinTrk::IMarlinTrkSystem* trksystem =  MarlinTrk::Factory::getCurrentMarlinTrkSystem() ;
+    // // //
+    // // // FG: this is a temporary workaround for the time where we have Mokka/Gear based tracking systems and DD4hep based 
+    // // // ones. The reason for this being that DD4hep does not allow to use the same system ID for different subdetectors
+    // // // and we have introduced additional 'tagging' detectors just inside the Ecal barrel and endcap ...
+    // // //
+    // // MarlinTrk::IMarlinTrkSystem* trksystem =  MarlinTrk::Factory::getCurrentMarlinTrkSystem() ;
 
-    MarlinDDKalTest* ddtrksys = dynamic_cast< MarlinDDKalTest* >( trksystem ) ;
+    // // MarlinDDKalTest* ddtrksys = dynamic_cast< MarlinDDKalTest* >( trksystem ) ;
     
-    if( ddtrksys != 0 ) { // we are in DD4hep world ....
+    // // if( ddtrksys != 0 ) { // we are in DD4hep world ....
 
-      DD4hep::Geometry::LCDD& lcdd = DD4hep::Geometry::LCDD::getInstance();
+    // //   DD4hep::Geometry::LCDD& lcdd = DD4hep::Geometry::LCDD::getInstance();
 
-      try{ 
-	DD4hep::Geometry::DetElement bfDE = lcdd.detector("EcalBarrelFace") ;
+    // //   try{ 
+    // // 	DD4hep::Geometry::DetElement bfDE = lcdd.detector("EcalBarrelFace") ;
 
-	ecal_barrel_face_ID = bfDE.id() ;
+    // // 	ecal_barrel_face_ID = bfDE.id() ;
 	
-      } catch( std::runtime_error ){
+    // //   } catch( std::runtime_error ){
 
-	streamlog_out( WARNING ) << " Cannot get detector EcalBarrelFace - will not be able to compute track state at calo face "<< std::endl ;
-      }
-      try{ 
-	DD4hep::Geometry::DetElement efDE = lcdd.detector("EcalEndcapFace") ;
+    // // 	streamlog_out( WARNING ) << " Cannot get detector EcalBarrelFace - will not be able to compute track state at calo face "<< std::endl ;
+    // //   }
+    // //   try{ 
+    // // 	DD4hep::Geometry::DetElement efDE = lcdd.detector("EcalEndcapFace") ;
 
-	ecal_endcap_face_ID = efDE.id() ;
+    // // 	ecal_endcap_face_ID = efDE.id() ;
 	
-      } catch( std::runtime_error ){
+    // //   } catch( std::runtime_error ){
 
-	streamlog_out( WARNING ) << " Cannot get detector EcalEndcapFace - will not be able to compute track state at calo face "<< std::endl ;
-      }
-    }
+    // // 	streamlog_out( WARNING ) << " Cannot get detector EcalEndcapFace - will not be able to compute track state at calo face "<< std::endl ;
+    // //   }
+    // // }
     //=========================================================================================================
 
     encoder[lcio::ILDCellID0::subdet] = ecal_barrel_face_ID ;
