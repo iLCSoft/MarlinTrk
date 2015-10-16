@@ -2,6 +2,7 @@
 
 #include "MarlinTrk/MarlinKalTest.h"
 #include "MarlinTrk/MarlinDDKalTest.h"
+#include "MarlinTrk/MarlinAidaTT.h"
 
 #include "streamlog/streamlog.h"
 
@@ -44,6 +45,10 @@ namespace MarlinTrk{
     } else if( systemType == std::string( "DDKalTest" ) ) {
       
       trkSystem = new MarlinDDKalTest ;
+    }
+    else if( systemType == std::string( "AidaTT" ) ) {
+      
+      trkSystem = new MarlinAidaTT ;
     }
       
     if( ! trkSystem ) {
