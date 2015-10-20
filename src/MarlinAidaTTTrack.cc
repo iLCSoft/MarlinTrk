@@ -235,13 +235,10 @@ namespace MarlinTrk {
   
   int  MarlinAidaTTTrack::getTrackState( IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) {
     
-    const aidaTT::fitResults& result = _fitTrajectory->getFitResults();
+    const aidaTT::fitResults& result = *_fitTrajectory->getFitResults();
 
     ts = *aidaTT::createLCIO( result.estimatedParameters() );
         
-    float ref[3] = { 0., 0. , 0. } ;
-    ts.setReferencePoint(ref);	    
-
     ts.setLocation(lcio::TrackState::AtIP);
     
     chi2 = result.chiSquare() ;
@@ -254,11 +251,18 @@ namespace MarlinTrk {
   
   int MarlinAidaTTTrack::getTrackState( EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) {
     
-    streamlog_out( WARNING )  << "MarlinAidaTTTrack::getTrackState( EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts ) "
-			      << " - will return TrackState AtIP " << std::endl ; 
-    
-    
-    return getTrackState( ts, chi2, ndf )  ;
+    const aidaTT::fitResults* result = _fitTrajectory->getFitResults( trkhit->getCellID0() );
+
+    if( result == 0 ) 
+      return error ;
+
+    ts = *aidaTT::createLCIO( result->estimatedParameters() );
+        
+    chi2 = result->chiSquare() ;
+
+    ndf = result->ndf() ;
+
+    return success ;
   }
   
   
@@ -284,7 +288,7 @@ namespace MarlinTrk {
   
   int MarlinAidaTTTrack::getNDF( int& ndf ){
 
-    const aidaTT::fitResults& result = _fitTrajectory->getFitResults();
+    const aidaTT::fitResults& result = *_fitTrajectory->getFitResults();
     ndf = result.ndf();
     return success;
   }
@@ -365,36 +369,28 @@ namespace MarlinTrk {
   
   
   int MarlinAidaTTTrack::propagate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ){
-    
-    // const TKalTrackSite& site = *(dynamic_cast<const TKalTrackSite*>(_kaltrack->Last())) ;
-    
-    // // check if the point is inside the beampipe
-    // // SJA:FIXME: really we should also check if the PCA to the point is also less than R
-    // const DDVMeasLayer* ml = (  (_aidaTT->getIPLayer() ) && point.r() < _aidaTT->getIPLayer()->GetR()) ? _aidaTT->getIPLayer() : 0;
-    // return this->propagate( point, site, ts, chi2, ndf, ml ) ;
+
+    if( point[0] == 0.0 && point[1] == 0.0 && point[2] == 0.0 ) {
+
+      return getTrackState(  ts, chi2, ndf ) ;
+
+
+    }else{
+
+      streamlog_out( WARNING )  << "MarlinAidaTTTrack::propagate not yet implemented for point otherthan IP " 
+				<< std::endl ;
+
+
+
+
+
+    }
     return success ;
   }
   
   int MarlinAidaTTTrack::propagate( const gear::Vector3D& point, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ){
     
-    //     TKalTrackSite* site = 0;
-    //     int error_code = getSiteFromLCIOHit(trkhit, site);
-    
-    //     if( error_code != success ) return error_code ;
-    
-    //     // check if the point is inside the beampipe
-    //     // SJA:FIXME: really we should also check if the PCA to the point is also less than R
-
-    //     const DDVMeasLayer* ml = _aidaTT->getIPLayer();
-
-    //     if ( ml )
-    //       if (point.r() > _aidaTT->getIPLayer()->GetR()) ml = NULL;
-
-    // //    const DDVMeasLayer* ml = (point.r() < _aidaTT->getIPLayer()->GetR()) ? _aidaTT->getIPLayer() : 0;
-    
-    //     return this->propagate( point, *site, ts, chi2, ndf, ml ) ;
-    return success ;
-    
+    return this->propagate( point, ts, chi2, ndf ) ;
   }
   
   
