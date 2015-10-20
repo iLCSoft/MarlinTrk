@@ -156,61 +156,68 @@ namespace MarlinTrk {
     
     std::vector<double> precision(2) ;
     
-    // ==== loop over hits and prepare the corresponding trajectory elements
+    // ==== store hits in a map ===============
+    std::map< int, EVENT::TrackerHit*> hitMap ;
     for(unsigned i=0 ; i < nHits ; ++i){
-      
-      EVENT::TrackerHit* hit = _lcioHits[i] ;
-      
-      long id = hit->getCellID0() ;
-      
-      SurfMap::iterator it = _aidaTT->_surfMap.find( id ) ;
-      
-      if( it == _aidaTT->_surfMap.end() ){
-	
-	streamlog_out( ERROR ) << "  MarlinAidaTTTrack::fit - no surface found for hit with id : " << cellIDString( id ) 
-			       << std::endl ;
-	continue ; // ignore hit
-      }
-      const aidaTT::ISurface* surf = it->second ;
-      
-      // get the hit position in dd4hep/aidaTT units
-      double hitpos[3] ;
-      for(unsigned int i = 0; i < 3; ++i) hitpos[i] = hit->getPosition()[i] * dd4hep::mm;
-      
-
-      //---- compute the precision from the hit errors
-
-      double du,dv ;
-
-      TrackerHitPlane* planarhit = dynamic_cast<TrackerHitPlane*>( hit );
-      if( planarhit != 0 ) {
-
-	du = planarhit->getdU() * dd4hep::mm  ;
-	dv = planarhit->getdV() * dd4hep::mm  ;
-
-      } else { // we have a TPC hit which is not yet using the CylinderTrackerHit ...
-
-	const FloatVec& cov = hit->getCovMatrix();
-	
-	du = sqrt( cov[0] + cov[2] ) * dd4hep::mm  ;
-	dv = sqrt( cov[5]          ) * dd4hep::mm  ;
-      }
-
-      precision[0] = 1./ (du*du) ;
-      precision[1] = 1./ (dv*dv) ;
-
-      
-      _fitTrajectory->addMeasurement( hitpos, precision, *surf, hit );
+      hitMap[ _lcioHits[i]->getCellID0()  ] = _lcioHits[i] ;
     }
     
+    //==== compute _all_ surface intersections ====================== 
+    const std::vector<std::pair<double, const aidaTT::ISurface*> >& intersections =
+      _fitTrajectory->getIntersectionsWithSurfaces( _aidaTT->_geom->getSurfaces() ) ;
+    
+
+    //========= loop over all intersections =========
+    for( std::vector<std::pair<double, const aidaTT::ISurface*> >::const_iterator it =  intersections.begin() ;
+	 it != intersections.end() ; ++it ){
+      
+      const aidaTT::ISurface* surf = it->second ;
+
+      EVENT::TrackerHit* hit = hitMap[ surf->id() ] ;
+      
+      if( hit != 0 ){ //-------- we have to add a measurement   
+	
+       	// get the hit position in dd4hep/aidaTT units
+	double hitpos[3] ;
+	for(unsigned int i = 0; i < 3; ++i) hitpos[i] = hit->getPosition()[i] * dd4hep::mm;
+	
+	//---- compute the precision from the hit errors
+	double du,dv ;
+	
+	TrackerHitPlane* planarhit = dynamic_cast<TrackerHitPlane*>( hit );
+	if( planarhit != 0 ) {
+	  
+	  du = planarhit->getdU() * dd4hep::mm  ;
+	  dv = planarhit->getdV() * dd4hep::mm  ;
+	  
+	} else { // we have a TPC hit which is not yet using the CylinderTrackerHit ...
+	  
+	  const FloatVec& cov = hit->getCovMatrix();
+
+	  du = sqrt( cov[0] + cov[2] ) * dd4hep::mm  ;
+	  dv = sqrt( cov[5]          ) * dd4hep::mm  ;
+	}
+
+	precision[0] = 1./ (du*du) ;
+	precision[1] = 1./ (dv*dv) ;
+	
+	_fitTrajectory->addMeasurement( hitpos, precision, *surf, hit , _aidaTT->_useQMS );
+
+      } else  { // we just add a scatterer
+
+	if (_aidaTT->_useQMS )
+	  _fitTrajectory->addScatterer( *surf ) ;
+      }
+    }
+      
 
     // do the fit:
     _fitTrajectory->prepareForFitting();
     
     int fit_ok = _fitTrajectory->fit();
-
-    //    _fitResult = _fitTrajectory->getFitResults() ;
-
+    
+    streamlog_out( DEBUG4 )  << "MarlinAidaTTTrack::fit() - fit worked  " << fit_ok  << std::endl ;
+   
     return ( fit_ok ? success : error  )  ;
   }
   

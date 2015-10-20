@@ -36,6 +36,8 @@ namespace MarlinTrk{
   
   MarlinAidaTT::MarlinAidaTT() : _useQMS(false), _usedEdx(false) ,_is_initialised(false){
     
+    this->registerOptions() ;
+    
     streamlog_out( DEBUG4 ) << "  MarlinAidaTT - constructed " << std::endl ;
   }
   
