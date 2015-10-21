@@ -231,6 +231,9 @@ private:
   }
   
 protected:
+
+  int getTrackState( const aidaTT::Vector3D& refPoint, int label, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) ;
+
   /// common initialization
   int myInit() ;
 
@@ -256,8 +259,9 @@ protected:
 
   aidaTT::trajectory* _fitTrajectory ;
   
-  //  aidaTT::fitResults* _fitResult ;
+  const std::vector<std::pair<double, const aidaTT::ISurface*> >* _intersections ;
 
+  std::map< int, int > _indexMap ;
 } ;
 
 } // end of namespace MarlinTrk

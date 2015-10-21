@@ -4,13 +4,6 @@
 #include "MarlinTrk/IMarlinTrkSystem.h"
 
 
-#include <lcio.h>
-#include <EVENT/TrackerHit.h>
-#include <EVENT/TrackerHitPlane.h>
-
-#include <UTIL/BitField64.h>
-#include <UTIL/Operators.h>
-#include <UTIL/ILDConf.h>
 
 #include "aidaTT/IBField.hh"
 #include "aidaTT/ConstantSolenoidBField.hh"
@@ -26,17 +19,27 @@
 
 #include "DD4hep/DD4hepUnits.h"
 
+#include <lcio.h>
+#include <EVENT/TrackerHit.h>
+#include <EVENT/TrackerHitPlane.h>
+
+#include <UTIL/BitField64.h>
+#include <UTIL/Operators.h>
+#include <UTIL/ILDConf.h>
+
 #include <sstream>
 
 #include "streamlog/streamlog.h"
 
+  
+using namespace UTIL ;
 
 namespace MarlinTrk {
-  
+
   //---------------------------------------------------------------------------------------------------------------
   
   namespace{ 
-    std::string cellIDString( int detElementID ) {
+    std::string cellIDString( int detElementID) {
       lcio::BitField64 bf(  UTIL::ILDCellID0::encoder_string ) ;
       bf.setValue( detElementID ) ;
       return bf.valueString() ;
@@ -163,15 +166,17 @@ namespace MarlinTrk {
     }
     
     //==== compute _all_ surface intersections ====================== 
-    const std::vector<std::pair<double, const aidaTT::ISurface*> >& intersections =
-      _fitTrajectory->getIntersectionsWithSurfaces( _aidaTT->_geom->getSurfaces() ) ;
+    _intersections = &_fitTrajectory->getIntersectionsWithSurfaces( _aidaTT->_geom->getSurfaces() ) ;
     
 
     //========= loop over all intersections =========
-    for( std::vector<std::pair<double, const aidaTT::ISurface*> >::const_iterator it =  intersections.begin() ;
-	 it != intersections.end() ; ++it ){
+    int pointLabel = 0 ; 
+    for( std::vector<std::pair<double, const aidaTT::ISurface*> >::const_iterator it =  
+	   _intersections->begin() ; it != _intersections->end() ; ++it ){
       
       const aidaTT::ISurface* surf = it->second ;
+
+      _indexMap[ surf->id() ] = ++pointLabel ;  // label 0 is for the IP point 
 
       EVENT::TrackerHit* hit = hitMap[ surf->id() ] ;
       
@@ -258,12 +263,48 @@ namespace MarlinTrk {
   
   int MarlinAidaTTTrack::getTrackState( EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) {
     
-    const aidaTT::fitResults* result = _fitTrajectory->getFitResults( trkhit->getCellID0() );
+    std::map<int,int>::iterator it =  _indexMap.find( trkhit->getCellID0()  ) ;
 
-    if( result == 0 ) 
+    if( it == _indexMap.end() ) {
+      
+      streamlog_out( DEBUG2 )  << " MarlinAidaTTTrack::getTrackState(): " 
+			       << " no surface intersection for given hit " 
+			       << cellIDString( trkhit->getCellID0()) << std::endl  ;
+      return error ; 
+    }
+
+    return getTrackState( aidaTT::Vector3D( trkhit->getPosition() ), it->second, ts, chi2, ndf ) ;
+  }
+  
+
+  int MarlinAidaTTTrack::getTrackState( const aidaTT::Vector3D& refPoint, int label, 
+					IMPL::TrackStateImpl& ts, double& chi2, int& ndf  ){
+
+    const aidaTT::fitResults* result = _fitTrajectory->getFitResults( label );
+    
+    if( result == 0 ) {
+      
+      streamlog_out( DEBUG2 )  << " MarlinAidaTTTrack::getTrackState(): " 
+			       << " no result at label " <<  label 
+			       << " close to " << refPoint << std::endl  ;
       return error ;
+    }
+    
+    // results are returned with origin as reference point
+    aidaTT::trackParameters resTS = result->estimatedParameters() ;
+    
 
-    ts = *aidaTT::createLCIO( result->estimatedParameters() );
+    const double* pos = refPoint ;
+    aidaTT::Vector3D hitPos( pos[0] * dd4hep::mm, pos[1] * dd4hep::mm , pos[2] * dd4hep::mm ) ; 
+    //    hitPos = dd4hep::mm * hitPos ;
+    
+    streamlog_out( DEBUG2 )  << " MarlinAidaTTTrack::getTrackState(): " 
+			     << " moving helix to " << hitPos  << std::endl ;
+    
+    bool calcCovMat = true ;
+    moveHelixTo( resTS , hitPos , calcCovMat ) ;
+    
+    ts = *aidaTT::createLCIO( resTS );
         
     chi2 = result->chiSquare() ;
 
@@ -283,7 +324,7 @@ namespace MarlinTrk {
 
       hits.push_back(  std::make_pair( _lcioHits[i] , 0. ) );
     }
-    
+
     return success ;
   }
   
@@ -304,50 +345,31 @@ namespace MarlinTrk {
   
   int MarlinAidaTTTrack::getTrackerHitAtPositiveNDF( EVENT::TrackerHit*& trkhit ) {
 
-    trkhit = _lcioHits[0] ; // ????
+    trkhit = _lcioHits[0] ; // is this correct ???
     return success;    
   }
   
   
   int MarlinAidaTTTrack::extrapolate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ){  
     
-    // const TKalTrackSite& site = *(dynamic_cast<const TKalTrackSite*>(_kaltrack->Last())) ;
-    
-    // return this->extrapolate( point, site, ts, chi2, ndf ) ;
-    return success ;
+    return propagate( point, ts, chi2, ndf ) ;
   }
   
   int MarlinAidaTTTrack::extrapolate( const gear::Vector3D& point, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) {
     
-    // TKalTrackSite* site = 0 ;
-    // int error_code = getSiteFromLCIOHit(trkhit, site);
-    
-    // if( error_code != success ) return error_code;
-    
-    // return this->extrapolate( point, *site, ts, chi2, ndf ) ;
-    return success ;
-    
+    return propagate( point, trkhit, ts, chi2, ndf ) ;
   }
   
   
   int MarlinAidaTTTrack::extrapolateToLayer( int layerID, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID, int mode ) { 
     
-    // const TKalTrackSite& site = *(dynamic_cast<const TKalTrackSite*>(_kaltrack->Last())) ;
-    
-    // return this->extrapolateToLayer( layerID, site, ts, chi2, ndf, detElementID, mode ) ;
-    return success ;
+    return propagateToLayer( layerID, ts, chi2, ndf, detElementID, mode  ) ;
   }
-
-
-  int MarlinAidaTTTrack::extrapolateToLayer( int layerID, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID, int mode ) { 
   
-    // TKalTrackSite* site = 0;
-    // int error_code = getSiteFromLCIOHit(trkhit, site);
+  
+  int MarlinAidaTTTrack::extrapolateToLayer( int layerID, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID, int mode ) { 
     
-    //   if( error_code != success ) return error_code ;
-    
-    //   return this->extrapolateToLayer( layerID, *site, ts, chi2, ndf, detElementID, mode ) ;
-    return success ;
+    return propagateToLayer( layerID, trkhit, ts, chi2, ndf, detElementID, mode  ) ;
   }
   
   
@@ -355,22 +377,13 @@ namespace MarlinTrk {
   
   int MarlinAidaTTTrack::extrapolateToDetElement( int detElementID, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int mode ) { 
     
-    // const TKalTrackSite& site = *(dynamic_cast<const TKalTrackSite*>(_kaltrack->Last())) ;
-    
-    // return this->extrapolateToDetElement( detElementID, site, ts, chi2, ndf, mode ) ;
-    return success ;
+    return propagateToDetElement( detElementID, ts, chi2, ndf, mode  ) ;
   }
   
   
   int MarlinAidaTTTrack::extrapolateToDetElement( int detElementID, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int mode ) { 
     
-    // TKalTrackSite* site = 0;
-    // int error_code = getSiteFromLCIOHit(trkhit, site);
-    
-    // if( error_code != success ) return error_code ;
-    
-    // return this->extrapolateToDetElement( detElementID, *site, ts, chi2, ndf, mode ) ;
-    return success ;
+    return propagateToDetElement( detElementID, trkhit, ts, chi2, ndf, mode  ) ;
   }
   
   
@@ -384,116 +397,221 @@ namespace MarlinTrk {
 
     }else{
 
-      streamlog_out( WARNING )  << "MarlinAidaTTTrack::propagate not yet implemented for point otherthan IP " 
-				<< std::endl ;
+      aidaTT::Vector3D thePoint( point[0]*dd4hep::mm,point[1]*dd4hep::mm, point[2]*dd4hep::mm ) ;
+
+      //========= loop over all intersections and find the one closest to given point
+      double minDist2 = 1.e99 ;
+      unsigned index = 0, count = 0 ;
+      for( std::vector<std::pair<double, const aidaTT::ISurface*> >::const_iterator it =  
+	     _intersections->begin() ; it != _intersections->end() ; ++it ){
+	
+	++count ;
+
+	// get the (cached) intersection point
+
+	double s ; aidaTT::Vector2D uv ; aidaTT::Vector3D position ;
+	_fitTrajectory->_calculateIntersectionWithSurface( it->second, s , &uv, &position );
+	
+	aidaTT::Vector3D dv = position - thePoint ;
+	double dist2 = dv.r2() ;
+	
+	if( dist2 < minDist2 ){
+	  minDist2 = dist2 ;
+	  index = count ;
+	}
+      }
+
+      streamlog_out( DEBUG2 )  << "MarlinAidaTTTrack::propagate(): found closest intersection "
+			       << " to point " << point << " at surface " 
+			       << *(*_intersections)[index].second << std::endl ;
 
 
 
-
+      return getTrackState( aidaTT::Vector3D( point[0], point[1], point[2] ), 
+			    index, ts, chi2, ndf ) ;
 
     }
-    return success ;
   }
   
-  int MarlinAidaTTTrack::propagate( const gear::Vector3D& point, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ){
+  int MarlinAidaTTTrack::propagate( const gear::Vector3D& point, EVENT::TrackerHit*, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ){
     
     return this->propagate( point, ts, chi2, ndf ) ;
   }
   
   
   
-  int MarlinAidaTTTrack::propagateToLayer( int layerID, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID, int mode ) { 
+  int MarlinAidaTTTrack::propagateToLayer( int layerID, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID, int ) { 
     
-    // const TKalTrackSite& site = *(dynamic_cast<const TKalTrackSite*>(_kaltrack->Last())) ;
+    UTIL::BitField64 encoder( lcio::ILDCellID0::encoder_string ) ; 
+    encoder.reset() ;  // reset to 0
     
-    // return this->propagateToLayer( layerID, site, ts, chi2, ndf, detElementID, mode ) ;
-    return success ;
+
+    // compute a mask for the layerid
+    int mask=0 ;
+    mask |= encoder[lcio::ILDCellID0::subdet].mask() ;
+    mask |= encoder[lcio::ILDCellID0::side  ].mask() ;
+    mask |= encoder[lcio::ILDCellID0::layer ].mask() ;
+
+    // loop over intersections to find the (first) intersection w/ the given layerid
     
+    double s ; aidaTT::Vector2D uv ; aidaTT::Vector3D position ;
+
+    //========= loop over all intersections and find on that matches layerID
+    int theID = -1 ;
+    unsigned index = 0, count = 0 ;
+    for( std::vector<std::pair<double, const aidaTT::ISurface*> >::const_iterator it =  
+	   _intersections->begin() ; it != _intersections->end() ; ++it ){
+      ++count ;
+
+      int id = it->second->id() ;
+
+      if( layerID == ( id & mask ) ){
+
+	index = count ;
+	theID = id ;
+	
+	_fitTrajectory->_calculateIntersectionWithSurface( it->second, s , &uv, &position );
+	
+	break ;
+      }
+    }
+
+    if( theID == -1 ){
+      streamlog_out( ERROR )  << "MarlinAidaTTTrack::propagate(): no intersection "
+			      << " found for layerID "  << cellIDString( layerID ) 
+			      << std::endl ;
+      return error ;
+    }
+
+
+    detElementID = theID ;
+
+    // need to convert intersection position back to mm ...
+    aidaTT::Vector3D point( position[0]/dd4hep::mm, position[1]/dd4hep::mm,position[2]/dd4hep::mm ) ;
+
+    int res = getTrackState( point, index, ts, chi2, ndf ) ;
+
+    return res ;
   }
   
   
-  int MarlinAidaTTTrack::propagateToLayer( int layerID, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID, int mode ) { 
+
+  int MarlinAidaTTTrack::propagateToLayer( int layerID, EVENT::TrackerHit*, IMPL::TrackStateImpl& ts, 
+					   double& chi2, int& ndf, int& detElementID, int  ) { 
     
-    // TKalTrackSite* site = 0;
-    // int error_code = getSiteFromLCIOHit(trkhit, site);
-    
-    // if( error_code != success ) return error_code ;
-    
-    // return this->propagateToLayer( layerID, *site, ts, chi2, ndf, detElementID, mode ) ;
-    return success ;
-    
+    return propagateToLayer( layerID, ts, chi2, ndf, detElementID ) ;
   }
   
   
-  int MarlinAidaTTTrack::propagateToDetElement( int detElementID, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int mode ) { 
+  int MarlinAidaTTTrack::propagateToDetElement( int detElementID, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int ) { 
     
-    // const TKalTrackSite& site = *(dynamic_cast<const TKalTrackSite*>(_kaltrack->Last())) ;
+    std::map<int,int>::iterator it =  _indexMap.find( detElementID ) ;
     
-    // return this->propagateToDetElement( detElementID, site, ts, chi2, ndf, mode ) ;
-    return success ;
+    if( it == _indexMap.end() ) {
+      
+      streamlog_out( DEBUG2 )  << " MarlinAidaTTTrack::propagateToDetElement(): " 
+			       << " no surface intersection for given DetElementID " 
+			       << cellIDString( detElementID ) << std::endl  ;
+      return error ; 
+    }
     
+    
+    const aidaTT::ISurface* surf = (*_intersections)[ it->second - 1  ].second ;
+
+    // sanity check:
+    if( surf->id() != detElementID ){
+      
+      std::stringstream s ; s << "MarlinAidaTTTrack::propagateToDetElement() - inconsistent ids: detElementID = " 
+			      << cellIDString( detElementID ) << " and surf.id() " <<   surf->id() << std::endl ;
+
+      throw MarlinTrk::Exception( s.str() );   
+    }
+
+    double s ; aidaTT::Vector2D uv ; aidaTT::Vector3D position ;
+
+    _fitTrajectory->_calculateIntersectionWithSurface( surf, s , &uv, &position );
+    
+    // need to convert intersection position back to mm ...
+    aidaTT::Vector3D point( position[0]/dd4hep::mm, position[1]/dd4hep::mm,position[2]/dd4hep::mm ) ;
+    
+    return getTrackState( point , it->second, ts, chi2, ndf ) ;
   }
   
   
-  int MarlinAidaTTTrack::propagateToDetElement( int detElementID, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int mode ) { 
+  int MarlinAidaTTTrack::propagateToDetElement( int detElementID, EVENT::TrackerHit*, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int ) { 
     
-    // TKalTrackSite* site = 0;
-    // int error_code = getSiteFromLCIOHit(trkhit, site);
-    
-    // if( error_code != success ) return error_code ;
-    
-    // return this->propagateToDetElement( detElementID, *site, ts, chi2, ndf, mode ) ;
-    return success ;
-    
+    return propagateToDetElement(detElementID, ts, chi2, ndf ) ;
   }
   
     
-  int MarlinAidaTTTrack::intersectionWithDetElement( int detElementID, gear::Vector3D& point, int mode ) {  
+  int MarlinAidaTTTrack::intersectionWithDetElement( int detElementID, gear::Vector3D& point, int) {  
     
-    // const TKalTrackSite& site = *(dynamic_cast<const TKalTrackSite*>(_kaltrack->Last())) ;
+    SurfMap::iterator it = _aidaTT->_surfMap.find( detElementID ) ;
+
+    if( it == _aidaTT->_surfMap.end() ){
+      streamlog_out( DEBUG2 )  << " MarlinAidaTTTrack::intersectionWithDetElement() - no surface found for " << cellIDString( detElementID ) << std::endl ;
+      return error ;
+    }
+
+    const aidaTT::ISurface* surf = it->second ;
     
-    // const DDVMeasLayer* ml = 0;
-    // return this->intersectionWithDetElement( detElementID, site, point, ml, mode ) ;
-    return success ;
-    
+    double s ; aidaTT::Vector2D uv ; aidaTT::Vector3D position ;
+
+    bool intersects = _fitTrajectory->_calculateIntersectionWithSurface( surf, s , &uv, &position );
+
+    // need to convert intersection position back to mm ...
+    if( intersects) 
+      point =  aidaTT::Vector3D( position[0]/dd4hep::mm, position[1]/dd4hep::mm,position[2]/dd4hep::mm ) ;
+
+    return (intersects ? success : error ) ;
   }
   
   
-  int MarlinAidaTTTrack::intersectionWithDetElement( int detElementID,  EVENT::TrackerHit* trkhit, gear::Vector3D& point, int mode ) {  
+  int MarlinAidaTTTrack::intersectionWithDetElement( int detElementID,  EVENT::TrackerHit*, gear::Vector3D& point, int mode ) {  
     
-    // TKalTrackSite* site = 0;
-    // int error_code = getSiteFromLCIOHit(trkhit, site);
-    
-    // if( error_code != success ) return error_code ;
-    
-    // const DDVMeasLayer* ml = 0;
-    // return this->intersectionWithDetElement( detElementID, *site, point, ml, mode ) ;
-    return success ;
-    
+    return intersectionWithDetElement( detElementID, point, mode ) ;
   }
   
   
   int MarlinAidaTTTrack::intersectionWithLayer( int layerID, gear::Vector3D& point, int& detElementID, int mode ) {  
     
-    // const TKalTrackSite& site = *(dynamic_cast<const TKalTrackSite*>(_kaltrack->Last())) ;
-    // const DDVMeasLayer* ml = 0;
-    // return this->intersectionWithLayer( layerID, site, point, detElementID, ml,  mode ) ;
-    return success ;
+    UTIL::BitField64 encoder( lcio::ILDCellID0::encoder_string ) ; 
+    encoder.reset() ;  // reset to 0
     
+    // compute a mask for the layerid
+    int mask=0 ;
+    mask |= encoder[lcio::ILDCellID0::subdet].mask() ;
+    mask |= encoder[lcio::ILDCellID0::side  ].mask() ;
+    mask |= encoder[lcio::ILDCellID0::layer ].mask() ;
+
+    int theID = -1 ;
+    for( std::vector<std::pair<double, const aidaTT::ISurface*> >::const_iterator it =  
+	   _intersections->begin() ; it != _intersections->end() ; ++it ){
+      
+      int id = it->second->id() ;
+      
+      if( layerID == ( id & mask ) ){
+	theID = id ;
+	break ;
+      }
+    }
+    
+    if( theID == -1 ){
+      streamlog_out( ERROR )  << "MarlinAidaTTTrack::intersectionWithLayer(): no intersection "
+			      << " found for layerID "  << cellIDString( layerID ) 
+			      << std::endl ;
+      return error ;
+    }
+
+    detElementID = theID ;
+
+    return intersectionWithDetElement( detElementID, point, mode  ) ;
   }
   
   
-  int MarlinAidaTTTrack::intersectionWithLayer( int layerID,  EVENT::TrackerHit* trkhit, gear::Vector3D& point, int& detElementID, int mode ) {  
-    
-    // TKalTrackSite* site = 0;
-    // int error_code = getSiteFromLCIOHit(trkhit, site);
-    
-    // if( error_code != success ) return error_code ;
-    
-    // const DDVMeasLayer* ml = 0;
-    // return this->intersectionWithLayer( layerID, *site, point, detElementID, ml, mode ) ;
-    return success ;
-    
+  int MarlinAidaTTTrack::intersectionWithLayer( int layerID,  EVENT::TrackerHit*, gear::Vector3D& point, int& detElementID, int ) {  
+
+    return intersectionWithLayer( layerID, point, detElementID ) ;
   }
   
   std::string MarlinAidaTTTrack::toString() {
