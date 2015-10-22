@@ -180,6 +180,8 @@ namespace MarlinTrk {
 
       EVENT::TrackerHit* hit = hitMap[ surf->id() ] ;
       
+      streamlog_out(DEBUG) << "MarlinAidaTTTrack::fit() - intersection " << pointLabel <<": << at s = " << it->first <<  " surface id : " << cellIDString( surf->id()  ) << std::endl ;
+
       if( hit != 0 ){ //-------- we have to add a measurement   
 	
        	// get the hit position in dd4hep/aidaTT units
