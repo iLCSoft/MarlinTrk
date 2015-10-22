@@ -157,8 +157,6 @@ namespace MarlinTrk {
       return error ;
     }
     
-    std::vector<double> precision(2) ;
-    
     // ==== store hits in a map ===============
     std::map< int, EVENT::TrackerHit*> hitMap ;
     for(unsigned i=0 ; i < nHits ; ++i){
@@ -190,6 +188,8 @@ namespace MarlinTrk {
 	
 	//---- compute the precision from the hit errors
 	double du,dv ;
+	std::vector<double> precision ;
+    
 	
 	TrackerHitPlane* planarhit = dynamic_cast<TrackerHitPlane*>( hit );
 	if( planarhit != 0 ) {
@@ -205,8 +205,10 @@ namespace MarlinTrk {
 	  dv = sqrt( cov[5]          ) * dd4hep::mm  ;
 	}
 
-	precision[0] = 1./ (du*du) ;
-	precision[1] = 1./ (dv*dv) ;
+	precision.push_back( 1./ (du*du) );
+
+	if( ! surf->type().isMeasurement1D()  )
+	  precision.push_back( 1./ (dv*dv) );
 	
 	_fitTrajectory->addMeasurement( hitpos, precision, *surf, hit , _aidaTT->_useQMS );
 
