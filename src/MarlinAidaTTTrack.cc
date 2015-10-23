@@ -174,8 +174,6 @@ namespace MarlinTrk {
       
       const aidaTT::ISurface* surf = it->second ;
 
-      _indexMap[ surf->id() ] = ++pointLabel ;  // label 0 is for the IP point 
-
       EVENT::TrackerHit* hit = hitMap[ surf->id() ] ;
       
       streamlog_out(DEBUG) << "MarlinAidaTTTrack::fit() - intersection " << pointLabel <<": << at s = " << it->first <<  " surface id : " << cellIDString( surf->id()  ) << std::endl ;
@@ -207,15 +205,18 @@ namespace MarlinTrk {
 
 	precision.push_back( 1./ (du*du) );
 
-	if( ! surf->type().isMeasurement1D()  )
-	  precision.push_back( 1./ (dv*dv) );
+	//	if( ! surf->type().isMeasurement1D()  )
+	precision.push_back( 1./ (dv*dv) );
 	
 	_fitTrajectory->addMeasurement( hitpos, precision, *surf, hit , _aidaTT->_useQMS );
+	_indexMap[ surf->id() ] = ++pointLabel ;  // label 0 is for the IP point 
 
       } else  { // we just add a scatterer
 
-	if (_aidaTT->_useQMS )
+	if (_aidaTT->_useQMS ){
 	  _fitTrajectory->addScatterer( *surf ) ;
+	  _indexMap[ surf->id() ] = ++pointLabel ;  // label 0 is for the IP point 
+	}
       }
     }
       
