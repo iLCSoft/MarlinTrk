@@ -214,8 +214,15 @@ namespace MarlinTrk {
       } else  { // we just add a scatterer
 
 	if (_aidaTT->_useQMS ){
-	  _fitTrajectory->addScatterer( *surf ) ;
-	  _indexMap[ surf->id() ] = ++pointLabel ;  // label 0 is for the IP point 
+	  
+	  // ignore virtual surface with no material (e.g. inside the beam pipe )
+
+	  if( ! ( surf->innerMaterial().density() < 1e-6  && 
+		  surf->outerMaterial().density() < 1e-6 )  ) {
+
+	    _fitTrajectory->addScatterer( *surf ) ;
+	    _indexMap[ surf->id() ] = ++pointLabel ;  // label 0 is for the IP point 
+	  }
 	}
       }
     }
@@ -410,8 +417,6 @@ namespace MarlinTrk {
       for( std::vector<std::pair<double, const aidaTT::ISurface*> >::const_iterator it =  
 	     _intersections->begin() ; it != _intersections->end() ; ++it ){
 	
-	++count ;
-
 	// get the (cached) intersection point
 
 	double s ; aidaTT::Vector2D uv ; aidaTT::Vector3D position ;
@@ -424,16 +429,19 @@ namespace MarlinTrk {
 	  minDist2 = dist2 ;
 	  index = count ;
 	}
+	++count ;
       }
 
       streamlog_out( DEBUG2 )  << "MarlinAidaTTTrack::propagate(): found closest intersection "
 			       << " to point " << point << " at surface " 
 			       << *(*_intersections)[index].second << std::endl ;
-
+      
+      const aidaTT::ISurface* s = _intersections->at(index).second ;
+      int label = _indexMap[ s->id() ] ;
 
 
       return getTrackState( aidaTT::Vector3D( point[0], point[1], point[2] ), 
-			    index, ts, chi2, ndf ) ;
+			    label, ts, chi2, ndf ) ;
 
     }
   }
