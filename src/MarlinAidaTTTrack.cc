@@ -205,8 +205,10 @@ namespace MarlinTrk {
 
 	precision.push_back( 1./ (du*du) );
 
-	//	if( ! surf->type().isMeasurement1D()  )
-	precision.push_back( 1./ (dv*dv) );
+	if( ! surf->type().isMeasurement1D()  )
+	  precision.push_back( 1./ (dv*dv) );
+	else
+	  precision.push_back( 0. );
 	
 	_fitTrajectory->addMeasurement( hitpos, precision, *surf, hit , _aidaTT->_useQMS );
 	_indexMap[ surf->id() ] = ++pointLabel ;  // label 0 is for the IP point 
@@ -233,8 +235,28 @@ namespace MarlinTrk {
     
     int fit_ok = _fitTrajectory->fit();
     
-    streamlog_out( DEBUG4 )  << "MarlinAidaTTTrack::fit() - fit worked  " << fit_ok  << std::endl ;
+    streamlog_out( DEBUG4 )  << "MarlinAidaTTTrack::fit() - fit worked  " << fit_ok  
+			     << std::endl ;
    
+
+#if 0 // ---------------- try to run a refit --- does not work really ....
+    // refit one more time w/ new start parameters
+    const aidaTT::fitResults* result = _fitTrajectory->getFitResults();
+    const aidaTT::trackParameters& tp =  result->estimatedParameters()  ;
+
+    streamlog_out( MESSAGE ) << " --- first fit result : " << tp << std::endl ;
+ 
+    _fitTrajectory->setInitialTrackParameters( tp );
+    _fitTrajectory->prepareForFitting();
+    fit_ok = _fitTrajectory->fit();
+    streamlog_out( DEBUG4 )  << "MarlinAidaTTTrack::fit() - refit worked  " << fit_ok  << std::endl ;
+
+    result = _fitTrajectory->getFitResults();
+    const aidaTT::trackParameters& tp1 =  result->estimatedParameters()  ;
+
+    streamlog_out( MESSAGE ) << " --- second fit result : " << tp1 << std::endl ;
+#endif
+
     return ( fit_ok ? success : error  )  ;
   }
   
