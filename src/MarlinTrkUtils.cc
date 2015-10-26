@@ -154,9 +154,9 @@ namespace MarlinTrk {
       throw EVENT::Exception( std::string("MarlinTrk::finaliseLCIOTrack: TrackImpl == NULL ")  ) ;
     }
     
-    if( pre_fit == 0 ){
-      throw EVENT::Exception( std::string("MarlinTrk::finaliseLCIOTrack: TrackStateImpl == NULL ")  ) ;
-    }
+    // if( pre_fit == 0 ){
+    //   throw EVENT::Exception( std::string("MarlinTrk::finaliseLCIOTrack: TrackStateImpl == NULL ")  ) ;
+    // }
     
     
     int fit_status = createFit(hit_list, marlinTrk, pre_fit, bfield_z, fit_direction, maxChi2Increment);
@@ -191,9 +191,9 @@ namespace MarlinTrk {
       throw EVENT::Exception( std::string("MarlinTrk::createFit: IMarlinTrack == NULL ")  ) ;
     }
     
-    if( pre_fit == 0 ){
-      throw EVENT::Exception( std::string("MarlinTrk::createFit: TrackStateImpl == NULL ")  ) ;
-    }
+    // if( pre_fit == 0 ){
+    //   throw EVENT::Exception( std::string("MarlinTrk::createFit: TrackStateImpl == NULL ")  ) ;
+    // }
     
     int return_error = 0;
     
@@ -277,7 +277,20 @@ namespace MarlinTrk {
     // set the initial track parameters  
     ///////////////////////////////////////////////////////
     
-    return_error = marlinTrk->initialise( *pre_fit, bfield_z, fit_direction ) ;//IMarlinTrack::backward ) ;
+
+    if( pre_fit == 0 ) {
+
+      streamlog_out(DEBUG5) << "MarlinTrk::createFit : null pointer for pre_fit given - will fall back "
+			    << " to default initialisation ..." << std::endl ;
+
+      return_error = marlinTrk->initialise( fit_direction ) ; 
+
+    } else {
+
+      return_error = marlinTrk->initialise( *pre_fit, bfield_z, fit_direction ) ;//IMarlinTrack::backward ) ;
+    }
+
+
     if (return_error != IMarlinTrack::success) {
       
       streamlog_out(DEBUG5) << "MarlinTrk::createFit Initialisation of track fit failed with error : " << return_error << std::endl;
@@ -567,9 +580,13 @@ namespace MarlinTrk {
     // make sure that the track state can be propagated to the IP 
     ///////////////////////////////////////////////////////
     
+    MarlinTrk::IMarlinTrkSystem* trksystem =  MarlinTrk::Factory::getCurrentMarlinTrkSystem() ;
+
+    bool usingAidaTT = ( trksystem->name() == "AidaTT" ) ;
+
     // if we fitted backwards, the firstHit is the last one used in the fit and we simply propagate to the IP:
 
-    if(  fit_direction == IMarlinTrack::backward ) {   //
+    if(  fit_direction == IMarlinTrack::backward ||  usingAidaTT ) {   
 
       return_error = marlintrk->propagate(point, firstHit, *trkStateIP, chi2, ndf ) ;
 
@@ -579,7 +596,6 @@ namespace MarlinTrk {
       // and then add the last inner hits with a Kalman step ... 
       
       // create a temporary IMarlinTrack 
-      MarlinTrk::IMarlinTrkSystem* trksystem =  MarlinTrk::Factory::getCurrentMarlinTrkSystem() ;
       
       std::auto_ptr<MarlinTrk::IMarlinTrack> mTrk( trksystem->createTrack()  ) ;
       

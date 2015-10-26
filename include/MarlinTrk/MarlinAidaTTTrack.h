@@ -231,6 +231,10 @@ private:
   }
   
 protected:
+  
+  aidaTT::trackParameters createPreFit(aidaTT::trackParameters& tp ) ;
+
+  void getHitInfo( const EVENT::TrackerHit* hit, double* hitpos, std::vector<double>& precision, const aidaTT::ISurface* surf ) ;
 
   int getTrackState( const aidaTT::Vector3D& refPoint, int label, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) ;
 

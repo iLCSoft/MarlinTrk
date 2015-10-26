@@ -78,7 +78,9 @@ namespace MarlinTrk {
      */ 
     std::string getOptions() ;
     
-    
+    /// the name of the implementation 
+    virtual std::string name() { return "Unknown" ; }
+
     /** Initialise tracking system - to be called after configuration with setOption() -
      *  IMarlinTrkSystem cannot be used before a call to init().
      */

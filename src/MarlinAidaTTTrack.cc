@@ -91,19 +91,39 @@ namespace MarlinTrk {
     aidaTT::Vector3D x2( pos2[0] * dd4hep::mm, pos2[1] * dd4hep::mm , pos2[2] * dd4hep::mm ) ;
     aidaTT::Vector3D x3( pos3[0] * dd4hep::mm, pos3[1] * dd4hep::mm , pos3[2] * dd4hep::mm ) ;
 
-    calculateStartHelix( x1, x2,  x3 , _initialTrackParams , backwards ) ;
+    
+    aidaTT::trackParameters tp ;
+    calculateStartHelix( x1, x2,  x3 , tp , backwards ) ;
              
-    streamlog_out( DEBUG3 )  << "  start helix from three points : " << _initialTrackParams << std::endl ;
+    streamlog_out( DEBUG3 )  << "  start helix from three points : " <<  tp << std::endl ;
+
+
+#if 1 // create prefit from this helix
+    _initialTrackParams = createPreFit( tp ) ;
+#else
+    _initialTrackParams = tp ;
+#endif
 
     return myInit() ;
   }
   
 
-  int MarlinAidaTTTrack::initialise(  const EVENT::TrackState& ts, double /*bfield_z*/, bool fitDirection ) {
+  int MarlinAidaTTTrack::initialise(  const EVENT::TrackState& ts, double, bool dir) {
+    
+    if ( _initialised ) {
+      throw MarlinTrk::Exception("Track fit already initialised");   
+    }
 
+#if 0 // debug code - initialize with hits and a prefit ....
+    
+    return initialise( dir ) ;
+
+#else
     _initialTrackParams = aidaTT::readLCIO( &ts ) ;
 
     return myInit() ;
+#endif
+
   }
 
   int MarlinAidaTTTrack::myInit() {
@@ -176,40 +196,16 @@ namespace MarlinTrk {
 
       EVENT::TrackerHit* hit = hitMap[ surf->id() ] ;
       
-      streamlog_out(DEBUG) << "MarlinAidaTTTrack::fit() - intersection " << pointLabel <<": << at s = " << it->first <<  " surface id : " << cellIDString( surf->id()  ) << std::endl ;
+      streamlog_out(DEBUG) << "MarlinAidaTTTrack::fit() - intersection " << pointLabel 
+			   << ":  at s = " << it->first <<  " surface id : " 
+			   << cellIDString( surf->id()  ) << std::endl ;
 
       if( hit != 0 ){ //-------- we have to add a measurement   
 	
-       	// get the hit position in dd4hep/aidaTT units
 	double hitpos[3] ;
-	for(unsigned int i = 0; i < 3; ++i) hitpos[i] = hit->getPosition()[i] * dd4hep::mm;
-	
-	//---- compute the precision from the hit errors
-	double du,dv ;
 	std::vector<double> precision ;
-    
-	
-	TrackerHitPlane* planarhit = dynamic_cast<TrackerHitPlane*>( hit );
-	if( planarhit != 0 ) {
-	  
-	  du = planarhit->getdU() * dd4hep::mm  ;
-	  dv = planarhit->getdV() * dd4hep::mm  ;
-	  
-	} else { // we have a TPC hit which is not yet using the CylinderTrackerHit ...
-	  
-	  const FloatVec& cov = hit->getCovMatrix();
+	getHitInfo( hit, hitpos, precision , surf) ;
 
-	  du = sqrt( cov[0] + cov[2] ) * dd4hep::mm  ;
-	  dv = sqrt( cov[5]          ) * dd4hep::mm  ;
-	}
-
-	precision.push_back( 1./ (du*du) );
-
-	if( ! surf->type().isMeasurement1D()  )
-	  precision.push_back( 1./ (dv*dv) );
-	else
-	  precision.push_back( 0. );
-	
 	_fitTrajectory->addMeasurement( hitpos, precision, *surf, hit , _aidaTT->_useQMS );
 	_indexMap[ surf->id() ] = ++pointLabel ;  // label 0 is for the IP point 
 
@@ -261,6 +257,122 @@ namespace MarlinTrk {
   }
   
   
+  aidaTT::trackParameters MarlinAidaTTTrack::createPreFit(aidaTT::trackParameters& tp ){
+    
+    // create a prefit from the hits w/o QMS and dEdx
+    
+    moveHelixTo( tp, aidaTT::Vector3D()  ) ; // move to origin
+
+    aidaTT::trajectory traj(  tp , _aidaTT->_fitter, _aidaTT->_bfield, 
+			      _aidaTT->_propagation, _aidaTT->_geom ) ;
+    
+    // Add the Interaction Point as the first element of the trajectory
+    int ID = 1;
+    aidaTT::Vector3D IntPoint(0,0,0);
+    traj.addElement(IntPoint, &ID);
+    
+
+    // try to use up to 25 or so hits....
+    unsigned nHits=_lcioHits.size() ;
+
+    int step = ( nHits <= 25  ? 1 : int( 1.*nHits/25. )  ) ; 
+
+    streamlog_out( DEBUG1 ) << " MarlinAidaTTTrack::createPreFit() :  will use every " 
+			    <<  step << "-th hit for prefit ! " << std::endl ; 
+
+    for(unsigned i=0 ; i < nHits ; i+= step ){
+      
+      EVENT::TrackerHit* hit = _lcioHits[i] ;
+      
+      long hitid = hit->getCellID0() ;
+
+      SurfMap::iterator it = _aidaTT->_surfMap.find( hitid ) ;
+
+      if( it == _aidaTT->_surfMap.end() ){
+
+	streamlog_out( DEBUG1 ) << " MarlinAidaTTTrack::createPreFit() : no surface found for id : " 
+				<< cellIDString( hitid ) << std::endl ;
+	continue;
+      }
+
+      const aidaTT::ISurface* surf = it->second ;
+      
+      double hitpos[3] ;
+      std::vector<double> precision ;
+      getHitInfo( hit, hitpos, precision , surf) ;
+      
+      streamlog_out( DEBUG1 ) << " MarlinAidaTTTrack::createPreFit() : adding hit for "
+			      <<  cellIDString( hitid ) << " at " 
+			      << aidaTT::Vector3D( hit->getPosition() ) << std::endl ;
+	
+      
+
+      traj.addMeasurement( hitpos, precision, *surf, hit );
+    }
+
+    traj.prepareForFitting();
+	      
+    int success = traj.fit();
+	      
+
+    if( success ) { 
+
+      const aidaTT::fitResults* result = traj.getFitResults();
+      
+      const aidaTT::trackParameters& newTP = result->estimatedParameters() ;
+
+      streamlog_out( DEBUG4 ) << " MarlinAidaTTTrack::createPreFit() : prefit tp: " 
+			      << newTP << std::endl ;
+
+
+      return newTP ;
+
+    } else {
+
+      streamlog_out( WARNING ) << " MarlinAidaTTTrack::createPreFit() : prefit failed for tp: " 
+			       << tp << std::endl ;
+      
+      return tp ;
+    }
+
+  }
+
+
+  void MarlinAidaTTTrack::getHitInfo( const EVENT::TrackerHit* hit, double* hitpos, 
+				      std::vector<double>& precision, const aidaTT::ISurface* surf){
+    
+    // get the hit position in dd4hep/aidaTT units
+    for(unsigned int i = 0; i < 3; ++i) hitpos[i] = hit->getPosition()[i] * dd4hep::mm;
+    
+    //---- compute the precision from the hit errors
+    double du,dv ;
+    
+    const TrackerHitPlane* planarhit = dynamic_cast<const TrackerHitPlane*>( hit );
+    if( planarhit != 0 ) {
+      
+      du = planarhit->getdU() * dd4hep::mm  ;
+      dv = planarhit->getdV() * dd4hep::mm  ;
+      
+    } else { // we have a TPC hit which is not yet using the CylinderTrackerHit ...
+      
+      const FloatVec& cov = hit->getCovMatrix();
+      
+      du = sqrt( cov[0] + cov[2] ) * dd4hep::mm  ;
+      dv = sqrt( cov[5]          ) * dd4hep::mm  ;
+    }
+    
+    precision.push_back( 1./ (du*du) );
+    
+    if( ! surf->type().isMeasurement1D()  )
+      precision.push_back( 1./ (dv*dv) );
+    else
+      precision.push_back( 0. );
+    
+  }
+
+
+
+
   /** smooth all track states 
    */
   int MarlinAidaTTTrack::smooth(){

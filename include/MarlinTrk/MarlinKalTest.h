@@ -61,7 +61,10 @@ namespace MarlinTrk{
     /** initialise track fitter system */
     void init() ; 
     
-    /** instantiate its implementation of the IMarlinTrack */
+    /// the name of the implementation 
+    virtual std::string name() { return "KalTest" ; }
+
+   /** instantiate its implementation of the IMarlinTrack */
     MarlinTrk::IMarlinTrack* createTrack()  ;
     
     
