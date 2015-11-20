@@ -15,7 +15,7 @@
 #include "aidaTT/utilities.hh"
 #include "aidaTT/LCIOPersistency.hh"
 #include "aidaTT/Vector3D.hh"
-#include "aidaTT/DD4hepGeometry.hh"
+#include "aidaTT/IGeometry.hh"
 
 
 #include "DD4hep/LCDD.h"
@@ -88,11 +88,11 @@ namespace MarlinTrk{
     // get the all surfaces in the detector
     DD4hep::Geometry::DetElement world = lcdd.world() ;
     
-    _geom = new aidaTT::DD4hepGeometry(world) ;
+    _geom = & aidaTT::IGeometry::instance() ;
     
-    const std::list<const aidaTT::ISurface*>& surfaces = _geom->getSurfaces() ;
+    const std::vector<const aidaTT::ISurface*>& surfaces = _geom->getSurfaces() ;
     
-    for(std::list<const aidaTT::ISurface*>::const_iterator surf = surfaces.begin() ; surf != surfaces.end() ; ++surf) {
+    for(std::vector<const aidaTT::ISurface*>::const_iterator surf = surfaces.begin() ; surf != surfaces.end() ; ++surf) {
       _surfMap.insert( std::make_pair( (*surf)->id(), *surf ) ) ;
     }
     

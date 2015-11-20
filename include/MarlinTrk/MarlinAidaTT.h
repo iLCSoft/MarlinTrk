@@ -107,7 +107,7 @@ namespace MarlinTrk{
     /// multi-map of surfaces
     SurfMap _surfMap ;
     
-    aidaTT::IGeometry*         _geom ;
+    const aidaTT::IGeometry*         _geom ;
     aidaTT::IBField*           _bfield ;
     aidaTT::IFittingAlgorithm* _fitter ;
     aidaTT::IPropagation*      _propagation  ;

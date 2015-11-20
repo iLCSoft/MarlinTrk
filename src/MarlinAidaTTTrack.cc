@@ -138,12 +138,13 @@ namespace MarlinTrk {
     _initialTrackParams.covarianceMatrix()( aidaTT::D0   , aidaTT::D0    ) = 1.e5 ;
     _initialTrackParams.covarianceMatrix()( aidaTT::Z0   , aidaTT::Z0    ) = 1.e5 ;
 
-    _fitTrajectory = new aidaTT::trajectory( _initialTrackParams, _aidaTT->_fitter, _aidaTT->_bfield, 
+    _fitTrajectory = new aidaTT::trajectory( _initialTrackParams, _aidaTT->_fitter, //_aidaTT->_bfield, 
 					     _aidaTT->_propagation, _aidaTT->_geom );
 
     // add the Interaction Point as the first element of the trajectory
-    int ID = 1;
-    _fitTrajectory->addElement( aidaTT::Vector3D(), &ID);
+    // int ID = 1;
+    // _fitTrajectory->addElement( aidaTT::Vector3D(), &ID);
+    //done internally in trajectory ...
 
     _initialised = true ;
 
@@ -263,14 +264,14 @@ namespace MarlinTrk {
     
     moveHelixTo( tp, aidaTT::Vector3D()  ) ; // move to origin
 
-    aidaTT::trajectory traj(  tp , _aidaTT->_fitter, _aidaTT->_bfield, 
+    aidaTT::trajectory traj(  tp , _aidaTT->_fitter, //_aidaTT->_bfield, 
 			      _aidaTT->_propagation, _aidaTT->_geom ) ;
     
     // Add the Interaction Point as the first element of the trajectory
-    int ID = 1;
-    aidaTT::Vector3D IntPoint(0,0,0);
-    traj.addElement(IntPoint, &ID);
-    
+    // int ID = 1;
+    // aidaTT::Vector3D IntPoint(0,0,0);
+    // traj.addElement(IntPoint, &ID);
+    // done internally in trajectory    
 
     // try to use up to 25 or so hits....
     unsigned nHits=_lcioHits.size() ;
@@ -546,33 +547,44 @@ namespace MarlinTrk {
       aidaTT::Vector3D thePoint( point[0]*dd4hep::mm,point[1]*dd4hep::mm, point[2]*dd4hep::mm ) ;
 
       //========= loop over all intersections and find the one closest to given point
-      double minDist2 = 1.e99 ;
-      unsigned index = 0, count = 0 ;
-      for( std::vector<std::pair<double, const aidaTT::ISurface*> >::const_iterator it =  
-	     _intersections->begin() ; it != _intersections->end() ; ++it ){
+      // double minDist2 = 1.e99 ;
+      // unsigned index = 0, count = 0 ;
+      // for( std::vector<std::pair<double, const aidaTT::ISurface*> >::const_iterator it =  
+      // 	     _intersections->begin() ; it != _intersections->end() ; ++it ){
 	
-	// get the (cached) intersection point
+      // 	// get the (cached) intersection point
 
-	double s ; aidaTT::Vector2D uv ; aidaTT::Vector3D position ;
-	_fitTrajectory->_calculateIntersectionWithSurface( it->second, s , &uv, &position );
+      // 	double s ; aidaTT::Vector2D uv ; aidaTT::Vector3D position ;
+      // 	_fitTrajectory->_calculateIntersectionWithSurface( it->second, s , &uv, &position );
 	
-	aidaTT::Vector3D dv = position - thePoint ;
-	double dist2 = dv.r2() ;
+      // 	aidaTT::Vector3D dv = position - thePoint ;
+      // 	double dist2 = dv.r2() ;
 	
-	if( dist2 < minDist2 ){
-	  minDist2 = dist2 ;
-	  index = count ;
-	}
-	++count ;
-      }
-
-      streamlog_out( DEBUG2 )  << "MarlinAidaTTTrack::propagate(): found closest intersection "
-			       << " to point " << point << " at surface " 
-			       << *(*_intersections)[index].second << std::endl ;
+      // 	if( dist2 < minDist2 ){
+      // 	  minDist2 = dist2 ;
+      // 	  index = count ;
+      // 	}
+      // 	++count ;
+      // }
+      // streamlog_out( DEBUG2 )  << "MarlinAidaTTTrack::propagate(): found closest intersection "
+      // 			       << " to point " << point << " at surface " 
+      // 			       << *(*_intersections)[index].second << std::endl ;
       
-      const aidaTT::ISurface* s = _intersections->at(index).second ;
-      int label = _indexMap[ s->id() ] ;
+      //      const aidaTT::ISurface* s = _intersections->at(index).second ;
+      //int label = _indexMap[ s->id() ] ;
 
+      const std::vector<aidaTT::trajectoryElement*>& elemVec = 	_fitTrajectory->trajectoryElements() ;
+      double minDist2 = 1.e99 ;
+      unsigned label = 0 ;
+      for( unsigned i=0,N=elemVec.size() ; i < N ; ++i ){
+	const aidaTT::Vector3D& rp  = elemVec[i]->getTrackParameters()->referencePoint() ; 
+       	aidaTT::Vector3D dv = rp - thePoint ;
+       	double dist2 = dv.r2() ;
+       	if( dist2 < minDist2 ){
+       	  minDist2 = dist2 ;
+       	  label = i ;
+       	}
+      }
 
       return getTrackState( aidaTT::Vector3D( point[0], point[1], point[2] ), 
 			    label, ts, chi2, ndf ) ;
@@ -600,25 +612,39 @@ namespace MarlinTrk {
     mask |= encoder[lcio::ILDCellID0::layer ].mask() ;
 
     // loop over intersections to find the (first) intersection w/ the given layerid
-    
-    double s ; aidaTT::Vector2D uv ; aidaTT::Vector3D position ;
+    //    double s ; aidaTT::Vector2D uv ; aidaTT::Vector3D position ;
+    // //========= loop over all intersections and find on that matches layerID
+    // int theID = -1 ;
+    // unsigned index = 0, count = 0 ;
+    // for( std::vector<std::pair<double, const aidaTT::ISurface*> >::const_iterator it =  
+    // 	   _intersections->begin() ; it != _intersections->end() ; ++it ){
+    //   ++count ;
 
-    //========= loop over all intersections and find on that matches layerID
+    //   int id = it->second->id() ;
+
+    //   if( layerID == ( id & mask ) ){
+
+    // 	index = count ;
+    // 	theID = id ;
+	
+    // 	_fitTrajectory->_calculateIntersectionWithSurface( it->second, s , &uv, &position );
+	
+    // 	break ;
+    //   }
+    // }
+
+    const std::vector<aidaTT::trajectoryElement*>& elemVec = _fitTrajectory->trajectoryElements() ;
+    unsigned label = 0 ;
     int theID = -1 ;
-    unsigned index = 0, count = 0 ;
-    for( std::vector<std::pair<double, const aidaTT::ISurface*> >::const_iterator it =  
-	   _intersections->begin() ; it != _intersections->end() ; ++it ){
-      ++count ;
-
-      int id = it->second->id() ;
-
+    unsigned index = 0 ;
+    // first element has not surface ...
+    for( unsigned i=1,N=elemVec.size() ; i < N ; ++i ){
+      
+      int id =  elemVec[i]->surface().id() ;
+      
       if( layerID == ( id & mask ) ){
-
-	index = count ;
 	theID = id ;
-	
-	_fitTrajectory->_calculateIntersectionWithSurface( it->second, s , &uv, &position );
-	
+	label = i ;
 	break ;
       }
     }
@@ -629,9 +655,10 @@ namespace MarlinTrk {
 			      << std::endl ;
       return error ;
     }
-
-
+    
     detElementID = theID ;
+
+    const aidaTT::Vector3D& position  = elemVec[label]->getTrackParameters()->referencePoint() ; 
 
     // need to convert intersection position back to mm ...
     aidaTT::Vector3D point( position[0]/dd4hep::mm, position[1]/dd4hep::mm,position[2]/dd4hep::mm ) ;
@@ -663,21 +690,20 @@ namespace MarlinTrk {
     }
     
     
-    const aidaTT::ISurface* surf = (*_intersections)[ it->second - 1  ].second ;
-
-    // sanity check:
-    if( surf->id() != detElementID ){
-      
-      std::stringstream s ; s << "MarlinAidaTTTrack::propagateToDetElement() - inconsistent ids: detElementID = " 
-			      << cellIDString( detElementID ) << " and surf.id() " <<   surf->id() << std::endl ;
-
-      throw MarlinTrk::Exception( s.str() );   
-    }
-
-    double s ; aidaTT::Vector2D uv ; aidaTT::Vector3D position ;
-
-    _fitTrajectory->_calculateIntersectionWithSurface( surf, s , &uv, &position );
+    // const aidaTT::ISurface* surf = (*_intersections)[ it->second - 1  ].second ;
+    // // sanity check:
+    // if( surf->id() != detElementID ){
+    //   std::stringstream s ; s << "MarlinAidaTTTrack::propagateToDetElement() - inconsistent ids: detElementID = " 
+    // 			      << cellIDString( detElementID ) << " and surf.id() " <<   surf->id() << std::endl ;
+    //   throw MarlinTrk::Exception( s.str() );   
+    // }
+    // double s ; aidaTT::Vector2D uv ; aidaTT::Vector3D position ;
+    // _fitTrajectory->_calculateIntersectionWithSurface( surf, s , &uv, &position );
     
+    int label = it->second ;
+    const std::vector<aidaTT::trajectoryElement*>& elemVec = 	_fitTrajectory->trajectoryElements() ;
+    const aidaTT::Vector3D& position  = elemVec[label]->getTrackParameters()->referencePoint() ; 
+
     // need to convert intersection position back to mm ...
     aidaTT::Vector3D point( position[0]/dd4hep::mm, position[1]/dd4hep::mm,position[2]/dd4hep::mm ) ;
     
@@ -693,24 +719,34 @@ namespace MarlinTrk {
     
   int MarlinAidaTTTrack::intersectionWithDetElement( int detElementID, gear::Vector3D& point, int) {  
     
-    SurfMap::iterator it = _aidaTT->_surfMap.find( detElementID ) ;
-
-    if( it == _aidaTT->_surfMap.end() ){
-      streamlog_out( DEBUG2 )  << " MarlinAidaTTTrack::intersectionWithDetElement() - no surface found for " << cellIDString( detElementID ) << std::endl ;
-      return error ;
-    }
-
-    const aidaTT::ISurface* surf = it->second ;
+ //    SurfMap::iterator it = _aidaTT->_surfMap.find( detElementID ) ;
+ //    if( it == _aidaTT->_surfMap.end() ){
+ //      streamlog_out( DEBUG2 )  << " MarlinAidaTTTrack::intersectionWithDetElement() - no surface found for " << cellIDString( detElementID ) << std::endl ;
+ //      return error ;
+ //    }
+ //    const aidaTT::ISurface* surf = it->second ;
+ //    double s ; aidaTT::Vector2D uv ; aidaTT::Vector3D position ;
+ //    bool intersects = _fitTrajectory->_calculateIntersectionWithSurface( surf, s , &uv, &position );
+ //    // need to convert intersection position back to mm ...
+ // if( intersects) 
+    std::map<int,int>::iterator it =  _indexMap.find( detElementID ) ;
     
-    double s ; aidaTT::Vector2D uv ; aidaTT::Vector3D position ;
+    if( it == _indexMap.end() ) {
+      
+      streamlog_out( DEBUG2 )  << " MarlinAidaTTTrack::intersectionWithDetElement(): " 
+			       << " no surface intersection for given DetElementID " 
+			       << cellIDString( detElementID ) << std::endl  ;
+      return error ; 
+    }
+    int label = it->second ;
+    const std::vector<aidaTT::trajectoryElement*>& elemVec = 	_fitTrajectory->trajectoryElements() ;
+    const aidaTT::Vector3D& position  = elemVec[label]->getTrackParameters()->referencePoint() ; 
 
-    bool intersects = _fitTrajectory->_calculateIntersectionWithSurface( surf, s , &uv, &position );
 
-    // need to convert intersection position back to mm ...
-    if( intersects) 
       point =  aidaTT::Vector3D( position[0]/dd4hep::mm, position[1]/dd4hep::mm,position[2]/dd4hep::mm ) ;
 
-    return (intersects ? success : error ) ;
+      return success ;
+      //    return (intersects ? success : error ) ;
   }
   
   
