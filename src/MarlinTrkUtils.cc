@@ -867,19 +867,11 @@ namespace MarlinTrk {
 
     std::map<int, int> hitNumbers; 
     
-    hitNumbers[lcio::ILDDetID::VXD] = 0;
-    hitNumbers[lcio::ILDDetID::SIT] = 0;
-    hitNumbers[lcio::ILDDetID::FTD] = 0;
-    hitNumbers[lcio::ILDDetID::TPC] = 0;
-    hitNumbers[lcio::ILDDetID::SET] = 0;
-    hitNumbers[lcio::ILDDetID::ETD] = 0;
-    
     for(unsigned int j=0; j<hit_list.size(); ++j) {
       
       cellID_encoder.setValue(hit_list.at(j)->getCellID0()) ;
       int detID = cellID_encoder[UTIL::ILDCellID0::subdet];
       ++hitNumbers[detID];
-      //    streamlog_out( DEBUG1 ) << "Hit from Detector " << detID << std::endl;     
     }
     
     int offset = 2 ;
@@ -887,16 +879,18 @@ namespace MarlinTrk {
       offset = 1 ;
     }
     
-    track->subdetectorHitNumbers().resize(2 * lcio::ILDDetID::ETD);
-    track->subdetectorHitNumbers()[ 2 * lcio::ILDDetID::VXD - offset ] = hitNumbers[lcio::ILDDetID::VXD];
-    track->subdetectorHitNumbers()[ 2 * lcio::ILDDetID::FTD - offset ] = hitNumbers[lcio::ILDDetID::FTD];
-    track->subdetectorHitNumbers()[ 2 * lcio::ILDDetID::SIT - offset ] = hitNumbers[lcio::ILDDetID::SIT];
-    track->subdetectorHitNumbers()[ 2 * lcio::ILDDetID::TPC - offset ] = hitNumbers[lcio::ILDDetID::TPC];
-    track->subdetectorHitNumbers()[ 2 * lcio::ILDDetID::SET - offset ] = hitNumbers[lcio::ILDDetID::SET];
-    track->subdetectorHitNumbers()[ 2 * lcio::ILDDetID::ETD - offset ] = hitNumbers[lcio::ILDDetID::ETD];
+    // this assumes that there is no tracker with an index larger than the ecal ...
+    track->subdetectorHitNumbers().resize(2 * lcio::ILDDetID::ECAL);
 
-    
-    
+
+    for(  std::map<int, int>::iterator it = hitNumbers.begin() ; 
+	  it != hitNumbers.end() ; ++it ){
+
+      int detIndex = it->first ;
+      track->subdetectorHitNumbers().at( 2 * detIndex - offset ) = it->second ;
+
+    }
+
   }
   
   void addHitNumbersToTrack(IMPL::TrackImpl* track, std::vector<std::pair<EVENT::TrackerHit* , double> >& hit_list, bool hits_in_fit, UTIL::BitField64& cellID_encoder){
@@ -909,13 +903,6 @@ namespace MarlinTrk {
     }
     
     std::map<int, int> hitNumbers; 
-    
-    hitNumbers[lcio::ILDDetID::VXD] = 0;
-    hitNumbers[lcio::ILDDetID::SIT] = 0;
-    hitNumbers[lcio::ILDDetID::FTD] = 0;
-    hitNumbers[lcio::ILDDetID::TPC] = 0;
-    hitNumbers[lcio::ILDDetID::SET] = 0;
-    hitNumbers[lcio::ILDDetID::ETD] = 0;
     
     for(unsigned int j=0; j<hit_list.size(); ++j) {
       
@@ -930,14 +917,17 @@ namespace MarlinTrk {
       offset = 1 ;
     }
     
-    track->subdetectorHitNumbers().resize(2 * lcio::ILDDetID::ETD);
-    track->subdetectorHitNumbers()[ 2 * lcio::ILDDetID::VXD - offset ] = hitNumbers[lcio::ILDDetID::VXD];
-    track->subdetectorHitNumbers()[ 2 * lcio::ILDDetID::FTD - offset ] = hitNumbers[lcio::ILDDetID::FTD];
-    track->subdetectorHitNumbers()[ 2 * lcio::ILDDetID::SIT - offset ] = hitNumbers[lcio::ILDDetID::SIT];
-    track->subdetectorHitNumbers()[ 2 * lcio::ILDDetID::TPC - offset ] = hitNumbers[lcio::ILDDetID::TPC];
-    track->subdetectorHitNumbers()[ 2 * lcio::ILDDetID::SET - offset ] = hitNumbers[lcio::ILDDetID::SET];
-    track->subdetectorHitNumbers()[ 2 * lcio::ILDDetID::ETD - offset ] = hitNumbers[lcio::ILDDetID::ETD];
 
+    // this assumes that there is no tracker with an index larger than the ecal ...
+    track->subdetectorHitNumbers().resize(2 * lcio::ILDDetID::ECAL);
+    
+    
+    for(  std::map<int, int>::iterator it = hitNumbers.begin() ; 
+	  it != hitNumbers.end() ; ++it ){
+      
+      int detIndex = it->first ;
+      track->subdetectorHitNumbers().at( 2 * detIndex - offset ) = it->second ;
+    }
     
   }
   
