@@ -10,7 +10,8 @@
 #include "MarlinTrk/Factory.h"
 
 #include "DD4hep/LCDD.h"
-#include "MarlinTrk/MarlinDDKalTest.h"
+//#include "MarlinTrk/MarlinDDKalTest.h"
+#include "MarlinTrk/MarlinKalTest.h"
 
 #include "lcio.h"
 #include <IMPL/TrackImpl.h>
@@ -817,9 +818,9 @@ namespace MarlinTrk {
     // so ecal endcap and barrel have different ids
     MarlinTrk::IMarlinTrkSystem* trksystem =  MarlinTrk::Factory::getCurrentMarlinTrkSystem() ;
     
-    MarlinDDKalTest* ddtrksys = dynamic_cast< MarlinDDKalTest* >( trksystem ) ;
+    MarlinKalTest* trksys = dynamic_cast< MarlinKalTest* >( trksystem ) ;
     
-    if( ddtrksys != 0 ) { // we are in DD4hep world ....
+    if( trksys == 0 ) { // we are in DD4hep world ....
 
       ecal_endcap_face_ID = lcio::ILDDetID::ECAL_ENDCAP ;
     }

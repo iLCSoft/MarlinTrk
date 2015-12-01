@@ -197,9 +197,10 @@ namespace MarlinTrk {
 
       EVENT::TrackerHit* hit = hitMap[ surf->id() ] ;
       
-      streamlog_out(DEBUG) << "MarlinAidaTTTrack::fit() - intersection " << pointLabel 
+      streamlog_out(DEBUG) << "MarlinAidaTTTrack::fit() - intersection - current pointLabel : " << pointLabel  
 			   << ":  at s = " << it->first <<  " surface id : " 
-			   << cellIDString( surf->id()  ) << std::endl ;
+			   << cellIDString( surf->id()  ) << std::endl 
+			   << *surf << std::endl ;
 
       if( hit != 0 ){ //-------- we have to add a measurement   
 	
@@ -209,6 +210,8 @@ namespace MarlinTrk {
 
 	_fitTrajectory->addMeasurement( hitpos, precision, *surf, hit , _aidaTT->_useQMS );
 	_indexMap[ surf->id() ] = ++pointLabel ;  // label 0 is for the IP point 
+
+	streamlog_out(DEBUG) << "MarlinAidaTTTrack::fit()  addMeasurement called for pointLabel : " << pointLabel << std::endl ;
 
       } else  { // we just add a scatterer
 
@@ -221,6 +224,8 @@ namespace MarlinTrk {
 
 	    _fitTrajectory->addScatterer( *surf ) ;
 	    _indexMap[ surf->id() ] = ++pointLabel ;  // label 0 is for the IP point 
+
+	    streamlog_out(DEBUG) << "MarlinAidaTTTrack::fit()  addScatterer called for pointLabel : " << pointLabel << std::endl ;
 	  }
 	}
       }
@@ -633,6 +638,8 @@ namespace MarlinTrk {
     //   }
     // }
 
+    streamlog_out( DEBUG )  << "MarlinAidaTTTrack::propagate():  looking for cellID " << cellIDString( layerID )  << std::endl ;
+
     const std::vector<aidaTT::trajectoryElement*>& elemVec = _fitTrajectory->trajectoryElements() ;
     unsigned label = 0 ;
     int theID = -1 ;
@@ -642,6 +649,9 @@ namespace MarlinTrk {
       
       int id =  elemVec[i]->surface().id() ;
       
+      
+      streamlog_out( DEBUG )  << "MarlinAidaTTTrack::propagate():  comparing to cellID " << cellIDString( id ) << std::endl ; 
+
       if( layerID == ( id & mask ) ){
 	theID = id ;
 	label = i ;
@@ -653,7 +663,7 @@ namespace MarlinTrk {
       streamlog_out( ERROR )  << "MarlinAidaTTTrack::propagate(): no intersection "
 			      << " found for layerID "  << cellIDString( layerID ) 
 			      << std::endl ;
-      return error ;
+      return no_intersection ;
     }
     
     detElementID = theID ;
