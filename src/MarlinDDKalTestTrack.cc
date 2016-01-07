@@ -627,7 +627,7 @@ namespace MarlinTrk {
       // get the measurement layer of the current hit
       const DDVMeasLayer* ml =  dynamic_cast<const DDVMeasLayer*>( &(kalhit->GetMeasLayer() ) ) ;
       TVector3 pos = ml->HitToXv(*kalhit);
-      streamlog_out( DEBUG1 )  << "Kaltrack::addAndFit : site discarded! at index : " << ml->GetIndex()
+      streamlog_out( DEBUG2 )  << "Kaltrack::addAndFit : site discarded! at index : " << ml->GetIndex()
       << " for type " << ml->GetName() 
       << " chi2increment = " << chi2increment
       << " maxChi2Increment = " << maxChi2Increment

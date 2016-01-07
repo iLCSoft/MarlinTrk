@@ -850,7 +850,7 @@ namespace MarlinTrk {
     }
     
     //fg: for curling tracks the propagated track has the wrong z0 whereas it should be 0. really 
-    if( std::abs( trkStateCalo->getZ0() ) > ( 2.*M_PI/trkStateCalo->getOmega() * trkStateCalo->getTanLambda() ) ){
+    if( std::abs( trkStateCalo->getZ0() ) > std::abs( 2.*M_PI/trkStateCalo->getOmega() * trkStateCalo->getTanLambda() ) ){
 
       streamlog_out( DEBUG2 ) << "  >>>>>>>>>>> createTrackStateAtCaloFace : setting z0 to 0. for track state at calorimeteter : " 
 			       << toString(trkStateCalo ) << std::endl ;
