@@ -3,6 +3,7 @@
 #include <vector>
 #include <algorithm>
 #include <memory>
+#include <math.h>
 
 #include "MarlinTrk/IMarlinTrack.h"
 #include "MarlinTrk/IMarlinTrkSystem.h"
@@ -33,6 +34,7 @@
 namespace MarlinTrk {
   
   using namespace lcio ;
+  using namespace UTIL ;
 
 //  // Check if a square matrix is Positive Definite 
 //  bool Matrix_Is_Positive_Definite(const EVENT::FloatVec& matrix){
@@ -847,6 +849,15 @@ namespace MarlinTrk {
       return_error = marlintrk->propagateToLayer(encoder.lowWord(), trkhit, *trkStateCalo, chi2, ndf, detElementID, IMarlinTrack::modeForward ) ;
     }
     
+    //fg: for curling tracks the propagated track has the wrong z0 whereas it should be 0. really 
+    if( std::abs( trkStateCalo->getZ0() ) > ( 2.*M_PI/trkStateCalo->getOmega() * trkStateCalo->getTanLambda() ) ){
+
+      streamlog_out( DEBUG2 ) << "  >>>>>>>>>>> createTrackStateAtCaloFace : setting z0 to 0. for track state at calorimeteter : " 
+			       << toString(trkStateCalo ) << std::endl ;
+
+      trkStateCalo->setZ0( 0. ) ;
+    } 
+
     if (return_error !=IMarlinTrack::success ) {
       streamlog_out( DEBUG5 ) << "  >>>>>>>>>>> createTrackStateAtCaloFace :  could not get TrackState at Calo Face: return_error = " << return_error << std::endl ;
     }
