@@ -45,6 +45,10 @@ INCLUDE_DIRECTORIES( ${KalTest_INCLUDE_DIRS} )
 LINK_LIBRARIES( ${KalTest_LIBRARIES} )
 ADD_DEFINITIONS( ${KalTest_DEFINITIONS} )
 
+#---- this set kSdim=5 in KalTest ---
+# ( should be exported by KalTest really )
+ADD_DEFINITIONS( -D __NOT0__ )
+
 FIND_PACKAGE( KalDet REQUIRED ) 
 INCLUDE_DIRECTORIES( ${KalDet_INCLUDE_DIRS} )
 LINK_LIBRARIES( ${KalDet_LIBRARIES} )
