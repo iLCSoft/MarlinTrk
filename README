@@ -20,6 +20,49 @@ specifically RefitProcessor which takes a track collection and refits each track
 
  =============================================================================================================
 
+
+ ---------
+| v02-01  |
+ ---------
+  F.Gaede
+
+ - MarlinTrkUtils.cc
+ - fix condition for setting the z0 to 0 for calo TS
+   for curling tracks 
+
+ - generalized the subdetectorHitNumbers to work for 
+   any detector (assuming that the tracker system ids are
+   smaller than the Ecal system id !)
+
+ - fix bug with track state at cale endcap for old tracking 
+   ( use  lcio::ILDDetID::ECAL also for endcap ) 
+
+ - MarlinAidaTTTrack:
+     added a prefit to the initialize: 
+     use up to ~25 hits for an initial fit (w/o material) 
+     before doing the actual fit with all hits 
+   - added IMarlinTrkSystem::name() 
+     in order to allow tracking utilities to adapt 
+     to special features of fitters 
+   - allow to fall back to IMarlinTrkTrack implementations
+     initialise()  in createFinalisedLCIOTrack()
+       -> for aidaTT see procedure above
+    - set precision of 2nd direction v to 0. for 1D hits
+    - ignore virtual surface with no material (e.g. inside the beam pipe)
+    - fixed issue w/ result labels 
+    - fixed point labels if QMS is turned off
+    - treat 1D measurements correctly
+    - finalized implementation of IMarlinTrkTrack interface
+    - can be used in RefittProcessor 
+    - added first implementation if IMarlinTrk for aidaTT
+      - needs debugging ...
+
+ - MarlinDDKalTest.cc
+   - fixed track state at calo creation 
+   - consider only DDCylinderMeasLayers as IP layers 
+
+
+
  ------------
 | v02-00-01  |
  ------------
