@@ -383,7 +383,7 @@ namespace MarlinTrk {
     }
     
     
-    const float referencePoint[3] = { helixTrack.getRefPointX() , helixTrack.getRefPointY() , helixTrack.getRefPointZ() };
+    const float referencePoint[3] = { float(helixTrack.getRefPointX()) ,  float(helixTrack.getRefPointY()) ,  float(helixTrack.getRefPointZ() )};
     
     pre_fit->setD0(helixTrack.getD0()) ;
     pre_fit->setPhi(helixTrack.getPhi0()) ;
