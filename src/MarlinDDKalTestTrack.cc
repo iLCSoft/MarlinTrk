@@ -110,6 +110,9 @@ namespace MarlinTrk {
     delete _kalhits ;
   }
   
+  void MarlinDDKalTestTrack::setMass(double mass) {  _kaltrack->SetMass( mass ) ;  } 
+  
+  double MarlinDDKalTestTrack::getMass() { return _kaltrack->GetMass() ; }
   
   
   int MarlinDDKalTestTrack::addHit( EVENT::TrackerHit * trkhit) {

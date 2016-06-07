@@ -16,6 +16,7 @@
 #include "aidaTT/LCIOPersistency.hh"
 #include "aidaTT/Vector3D.hh"
 #include "aidaTT/DD4hepGeometry.hh"
+#include "aidaTT/materialUtils.hh"
 
 #include "DD4hep/DD4hepUnits.h"
 
@@ -49,7 +50,7 @@ namespace MarlinTrk {
   
   
   MarlinAidaTTTrack::MarlinAidaTTTrack( MarlinAidaTT* mAidaTT) 
-    : _aidaTT( mAidaTT ) , _initialised( false )  {
+    : _aidaTT( mAidaTT ) , _initialised( false ) , _mass( aidaTT::pionMass )  {
     
   }
   
@@ -58,6 +59,12 @@ namespace MarlinTrk {
     delete _fitTrajectory ;
   }
   
+
+  void MarlinAidaTTTrack::setMass(double mass) { _mass =  mass ;  } 
+  
+  double MarlinAidaTTTrack::getMass() { return _mass ; }
+
+
   int MarlinAidaTTTrack::addHit( EVENT::TrackerHit * trkhit) {
     _lcioHits.push_back( trkhit ) ;
     return success ;
@@ -141,6 +148,8 @@ namespace MarlinTrk {
     _fitTrajectory = new aidaTT::trajectory( _initialTrackParams, _aidaTT->_fitter, //_aidaTT->_bfield, 
 					     _aidaTT->_propagation, _aidaTT->_geom );
 
+    _fitTrajectory->setMass( _mass ) ;
+
     // add the Interaction Point as the first element of the trajectory
     // int ID = 1;
     // _fitTrajectory->addElement( aidaTT::Vector3D(), &ID);
@@ -197,7 +206,7 @@ namespace MarlinTrk {
 
       EVENT::TrackerHit* hit = hitMap[ surf->id() ] ;
       
-      streamlog_out(DEBUG) << "MarlinAidaTTTrack::fit() - intersection - current pointLabel : " << pointLabel  
+      streamlog_out(DEBUG7) << "MarlinAidaTTTrack::fit() - intersection - current pointLabel : " << pointLabel  
 			   << ":  at s = " << it->first <<  " surface id : " 
 			   << cellIDString( surf->id()  ) << std::endl 
 			   << *surf << std::endl ;
@@ -272,6 +281,8 @@ namespace MarlinTrk {
     aidaTT::trajectory traj(  tp , _aidaTT->_fitter, //_aidaTT->_bfield, 
 			      _aidaTT->_propagation, _aidaTT->_geom ) ;
     
+    traj.setMass( _mass ) ;
+
     // Add the Interaction Point as the first element of the trajectory
     // int ID = 1;
     // aidaTT::Vector3D IntPoint(0,0,0);

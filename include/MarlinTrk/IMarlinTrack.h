@@ -54,6 +54,15 @@ namespace MarlinTrk{
     /**default d'tor*/
     virtual ~IMarlinTrack() {};
     
+    /** set the mass of the charged particle (GeV) that is used for energy loss and multiple scattering -
+     * default value if this method is not called is the pion mass. 
+     */
+    virtual void setMass(double mass) = 0 ;
+
+    /** return the of the charged particle (GeV) that is used for energy loss and multiple scattering.
+     */
+    virtual double getMass() = 0 ;
+
     /** add hit to track - the hits have to be added ordered in time ( i.e. typically outgoing )
      *  this order will define the direction of the energy loss used in the fit
      */
