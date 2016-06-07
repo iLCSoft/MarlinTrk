@@ -23,6 +23,7 @@
 #include <string>
 #include <math.h>
 #include <cmath>
+#include <fstream>
 
 #include <utility>
 
@@ -137,7 +138,30 @@ namespace MarlinTrk{
 	  ipLayer = dynamic_cast< DDCylinderMeasLayer* > (  kalDet->At( i) ) ;
 	}
       }
+
+      if( streamlog_level( DEBUG5 ) ) {   // dump surfaces to text file 
+	
+	std::map< double, DDVMeasLayer*> smap ;
+	std::ofstream file ;
+	std::stringstream s ; s << "DDKalTest_" <<  det.name() << "_surfaces.txt" ;
+	file.open( s.str() , std::ofstream::out  ) ; 
+	lcio::BitField64 bf(  UTIL::ILDCellID0::encoder_string ) ;
+	
+	for( unsigned i=0,N=kalDet->GetEntriesFast() ; i<N ;++i){
+	  DDVMeasLayer* ml = dynamic_cast<DDVMeasLayer*> ( kalDet->At( i ) ) ;
+	  TVSurface* s =  dynamic_cast<TVSurface*> ( kalDet->At( i ) ) ;
+	  smap[ s->GetSortingPolicy() ] = ml ;
+	}
+	for( std::map<double,DDVMeasLayer*>::iterator it=smap.begin() ; it!=smap.end() ; ++it){
+	  bf.setValue( it->second->getCellIDs()[0] ) ;
+	  file << " "  <<  std::scientific << std::setw(10) << it->first  <<  "\t" << bf.valueString() << *it->second->surface()  << "\n"  ;
+	}
+	file.close() ;
+      }
+
     }
+
+
 
     if( ipLayer) {
 
