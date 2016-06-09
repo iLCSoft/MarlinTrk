@@ -144,7 +144,7 @@ namespace MarlinTrk{
 	std::map< double, DDVMeasLayer*> smap ;
 	std::ofstream file ;
 	std::stringstream s ; s << "DDKalTest_" <<  det.name() << "_surfaces.txt" ;
-	file.open( s.str() , std::ofstream::out  ) ; 
+	file.open( s.str().c_str() , std::ofstream::out  ) ; 
 	lcio::BitField64 bf(  UTIL::ILDCellID0::encoder_string ) ;
 	
 	for( unsigned i=0,N=kalDet->GetEntriesFast() ; i<N ;++i){
