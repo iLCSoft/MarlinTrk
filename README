@@ -20,6 +20,16 @@ specifically RefitProcessor which takes a track collection and refits each track
 
  =============================================================================================================
 
+ ---------
+| v02-02  |
+ ---------
+
+F. Gaede
+    - added setMass()/getMass to IMarlinTrack interface
+    - implemented for KalTest, DDKalTest and aidaTT tracks
+    - made compatible with c++11
+    - removed -ansi -pedantic -Wno-long-long
+    - fixed narrowing in initializer lists
 
  ---------
 | v02-01  |
