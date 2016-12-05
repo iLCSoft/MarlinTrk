@@ -600,23 +600,23 @@ namespace MarlinTrk {
       
       // create a temporary IMarlinTrack 
       
-      std::auto_ptr<MarlinTrk::IMarlinTrack> mTrk( trksystem->createTrack()  ) ;
+      auto mTrk = std::shared_ptr<MarlinTrk::IMarlinTrack>( trksystem->createTrack() ) ;
       
-      IMPL::TrackStateImpl* ts = new IMPL::TrackStateImpl ;
+      IMPL::TrackStateImpl ts;
 
       double chi2Tmp = 0 ;
       int ndfTmp = 0 ;
-      return_error = marlintrk->getTrackState( last_constrained_hit, *ts ,  chi2 , ndf ) ;
+      return_error = marlintrk->getTrackState( last_constrained_hit, ts ,  chi2 , ndf ) ;
       
       streamlog_out( DEBUG3  )  << "  MarlinTrk::finaliseLCIOTrack:--  TrackState at last constrained hit : " << std::endl
-				<< toString( ts )    << std::endl ;
+				<< toString( &ts )    << std::endl ;
       
       //need to add a dummy hit to the track
       mTrk->addHit( last_constrained_hit ) ;
       
       double _bfield = 42.0 ;   
       // fixme: the implementation for DDKalTest does no longer need this value but the IMarlinTrk interface is not yet changed
-      mTrk->initialise( *ts ,  _bfield ,  fit_direction ) ;
+      mTrk->initialise( ts ,  _bfield ,  fit_direction ) ;
 
       std::vector<std::pair<EVENT::TrackerHit*, double> >::reverse_iterator hI = hits_in_fit.rbegin() ;
 
