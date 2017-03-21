@@ -20,6 +20,7 @@
 #include <EVENT/TrackerHit.h>
 
 #include <UTIL/BitField64.h>
+#include "UTIL/LCTrackerConf.h"
 #include <UTIL/ILDConf.h>
 #include <UTIL/BitSet32.h>
 #include <UTIL/Operators.h>
@@ -806,7 +807,7 @@ namespace MarlinTrk {
     double chi2 = -DBL_MAX;
     int ndf = 0;
     
-    UTIL::BitField64 encoder( lcio::ILDCellID0::encoder_string ) ; 
+    UTIL::BitField64 encoder( lcio::LCTrackerCellID::encoding_string() ) ; 
     encoder.reset() ;  // reset to 0
     
     // ================== need to get the correct ID(s) for the calorimeter face  ============================
@@ -828,9 +829,9 @@ namespace MarlinTrk {
     }
     //=========================================================================================================
 
-    encoder[lcio::ILDCellID0::subdet] = ecal_barrel_face_ID ;
-    encoder[lcio::ILDCellID0::side]   = lcio::ILDDetID::barrel;
-    encoder[lcio::ILDCellID0::layer]  = 0 ;
+    encoder[lcio::LCTrackerCellID::subdet()] = ecal_barrel_face_ID ;
+    encoder[lcio::LCTrackerCellID::side()]   = lcio::ILDDetID::barrel;
+    encoder[lcio::LCTrackerCellID::layer()]  = 0 ;
     
     int detElementID = 0;
     
@@ -838,13 +839,13 @@ namespace MarlinTrk {
     
     if (return_error == IMarlinTrack::no_intersection ) { // try forward or backward
 
-      encoder[lcio::ILDCellID0::subdet] = ecal_endcap_face_ID ;
+      encoder[lcio::LCTrackerCellID::subdet()] = ecal_endcap_face_ID ;
 
       if (tanL_is_positive) {
-        encoder[lcio::ILDCellID0::side] = lcio::ILDDetID::fwd;
+        encoder[lcio::LCTrackerCellID::side()] = lcio::ILDDetID::fwd;
       }
       else{
-        encoder[lcio::ILDCellID0::side] = lcio::ILDDetID::bwd;
+        encoder[lcio::LCTrackerCellID::side()] = lcio::ILDDetID::bwd;
       }
       return_error = marlintrk->propagateToLayer(encoder.lowWord(), trkhit, *trkStateCalo, chi2, ndf, detElementID, IMarlinTrack::modeForward ) ;
     }
@@ -882,7 +883,7 @@ namespace MarlinTrk {
     for(unsigned int j=0; j<hit_list.size(); ++j) {
       
       cellID_encoder.setValue(hit_list.at(j)->getCellID0()) ;
-      int detID = cellID_encoder[UTIL::ILDCellID0::subdet];
+      int detID = cellID_encoder[UTIL::LCTrackerCellID::subdet()];
       ++hitNumbers[detID];
     }
     
@@ -919,7 +920,7 @@ namespace MarlinTrk {
     for(unsigned int j=0; j<hit_list.size(); ++j) {
       
       cellID_encoder.setValue(hit_list.at(j).first->getCellID0()) ;
-      int detID = cellID_encoder[UTIL::ILDCellID0::subdet];
+      int detID = cellID_encoder[UTIL::LCTrackerCellID::subdet()];
       ++hitNumbers[detID];
       //    streamlog_out( DEBUG1 ) << "Hit from Detector " << detID << std::endl;     
     }

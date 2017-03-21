@@ -14,7 +14,7 @@
 
 //SJA:FIXME: only needed for storing the modules in the layers map
 #include <UTIL/BitField64.h>
-#include "UTIL/ILDConf.h"
+#include "UTIL/LCTrackerConf.h"
 
 #include "DD4hep/LCDD.h"
 #include "DDRec/SurfaceManager.h"
@@ -145,7 +145,7 @@ namespace MarlinTrk{
 	std::ofstream file ;
 	std::stringstream s ; s << "DDKalTest_" <<  det.name() << "_surfaces.txt" ;
 	file.open( s.str().c_str() , std::ofstream::out  ) ; 
-	lcio::BitField64 bf(  UTIL::ILDCellID0::encoder_string ) ;
+	lcio::BitField64 bf(  UTIL::LCTrackerCellID::encoding_string() ) ;
 	
 	for( unsigned i=0,N=kalDet->GetEntriesFast() ; i<N ;++i){
 	  DDVMeasLayer* ml = dynamic_cast<DDVMeasLayer*> ( kalDet->At( i ) ) ;
@@ -180,7 +180,7 @@ namespace MarlinTrk{
 
     if( streamlog_level( DEBUG ) ) {
 
-      lcio::BitField64 bf(  UTIL::ILDCellID0::encoder_string ) ;
+      lcio::BitField64 bf(  UTIL::LCTrackerCellID::encoding_string() ) ;
       
       for( unsigned i=0,N=_det->GetEntriesFast() ; i<N ;++i){
 
@@ -259,10 +259,10 @@ namespace MarlinTrk{
     std::pair<std::multimap<Int_t, const DDVMeasLayer *>::const_iterator, std::multimap<Int_t, const DDVMeasLayer *>::const_iterator> ii;  
     
     // set the module and sensor bit ranges to zero as these are not used in the map 
-    lcio::BitField64 bf(  UTIL::ILDCellID0::encoder_string ) ;
+    lcio::BitField64 bf(  UTIL::LCTrackerCellID::encoding_string() ) ;
     bf.setValue( layerID ) ;
-    bf[lcio::ILDCellID0::module] = 0 ;
-    bf[lcio::ILDCellID0::sensor] = 0 ;
+    bf[lcio::LCTrackerCellID::module()] = 0 ;
+    bf[lcio::LCTrackerCellID::sensor()] = 0 ;
     layerID = bf.lowWord();
     
     ii = this->_active_measurement_modules_by_layer.equal_range(layerID); // set the first and last entry in ii;
@@ -428,7 +428,7 @@ namespace MarlinTrk{
     
     if( meas_modules.size() == 0 ) { // no measurement layers found 
       
-      UTIL::BitField64 encoder( UTIL::ILDCellID0::encoder_string ) ; 
+      UTIL::BitField64 encoder( UTIL::LCTrackerCellID::encoding_string() ) ; 
       encoder.setValue(detElementID) ;
       
       std::stringstream errorMsg;

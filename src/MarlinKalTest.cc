@@ -20,7 +20,7 @@
 
 //SJA:FIXME: only needed for storing the modules in the layers map
 #include <UTIL/BitField64.h>
-#include "UTIL/ILDConf.h"
+#include "UTIL/LCTrackerConf.h"
 
 #include "gear/GEAR.h"
 #include "gear/BField.h"
@@ -281,10 +281,10 @@ namespace MarlinTrk{
     std::pair<std::multimap<Int_t, const ILDVMeasLayer *>::const_iterator, std::multimap<Int_t, const ILDVMeasLayer *>::const_iterator> ii;  
     
     // set the module and sensor bit ranges to zero as these are not used in the map 
-    lcio::BitField64 bf(  UTIL::ILDCellID0::encoder_string ) ;
+    lcio::BitField64 bf(  UTIL::LCTrackerCellID::encoding_string() ) ;
     bf.setValue( layerID ) ;
-    bf[lcio::ILDCellID0::module] = 0 ;
-    bf[lcio::ILDCellID0::sensor] = 0 ;
+    bf[lcio::LCTrackerCellID::module()] = 0 ;
+    bf[lcio::LCTrackerCellID::sensor()] = 0 ;
     layerID = bf.lowWord();
     
     ii = this->_active_measurement_modules_by_layer.equal_range(layerID); // set the first and last entry in ii;
@@ -450,16 +450,16 @@ namespace MarlinTrk{
     
     if( meas_modules.size() == 0 ) { // no measurement layers found 
       
-      UTIL::BitField64 encoder( UTIL::ILDCellID0::encoder_string ) ; 
+      UTIL::BitField64 encoder( UTIL::LCTrackerCellID::encoding_string() ) ; 
       encoder.setValue(detElementID) ;
       
       std::stringstream errorMsg;
       errorMsg << "MarlinKalTest::findMeasLayer module id unkown: moduleID = " << detElementID 
-      << " subdet = " << encoder[UTIL::ILDCellID0::subdet] 
-      << " side = " << encoder[UTIL::ILDCellID0::side]
-      << " layer = " << encoder[UTIL::ILDCellID0::layer]
-      << " module = " << encoder[UTIL::ILDCellID0::module]
-      << " sensor = " << encoder[UTIL::ILDCellID0::sensor]
+      << " subdet = " << encoder[UTIL::LCTrackerCellID::subdet()] 
+      << " side = " << encoder[UTIL::LCTrackerCellID::side()]
+      << " layer = " << encoder[UTIL::LCTrackerCellID::layer()]
+      << " module = " << encoder[UTIL::LCTrackerCellID::module()]
+      << " sensor = " << encoder[UTIL::LCTrackerCellID::sensor()]
       << std::endl ; 
       throw MarlinTrk::Exception(errorMsg.str());
       

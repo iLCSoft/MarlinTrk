@@ -15,7 +15,7 @@
 
 #include <UTIL/BitField64.h>
 #include <UTIL/Operators.h>
-#include <UTIL/ILDConf.h>
+#include "UTIL/LCTrackerConf.h"
 
 #include "kaldet/ILDCylinderMeasLayer.h" // needed for dedicated IP Layer
 #include "kaldet/ILDCylinderHit.h"
@@ -67,7 +67,7 @@ namespace MarlinTrk {
   //---------------------------------------------------------------------------------------------------------------
   
   std::string decodeILD( int detElementID ) {
-    lcio::BitField64 bf(  UTIL::ILDCellID0::encoder_string ) ;
+    lcio::BitField64 bf(  UTIL::LCTrackerCellID::encoding_string() ) ;
     bf.setValue( detElementID ) ;
     return bf.valueString() ;
   }
