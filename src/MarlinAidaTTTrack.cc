@@ -27,6 +27,7 @@
 #include <UTIL/BitField64.h>
 #include <UTIL/Operators.h>
 #include <UTIL/ILDConf.h>
+#include "UTIL/LCTrackerConf.h"
 
 #include <sstream>
 
@@ -41,7 +42,7 @@ namespace MarlinTrk {
   
   namespace{ 
     std::string cellIDString( int detElementID) {
-      lcio::BitField64 bf(  UTIL::ILDCellID0::encoder_string ) ;
+      lcio::BitField64 bf(  UTIL::LCTrackerCellID::encoding_string() ) ;
       bf.setValue( detElementID ) ;
       return bf.valueString() ;
     }
@@ -617,15 +618,15 @@ namespace MarlinTrk {
   
   int MarlinAidaTTTrack::propagateToLayer( int layerID, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID, int ) { 
     
-    UTIL::BitField64 encoder( lcio::ILDCellID0::encoder_string ) ; 
+    UTIL::BitField64 encoder( lcio::LCTrackerCellID::encoding_string() ) ; 
     encoder.reset() ;  // reset to 0
     
 
     // compute a mask for the layerid
     int mask=0 ;
-    mask |= encoder[lcio::ILDCellID0::subdet].mask() ;
-    mask |= encoder[lcio::ILDCellID0::side  ].mask() ;
-    mask |= encoder[lcio::ILDCellID0::layer ].mask() ;
+    mask |= encoder[lcio::LCTrackerCellID::subdet()].mask() ;
+    mask |= encoder[lcio::LCTrackerCellID::side()  ].mask() ;
+    mask |= encoder[lcio::LCTrackerCellID::layer() ].mask() ;
 
     // loop over intersections to find the (first) intersection w/ the given layerid
     //    double s ; aidaTT::Vector2D uv ; aidaTT::Vector3D position ;
@@ -779,14 +780,14 @@ namespace MarlinTrk {
   
   int MarlinAidaTTTrack::intersectionWithLayer( int layerID, gear::Vector3D& point, int& detElementID, int mode ) {  
     
-    UTIL::BitField64 encoder( lcio::ILDCellID0::encoder_string ) ; 
+    UTIL::BitField64 encoder( lcio::LCTrackerCellID::encoding_string() ) ; 
     encoder.reset() ;  // reset to 0
     
     // compute a mask for the layerid
     int mask=0 ;
-    mask |= encoder[lcio::ILDCellID0::subdet].mask() ;
-    mask |= encoder[lcio::ILDCellID0::side  ].mask() ;
-    mask |= encoder[lcio::ILDCellID0::layer ].mask() ;
+    mask |= encoder[lcio::LCTrackerCellID::subdet()].mask() ;
+    mask |= encoder[lcio::LCTrackerCellID::side()  ].mask() ;
+    mask |= encoder[lcio::LCTrackerCellID::layer() ].mask() ;
 
     int theID = -1 ;
     for( std::vector<std::pair<double, const aidaTT::ISurface*> >::const_iterator it =  

@@ -3,7 +3,7 @@
 
 // // //SJA:FIXME: only needed for storing the modules in the layers map
 // #include <UTIL/BitField64.h>
-// #include "UTIL/ILDConf.h"
+// #include "UTIL/LCTrackerConf.h"
 
 #include "aidaTT/IBField.hh"
 #include "aidaTT/ConstantSolenoidBField.hh"

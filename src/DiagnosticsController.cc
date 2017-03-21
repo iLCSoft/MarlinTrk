@@ -25,6 +25,7 @@
 
 #include "EVENT/MCParticle.h"
 #include <UTIL/BitField64.h>
+#include "UTIL/LCTrackerConf.h"
 #include <UTIL/ILDConf.h>
 
 
@@ -527,22 +528,22 @@ namespace MarlinTrk{
                   
       _track_record->CellID0[_track_record->nsites] = trkhit->getCellID0() ;
       
-      UTIL::BitField64 encoder(lcio::ILDCellID0::encoder_string);
+      UTIL::BitField64 encoder(lcio::LCTrackerCellID::encoding_string());
       encoder.setValue( trkhit->getCellID0() );
       
-      if (encoder[lcio::ILDCellID0::subdet] == lcio::ILDDetID::VXD) {
+      if (encoder[lcio::LCTrackerCellID::subdet()] == lcio::ILDDetID::VXD) {
         ++_track_record->nsites_vxd;
       }
-      else if (encoder[lcio::ILDCellID0::subdet] == lcio::ILDDetID::SIT) {
+      else if (encoder[lcio::LCTrackerCellID::subdet()] == lcio::ILDDetID::SIT) {
         ++_track_record->nsites_sit;
       }
-      else if (encoder[lcio::ILDCellID0::subdet] == lcio::ILDDetID::FTD) {
+      else if (encoder[lcio::LCTrackerCellID::subdet()] == lcio::ILDDetID::FTD) {
         ++_track_record->nsites_ftd;
       }
-      else if (encoder[lcio::ILDCellID0::subdet] == lcio::ILDDetID::TPC) {
+      else if (encoder[lcio::LCTrackerCellID::subdet()] == lcio::ILDDetID::TPC) {
         ++_track_record->nsites_tpc;
       }
-      else if (encoder[lcio::ILDCellID0::subdet] == lcio::ILDDetID::SET) {
+      else if (encoder[lcio::LCTrackerCellID::subdet()] == lcio::ILDDetID::SET) {
         ++_track_record->nsites_set;
       }
       
@@ -746,13 +747,13 @@ namespace MarlinTrk{
         
         for (Int_t isite=1; isite<nsites; isite++) {
           
-          UTIL::BitField64 encoder(lcio::ILDCellID0::encoder_string);
+          UTIL::BitField64 encoder(lcio::LCTrackerCellID::encoding_string());
           encoder.setValue( _track_record->CellID0[isite] );
           
           
           TVKalSite* site = static_cast<TVKalSite *>( _current_track->_kaltrack->At(isite));
           
-          if ( _track_record->rejected[isite] == 0 && encoder[lcio::ILDCellID0::subdet] != 0 ) {
+          if ( _track_record->rejected[isite] == 0 && encoder[lcio::LCTrackerCellID::subdet()] != 0 ) {
             
             
             _track_record->chi2_inc_smoothed[isite] = site->GetDeltaChi2();

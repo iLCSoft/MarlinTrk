@@ -3,7 +3,7 @@
 
 #include "EVENT/LCObject.h"
 #include "UTIL/BitSet32.h"
-#include "UTIL/ILDConf.h"
+#include "UTIL/LCTrackerConf.h"
 
 #ifdef MARLINTRK_DIAGNOSTICS_ON
 

@@ -15,7 +15,7 @@
 
 #include <UTIL/BitField64.h>
 #include <UTIL/Operators.h>
-#include <UTIL/ILDConf.h>
+#include "UTIL/LCTrackerConf.h"
 
 #include "DDKalTest/DDCylinderMeasLayer.h" // needed for dedicated IP Layer
 #include "DDKalTest/DDCylinderHit.h"
@@ -68,7 +68,7 @@ namespace MarlinTrk {
   //---------------------------------------------------------------------------------------------------------------
   
   std::string cellIDString( int detElementID ) {
-    lcio::BitField64 bf(  UTIL::ILDCellID0::encoder_string ) ;
+    lcio::BitField64 bf(  UTIL::LCTrackerCellID::encoding_string() ) ;
     bf.setValue( detElementID ) ;
     return bf.valueString() ;
   }
