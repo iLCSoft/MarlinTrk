@@ -1,5 +1,6 @@
 # MarlinTrk
 [![Build Status](https://travis-ci.org/iLCSoft/MarlinTrk.svg?branch=master)](https://travis-ci.org/iLCSoft/MarlinTrk)
+[![Coverity Scan Build Status](https://scan.coverity.com/projects/12364/badge.svg)](https://scan.coverity.com/projects/ilcsoft-marlintrk)
 
 Tracking Package based on LCIO and GEAR, primarily aimed at providing track fitting in Marlin.
 
