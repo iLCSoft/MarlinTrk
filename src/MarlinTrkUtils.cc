@@ -11,8 +11,7 @@
 #include "MarlinTrk/Factory.h"
 
 #include "DD4hep/LCDD.h"
-//#include "MarlinTrk/MarlinDDKalTest.h"
-#include "MarlinTrk/MarlinKalTest.h"
+#include "MarlinTrk/MarlinDDKalTest.h"
 
 #include "lcio.h"
 #include <IMPL/TrackImpl.h>
@@ -813,20 +812,8 @@ namespace MarlinTrk {
     // ================== need to get the correct ID(s) for the calorimeter face  ============================
 
     unsigned ecal_barrel_face_ID = lcio::ILDDetID::ECAL ;
-    unsigned ecal_endcap_face_ID = lcio::ILDDetID::ECAL ;
+    unsigned ecal_endcap_face_ID = lcio::ILDDetID::ECAL_ENDCAP ;
 
-    //
-    // FG: this is a temporary workaround for the time where we have Mokka/Gear based tracking systems and DD4hep based 
-    // ones. The reason for this being that DD4hep does not allow to use the same system ID for different subdetectors
-    // so ecal endcap and barrel have different ids
-    MarlinTrk::IMarlinTrkSystem* trksystem =  MarlinTrk::Factory::getCurrentMarlinTrkSystem() ;
-    
-    MarlinKalTest* trksys = dynamic_cast< MarlinKalTest* >( trksystem ) ;
-    
-    if( trksys == 0 ) { // we are in DD4hep world ....
-
-      ecal_endcap_face_ID = lcio::ILDDetID::ECAL_ENDCAP ;
-    }
     //=========================================================================================================
 
     encoder[lcio::LCTrackerCellID::subdet()] = ecal_barrel_face_ID ;

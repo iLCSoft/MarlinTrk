@@ -1,6 +1,5 @@
 #include "MarlinTrk/Factory.h"
 
-#include "MarlinTrk/MarlinKalTest.h"
 #include "MarlinTrk/MarlinDDKalTest.h"
 #include "MarlinTrk/MarlinAidaTT.h"
 
@@ -38,11 +37,7 @@ namespace MarlinTrk{
 			      << systemType << "\""  << std::endl ;
     
 
-    if( systemType == std::string( "KalTest" ) ) {
-      
-      trkSystem = new MarlinKalTest( *gearMgr ) ;
-      
-    } else if( systemType == std::string( "DDKalTest" ) ) {
+    if( systemType == std::string( "DDKalTest" ) ) {
       
       trkSystem = new MarlinDDKalTest ;
     }

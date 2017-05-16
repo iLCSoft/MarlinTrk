@@ -11,8 +11,8 @@
 namespace MarlinTrk{
   
   /** Factory methods for creating the MarlinTrkSystem of a certain type:
-   *  KalTest, DDKalTest, aidaTT,...<br>
-   *  Currently implemented: KalTest, DDKalTest.
+   *  DDKalTest, aidaTT,...<br>
+   *  Currently implemented: DDKalTest, aidaTT.
    *  The returned instance for a given type is cached, thus: <br>
    * 
    *  DO NOT DELETE THE POINTER at the end of your software module (Marlin processor) ! 
@@ -27,13 +27,12 @@ namespace MarlinTrk{
     virtual ~Factory() {}
     
     /** Create the MarlinTrkSystem instance of the specified type:<br>
-     *  KalTest, DDKalTest, aidaTT,...<br>
+     *  DDKalTest, aidaTT,...<br>
      *  Returns 0 if type not implemented...
      * 
      * 
      *  DO NOT DELETE THE POINTER at the end of your software module (Marlin processor) ! 
      * 
-     *  For now only KalTest or DDKalTest.
      */
     static IMarlinTrkSystem* createMarlinTrkSystem(const std::string& systemType,  
                                                    const gear::GearMgr* gearMgr,
