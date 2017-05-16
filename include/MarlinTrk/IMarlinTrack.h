@@ -8,14 +8,24 @@
 #include "EVENT/TrackerHit.h"
 #include "IMPL/TrackStateImpl.h"
 
-#include "gearimpl/Vector3D.h"
-
+#include "DDSurfaces/Vector3D.h"
 
 #include <exception>
 #include <string>
 
+
+
+#define PROVIDE_BACKWARD_GEAR_WRAPPERS 1
+#if PROVIDE_BACKWARD_GEAR_WRAPPERS
+#include "gearimpl/Vector3D.h"
+#endif
+
+
+
 namespace MarlinTrk{
   
+
+  typedef DDSurfaces::Vector3D Vector3D ;
   
   /** Interface for generic tracks in MarlinTrk. The interface should provide the functionality to
    *  perform track finding and fitting. It is asssumed that the underlying implemetation will by 
@@ -149,15 +159,15 @@ namespace MarlinTrk{
     
     /** propagate the fit to the point of closest approach to the given point, returning TrackState, chi2 and ndf via reference    
      */
-    virtual int propagate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) = 0 ;
-    
+    virtual int propagate( const Vector3D& point, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) = 0 ;
+
     
     /** propagate the fit at the measurement site associated with the given hit, to the point of closest approach to the given point,
      *  returning TrackState, chi2 and ndf via reference   
      */
-    virtual int propagate( const gear::Vector3D& point, EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) = 0 ;
-    
-    
+    virtual int propagate( const Vector3D& point, EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) = 0 ;
+
+
     /** propagate fit to numbered sensitive layer, returning TrackState, chi2, ndf and integer ID of the intersected sensitive detector element via reference 
      */
     virtual int propagateToLayer( int layerID, IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID, int mode=modeClosest ) = 0  ;
@@ -182,12 +192,12 @@ namespace MarlinTrk{
     
     /** extrapolate the fit to the point of closest approach to the given point, returning TrackState, chi2 and ndf via reference   
      */
-    virtual int extrapolate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) = 0 ;
+    virtual int extrapolate( const Vector3D& point, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) = 0 ;
     
     /** extrapolate the fit at the measurement site associated with the given hit, to the point of closest approach to the given point, 
      *  returning TrackState, chi2 and ndf via reference   
      */
-    virtual int extrapolate( const gear::Vector3D& point, EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) = 0 ;
+    virtual int extrapolate( const Vector3D& point, EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) = 0 ;
     
     /** extrapolate the fit to numbered sensitive layer, returning TrackState, chi2, ndf and integer ID of the intersected sensitive detector element via reference
      */
@@ -213,28 +223,79 @@ namespace MarlinTrk{
     /** extrapolate the fit to numbered sensitive layer, returning intersection point in global coordinates and integer ID of the 
      *  intersected sensitive detector element via reference 
      */
-    virtual int intersectionWithLayer( int layerID, gear::Vector3D& point, int& detElementID, int mode=modeClosest ) = 0  ;
+    virtual int intersectionWithLayer( int layerID, Vector3D& point, int& detElementID, int mode=modeClosest ) = 0  ;
     
     /** extrapolate the fit at the measurement site associated with the given hit, to numbered sensitive layer,
      *  returning intersection point in global coordinates and integer ID of the intersected sensitive detector element via reference 
      */
-    virtual int intersectionWithLayer( int layerID, EVENT::TrackerHit* hit, gear::Vector3D& point, int& detElementID, int mode=modeClosest ) = 0  ;
-    
+    virtual int intersectionWithLayer( int layerID, EVENT::TrackerHit* hit, Vector3D& point, int& detElementID, int mode=modeClosest ) = 0  ;
+
     
     /** extrapolate the fit to numbered sensitive detector element, returning intersection point in global coordinates via reference 
      */
-    virtual int intersectionWithDetElement( int detElementID, gear::Vector3D& point, int mode=modeClosest ) = 0  ;
-    
+    virtual int intersectionWithDetElement( int detElementID, Vector3D& point, int mode=modeClosest ) = 0  ;
+
+
     /** extrapolate the fit at the measurement site associated with the given hit, to sensitive detector element,
      *  returning intersection point in global coordinates via reference 
      */
-    virtual int intersectionWithDetElement( int detEementID, EVENT::TrackerHit* hit, gear::Vector3D& point, int mode=modeClosest ) = 0  ;
-    
+    virtual int intersectionWithDetElement( int detEementID, EVENT::TrackerHit* hit, Vector3D& point, int mode=modeClosest ) = 0  ;
     
     /** Dump this track to a string for debugging - implementation dependant.
      */
     virtual std::string toString() ;
 
+
+    //-------------------------------------------------------------------------------------------------------------------------------
+
+#if PROVIDE_BACKWARD_GEAR_WRAPPERS
+
+    int propagate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ){
+      Vector3D v( point.x(), point.y(), point.z() ) ;
+      return propagate( v, ts, chi2, ndf ) ;
+    }
+    int propagate( const gear::Vector3D& point, EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ){
+      Vector3D v( point.x(), point.y(), point.z() ) ;
+      return propagate( v, hit, ts, chi2, ndf ) ;
+    }
+    int extrapolate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ){
+      Vector3D v( point.x(), point.y(), point.z() ) ;
+      return extrapolate( v, ts, chi2, ndf ) ;
+    }
+    int extrapolate( const gear::Vector3D& point, EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ){
+      Vector3D v( point.x(), point.y(), point.z() ) ;
+      return extrapolate( v, hit, ts, chi2, ndf ) ;
+    }
+    int intersectionWithLayer( int layerID, gear::Vector3D& point, int& detElementID, int mode=modeClosest ){
+      Vector3D v( point.x(), point.y(), point.z() ) ;
+      int ret =  intersectionWithLayer( layerID, v, detElementID, mode ) ;
+      point = v ;
+      return ret ;
+    }
+    int intersectionWithLayer( int layerID, EVENT::TrackerHit* hit, gear::Vector3D& point, int& detElementID, int mode=modeClosest ){
+      Vector3D v( point.x(), point.y(), point.z() ) ;
+      int ret = intersectionWithLayer( layerID, hit, v, detElementID, mode ) ;
+      point = v ;
+      return ret ;
+    }
+    int intersectionWithDetElement( int detElementID, gear::Vector3D& point, int mode=modeClosest ){
+      Vector3D v( point.x(), point.y(), point.z() ) ;
+      int ret = intersectionWithDetElement( detElementID, v, mode ) ;
+      point = v ;
+      return ret ;
+    }   
+    int intersectionWithDetElement( int detElementID, EVENT::TrackerHit* hit, gear::Vector3D& point, int mode=modeClosest ){
+      Vector3D v( point.x(), point.y(), point.z() ) ;
+      int ret = intersectionWithDetElement( detElementID, hit, v, mode ) ;
+      point = v ;
+      return ret ;
+    }
+
+#endif
+
+    //-------------------------------------------------------------------------------------------------------------------------------
+
+    
   protected:
     
   private:
