@@ -149,12 +149,12 @@ namespace MarlinTrk{
 	
 	for( unsigned i=0,N=kalDet->GetEntriesFast() ; i<N ;++i){
 	  DDVMeasLayer* ml = dynamic_cast<DDVMeasLayer*> ( kalDet->At( i ) ) ;
-	  TVSurface* s =  dynamic_cast<TVSurface*> ( kalDet->At( i ) ) ;
-	  smap[ s->GetSortingPolicy() ] = ml ;
+	  TVSurface* surf =  dynamic_cast<TVSurface*> ( kalDet->At( i ) ) ;
+	  smap[ surf->GetSortingPolicy() ] = ml ;
 	}
-	for( std::map<double,DDVMeasLayer*>::iterator it=smap.begin() ; it!=smap.end() ; ++it){
-	  bf.setValue( it->second->getCellIDs()[0] ) ;
-	  file << " "  <<  std::scientific << std::setw(10) << it->first  <<  "\t" << bf.valueString() << *it->second->surface()  << "\n"  ;
+	for( std::map<double,DDVMeasLayer*>::iterator itm=smap.begin() ; itm!=smap.end() ; ++itm){
+	  bf.setValue( itm->second->getCellIDs()[0] ) ;
+	  file << " "  <<  std::scientific << std::setw(10) << itm->first  <<  "\t" << bf.valueString() << *itm->second->surface()  << "\n"  ;
 	}
 	file.close() ;
       }
