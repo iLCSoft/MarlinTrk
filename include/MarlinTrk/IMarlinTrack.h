@@ -14,7 +14,8 @@
 #include <string>
 
 
-
+// for now provide wrapers using gear::Vector3D for backwards compatibility
+// if this is removed, we do not use Gear anywhere in MarlinTrk
 #define PROVIDE_BACKWARD_GEAR_WRAPPERS 1
 #if PROVIDE_BACKWARD_GEAR_WRAPPERS
 #include "gearimpl/Vector3D.h"
@@ -24,7 +25,7 @@
 
 namespace MarlinTrk{
   
-
+  /// the Vector3D used for the tracking interface
   typedef DDSurfaces::Vector3D Vector3D ;
   
   /** Interface for generic tracks in MarlinTrk. The interface should provide the functionality to

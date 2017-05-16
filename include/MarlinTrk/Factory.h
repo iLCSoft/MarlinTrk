@@ -2,11 +2,16 @@
 #define MarlinTrk_Factory_h
 
 #include "IMarlinTrkSystem.h"
-#include "gear/GEAR.h"
-#include "gear/GearMgr.h"
 
 #include <string>
 #include <map>
+
+
+// fwd declaration for bwd compatibility
+namespace gear{
+  class GearMgr ;
+}
+
 
 namespace MarlinTrk{
   
