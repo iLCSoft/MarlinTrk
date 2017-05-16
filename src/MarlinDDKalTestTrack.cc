@@ -22,9 +22,6 @@
 #include "DDKalTest/DDPlanarHit.h"
 //#include "DDKalTest/DDPlanarStripHit.h"
 
-#include "gear/GEAR.h"
-#include "gear/BField.h"
-
 #include <sstream>
 
 #include "streamlog/streamlog.h"
@@ -1075,7 +1072,6 @@ namespace MarlinTrk {
     THelicalTrack helix = trkState.GetHelix() ;
     double dPhi ;
     
-    // convert the gear point supplied to TVector3
     const TVector3 tpoint( point.x(), point.y(), point.z() ) ;
     
     Int_t sdim = trkState.GetDimension();  // dimensions of the track state, it will be 5 or 6
@@ -1210,7 +1206,6 @@ namespace MarlinTrk {
     
     streamlog_out(DEBUG2) << "MarlinDDKalTestTrack::propagate( const Vector3D& point, const TKalTrackSite& site, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) called " << std::endl ;
     
-    // convert the gear point supplied to TVector3
     const TVector3 tpoint( point.x(), point.y(), point.z() ) ;
     
     TKalTrackState& trkState = (TKalTrackState&) site.GetCurState(); // this segfaults if no hits are present

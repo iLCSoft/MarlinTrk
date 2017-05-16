@@ -815,7 +815,7 @@ namespace MarlinTrk{
       int ndf;
       double chi2;
       
-      gear::Vector3D point(0.0,0.0,0.0);
+      Vector3D point(0.0,0.0,0.0);
       _current_track->propagate( point, ts_at_ip, chi2, ndf );
       
       _track_record->d0_ip = ts_at_ip.getD0() ;

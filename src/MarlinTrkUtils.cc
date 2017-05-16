@@ -308,7 +308,7 @@ namespace MarlinTrk {
     IMPL::TrackStateImpl ts ; 
     double chi2(0) ;
     int ndf(0) ;
-    int ii = marlinTrk->propagate( gear::Vector3D(),  ts, chi2, ndf ) ;
+    int ii = marlinTrk->propagate( Vector3D(),  ts, chi2, ndf ) ;
     
     streamlog_out(DEBUG5) << " MarlinTrk::createFit:   pre-fit, propagated to the IP : " << ts << std::endl ;
 
@@ -567,7 +567,7 @@ namespace MarlinTrk {
     ///////////////////////////////////////////////////////
     // first create trackstate at IP
     ///////////////////////////////////////////////////////
-    const gear::Vector3D point(0.,0.,0.); // nominal IP
+    const Vector3D point(0.,0.,0.); // nominal IP
     
     IMPL::TrackStateImpl* trkStateIP = new IMPL::
     TrackStateImpl() ;
@@ -713,7 +713,7 @@ namespace MarlinTrk {
       
       streamlog_out( DEBUG5 ) << "  >>>>>>>>>>> MarlinTrk::finaliseLCIOTrack: create TrackState AtLastHit : using trkhit " << last_constrained_hit << std::endl ;
       
-      gear::Vector3D last_hit_pos(lastHit->getPosition());
+      Vector3D last_hit_pos(lastHit->getPosition());
       
       IMPL::TrackStateImpl* trkStateAtLastHit = new IMPL::TrackStateImpl() ;
 
