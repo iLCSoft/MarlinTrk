@@ -143,13 +143,13 @@ private:
   
   /** propagate the fit to the point of closest approach to the given point, returning TrackState, chi2 and ndf via reference    
    */
-  int propagate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) ;
+  int propagate( const Vector3D& point, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) ;
   
   
   /** propagate the fit at the measurement site associated with the given hit, to the point of closest approach to the given point,
    *  returning TrackState, chi2 and ndf via reference   
    */
-  int propagate( const gear::Vector3D& point, EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) ;
+  int propagate( const Vector3D& point, EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) ;
   
   
   /** propagate the fit to the numbered sensitive layer, returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference 
@@ -176,12 +176,12 @@ private:
   
   /** extrapolate the fit to the point of closest approach to the given point, returning TrackState, chi2 and ndf via reference   
    */
-  int extrapolate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) ;
+  int extrapolate( const Vector3D& point, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) ;
   
   /** extrapolate the fit at the measurement site associated with the given hit, to the point of closest approach to the given point, 
    *    returning TrackState, chi2 and ndf via reference   
    */
-  int extrapolate( const gear::Vector3D& point, EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) ;
+  int extrapolate( const Vector3D& point, EVENT::TrackerHit* hit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) ;
   
   
   /** extrapolate the fit to numbered sensitive layer, returning TrackState via provided reference 
@@ -213,21 +213,21 @@ private:
   /** extrapolate the fit to numbered sensitive layer, returning intersection point in global coordinates and integer ID of the 
    *  intersected sensitive detector element via reference 
    */
-  int intersectionWithLayer( int layerID, gear::Vector3D& point, int& detElementID, int mode=modeClosest )  ;
+  int intersectionWithLayer( int layerID, Vector3D& point, int& detElementID, int mode=modeClosest )  ;
   
   /** extrapolate the fit at the measurement site associated with the given hit, to numbered sensitive layer,
    *  returning intersection point in global coordinates and integer ID of the intersected sensitive detector element via reference 
    */
-  int intersectionWithLayer( int layerID, EVENT::TrackerHit* hit, gear::Vector3D& point, int& detElementID, int mode=modeClosest )  ;
+  int intersectionWithLayer( int layerID, EVENT::TrackerHit* hit, Vector3D& point, int& detElementID, int mode=modeClosest )  ;
   
   /** extrapolate the fit to numbered sensitive detector element, returning intersection point in global coordinates via reference 
    */
-  int intersectionWithDetElement( int detElementID, gear::Vector3D& point, int mode=modeClosest )  ;
+  int intersectionWithDetElement( int detElementID, Vector3D& point, int mode=modeClosest )  ;
   
   /** extrapolate the fit at the measurement site associated with the given hit, to sensitive detector element,
    *  returning intersection point in global coordinates via reference 
    */ 
-  int intersectionWithDetElement( int detElementID, EVENT::TrackerHit* hit, gear::Vector3D& point, int mode=modeClosest )  ;
+  int intersectionWithDetElement( int detElementID, EVENT::TrackerHit* hit, Vector3D& point, int mode=modeClosest )  ;
   
   
   //** end of memeber functions from IMarlinTrack interface

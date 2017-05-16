@@ -514,12 +514,12 @@ namespace MarlinTrk {
   }
   
   
-  int MarlinAidaTTTrack::extrapolate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ){  
+  int MarlinAidaTTTrack::extrapolate( const Vector3D& point, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ){  
     
     return propagate( point, ts, chi2, ndf ) ;
   }
   
-  int MarlinAidaTTTrack::extrapolate( const gear::Vector3D& point, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) {
+  int MarlinAidaTTTrack::extrapolate( const Vector3D& point, EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ) {
     
     return propagate( point, trkhit, ts, chi2, ndf ) ;
   }
@@ -552,7 +552,7 @@ namespace MarlinTrk {
   
   
   
-  int MarlinAidaTTTrack::propagate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ){
+  int MarlinAidaTTTrack::propagate( const Vector3D& point, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ){
 
     if( point[0] == 0.0 && point[1] == 0.0 && point[2] == 0.0 ) {
 
@@ -609,7 +609,7 @@ namespace MarlinTrk {
     }
   }
   
-  int MarlinAidaTTTrack::propagate( const gear::Vector3D& point, EVENT::TrackerHit*, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ){
+  int MarlinAidaTTTrack::propagate( const Vector3D& point, EVENT::TrackerHit*, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ){
     
     return this->propagate( point, ts, chi2, ndf ) ;
   }
@@ -739,7 +739,7 @@ namespace MarlinTrk {
   }
   
     
-  int MarlinAidaTTTrack::intersectionWithDetElement( int detElementID, gear::Vector3D& point, int) {  
+  int MarlinAidaTTTrack::intersectionWithDetElement( int detElementID, Vector3D& point, int) {  
     
  //    SurfMap::iterator it = _aidaTT->_surfMap.find( detElementID ) ;
  //    if( it == _aidaTT->_surfMap.end() ){
@@ -772,13 +772,13 @@ namespace MarlinTrk {
   }
   
   
-  int MarlinAidaTTTrack::intersectionWithDetElement( int detElementID,  EVENT::TrackerHit*, gear::Vector3D& point, int mode ) {  
+  int MarlinAidaTTTrack::intersectionWithDetElement( int detElementID,  EVENT::TrackerHit*, Vector3D& point, int mode ) {  
     
     return intersectionWithDetElement( detElementID, point, mode ) ;
   }
   
   
-  int MarlinAidaTTTrack::intersectionWithLayer( int layerID, gear::Vector3D& point, int& detElementID, int mode ) {  
+  int MarlinAidaTTTrack::intersectionWithLayer( int layerID, Vector3D& point, int& detElementID, int mode ) {  
     
     UTIL::BitField64 encoder( lcio::LCTrackerCellID::encoding_string() ) ; 
     encoder.reset() ;  // reset to 0
@@ -814,7 +814,7 @@ namespace MarlinTrk {
   }
   
   
-  int MarlinAidaTTTrack::intersectionWithLayer( int layerID,  EVENT::TrackerHit*, gear::Vector3D& point, int& detElementID, int ) {  
+  int MarlinAidaTTTrack::intersectionWithLayer( int layerID,  EVENT::TrackerHit*, Vector3D& point, int& detElementID, int ) {  
 
     return intersectionWithLayer( layerID, point, detElementID ) ;
   }
