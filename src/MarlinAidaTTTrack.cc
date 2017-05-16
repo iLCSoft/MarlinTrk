@@ -71,7 +71,7 @@ namespace MarlinTrk {
     return success ;
   } 
   
-  int MarlinAidaTTTrack::initialise( bool fitDirection ) {; 
+  int MarlinAidaTTTrack::initialise( bool /*fitDirection*/ ) {; 
     
     if ( _initialised ) {
       throw MarlinTrk::Exception("Track fit already initialised");   
@@ -116,7 +116,7 @@ namespace MarlinTrk {
   }
   
 
-  int MarlinAidaTTTrack::initialise(  const EVENT::TrackState& ts, double, bool dir) {
+  int MarlinAidaTTTrack::initialise(  const EVENT::TrackState& ts, double, bool ) {
     
     if ( _initialised ) {
       throw MarlinTrk::Exception("Track fit already initialised");   
@@ -161,19 +161,19 @@ namespace MarlinTrk {
     return success ;
   } 
   
-  int MarlinAidaTTTrack::addAndFit( EVENT::TrackerHit* trkhit, double& chi2increment, double maxChi2Increment) {
+  int MarlinAidaTTTrack::addAndFit( EVENT::TrackerHit*, double&, double ) {
     
     streamlog_out( DEBUG ) << "MarlinAidaTTTrack::addAndFit: nothing to be done ... " << std::endl ;
     return success ;
   }
   
-  int MarlinAidaTTTrack::testChi2Increment( EVENT::TrackerHit* trkhit, double& chi2increment ) {
+  int MarlinAidaTTTrack::testChi2Increment( EVENT::TrackerHit* , double&  ) {
 
     streamlog_out( DEBUG ) << "MarlinAidaTTTrack::testChi2Increment: nothing to be done ... " << std::endl ;
     return success ;
   }
   
-  int MarlinAidaTTTrack::fit( double maxChi2Increment ) {
+  int MarlinAidaTTTrack::fit( double ) {
     
     streamlog_out(DEBUG2) << "MarlinAidaTTTrack::fit() called " << std::endl ;
     
@@ -402,7 +402,7 @@ namespace MarlinTrk {
   
   /** smooth track states from the last filtered hit back to the measurement site associated with the given hit 
    */
-  int MarlinAidaTTTrack::smooth( EVENT::TrackerHit* trkhit ) {
+  int MarlinAidaTTTrack::smooth( EVENT::TrackerHit* ) {
     
     streamlog_out( DEBUG2 )  << "MarlinAidaTTTrack::smooth() - nothing to do ...." << std::endl ;
     return success ;
@@ -492,7 +492,7 @@ namespace MarlinTrk {
     return success ;
   }
   
-  int MarlinAidaTTTrack::getOutliers( std::vector<std::pair<EVENT::TrackerHit*, double> >& hits ) {
+  int MarlinAidaTTTrack::getOutliers( std::vector<std::pair<EVENT::TrackerHit*, double> >&  ) {
     streamlog_out( DEBUG2 )  << "MarlinAidaTTTrack::getOutliers() - nothing to do ..." << std::endl ;
     return success ;
   }

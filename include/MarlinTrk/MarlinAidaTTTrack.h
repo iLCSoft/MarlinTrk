@@ -63,7 +63,7 @@ private:
    *  the fit direction has to be specified using IMarlinTrack::backward or IMarlinTrack::forward. 
    *  this is the order  wrt the order used in addHit() that will be used in the fit() 
    */
-  int initialise( bool fitDirection ); 
+  int initialise( bool /*fitDirection*/ ); 
   
   /** initialise the fit with a track state
    *  the fit direction has to be specified using IMarlinTrack::backward or IMarlinTrack::forward. 
@@ -73,7 +73,7 @@ private:
    *  Note: the bfield_z is not taken from the argument but from the first hit 
    *  should consider changing the interface ...
    */
-  int initialise( const EVENT::TrackState& ts, double /*bfield_z*/, bool fitDirection ) ;
+  int initialise( const EVENT::TrackState& ts, double /*bfield_z*/, bool /*fitDirection*/ ) ;
   
   
   /** perform the fit of all current hits, returns error code ( IMarlinTrack::success if no error ) .
@@ -83,25 +83,29 @@ private:
   int fit( double maxChi2Increment=DBL_MAX ) ;
   
   
-  /** smooth all track states 
+  /** this method has no effect for aidaTT/GBL ...
+   *  smooth all track states 
    */
   int smooth() ;
   
   
-  /** smooth track states from the last filtered hit back to the measurement site associated with the given hit 
+  /** this method has no effect for aidaTT/GBL ...
+   *  smooth track states from the last filtered hit back to the measurement site associated with the given hit 
    */
-  int smooth( EVENT::TrackerHit* hit )  ;
+  int smooth( EVENT::TrackerHit* )  ;
   
   
-  /** update the current fit using the supplied hit, return code via int. Provides the Chi2 increment to the fit from adding the hit via reference. 
-   *  the given hit will not be added if chi2increment > maxChi2Increment. 
+  /** this method has no effect for aidaTT/GBL ...
+   * update the current fit using the supplied hit, return code via int. Provides the Chi2 increment to the fit from adding the hit via reference. 
    */
-  int addAndFit( EVENT::TrackerHit* hit, double& chi2increment, double maxChi2Increment=DBL_MAX ) ;
+  int addAndFit( EVENT::TrackerHit* , double& , double) ;
   
   
-  /** obtain the chi2 increment which would result in adding the hit to the fit. This method will not alter the current fit, and the hit will not be stored in the list of hits or outliers
+  /**  this method has no effect for aidaTT/GBL ...
+   *  obtain the chi2 increment which would result in adding the hit to the fit. 
+   *  This method will not alter the current fit, and the hit will not be stored in the list of hits or outliers
    */
-  int testChi2Increment( EVENT::TrackerHit* hit, double& chi2increment ) ;
+  int testChi2Increment( EVENT::TrackerHit* , double&  ) ;
 
   
   // Track State Accessesors
@@ -123,12 +127,13 @@ private:
    */
   int getHitsInFit( std::vector<std::pair<EVENT::TrackerHit*, double> >& hits ) ;
   
-  /** get the list of hits which have been rejected by from the fit due to the a chi2 increment greater than threshold,
+  /** this method has no effect for aidaTT/GBL ...
+   *  get the list of hits which have been rejected by from the fit due to the a chi2 increment greater than threshold,
    *  Pointers to the hits together with their chi2 contribution will be filled into a vector of 
    *  pairs consitining of the pointer as the first part of the pair and the chi2 contribution as
    *  the second.
    */
-  int getOutliers( std::vector<std::pair<EVENT::TrackerHit*, double> >& hits ) ;
+  int getOutliers( std::vector<std::pair<EVENT::TrackerHit*, double> >&  ) ;
 
 
   /** get the current number of degrees of freedom for the fit.
@@ -257,10 +262,6 @@ protected:
   /** used to store whether initial track state has been supplied or created 
    */
   bool _initialised ;
-  
-  /** used to store the fit direction supplied to intialise 
-   */
-  bool _fitDirection ;
   
   /** used to store whether smoothing has been performed
    */
