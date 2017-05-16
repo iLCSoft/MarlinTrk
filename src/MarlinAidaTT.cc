@@ -84,10 +84,6 @@ namespace MarlinTrk{
 
     _fitter = new aidaTT::GBLInterface();
 
-    
-    // get the all surfaces in the detector
-    DD4hep::Geometry::DetElement world = lcdd.world() ;
-    
     _geom = & aidaTT::IGeometry::instance() ;
     
     const std::vector<const aidaTT::ISurface*>& surfaces = _geom->getSurfaces() ;
