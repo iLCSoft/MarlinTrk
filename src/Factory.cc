@@ -12,8 +12,8 @@ namespace MarlinTrk{
   
 
   IMarlinTrkSystem*  Factory::createMarlinTrkSystem(const std::string& systemType,  
-						    const gear::GearMgr* gearMgr,
-						    const std::string& options ){
+						    const gear::GearMgr*,
+						    const std::string& /*options*/ ){
     
     
     // check if we have already instantiated a tracking system of the requested type:
