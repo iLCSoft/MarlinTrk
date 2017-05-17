@@ -14,10 +14,7 @@
 #include <string>
 
 
-// for now provide wrapers using gear::Vector3D for backwards compatibility
-// if this is removed, we do not use Gear anywhere in MarlinTrk
-#define PROVIDE_BACKWARD_GEAR_WRAPPERS 1
-#if PROVIDE_BACKWARD_GEAR_WRAPPERS
+#ifdef PROVIDE_BACKWARD_GEAR_WRAPPERS
 #include "gearimpl/Vector3D.h"
 #endif
 
@@ -249,7 +246,7 @@ namespace MarlinTrk{
 
     //-------------------------------------------------------------------------------------------------------------------------------
 
-#if PROVIDE_BACKWARD_GEAR_WRAPPERS
+#ifdef PROVIDE_BACKWARD_GEAR_WRAPPERS
 
     int propagate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ){
       Vector3D v( point.x(), point.y(), point.z() ) ;
