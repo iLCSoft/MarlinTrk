@@ -39,7 +39,9 @@ FIND_PATH( MarlinTrk_INCLUDE_DIRS
 	NO_DEFAULT_PATH
 )
 
-
+IF( @MARLINTRK_USE_GEAR@ )
+  SET( MarlinTrk_DEFINITIONS "-D MARLINTRK_BACKWARD_GEAR_WRAPPERS" )
+ENDIF()
 
 # ---------- libraries --------------------------------------------------------
 INCLUDE( "@ILCSOFT_CMAKE_MODULES_ROOT@/MacroCheckPackageLibs.cmake" )

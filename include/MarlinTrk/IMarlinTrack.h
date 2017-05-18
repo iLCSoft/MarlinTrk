@@ -14,7 +14,7 @@
 #include <string>
 
 
-#ifdef PROVIDE_BACKWARD_GEAR_WRAPPERS
+#ifdef MARLINTRK_BACKWARD_GEAR_WRAPPERS
 #include "gearimpl/Vector3D.h"
 #endif
 
@@ -246,7 +246,7 @@ namespace MarlinTrk{
 
     //-------------------------------------------------------------------------------------------------------------------------------
 
-#ifdef PROVIDE_BACKWARD_GEAR_WRAPPERS
+#ifdef MARLINTRK_BACKWARD_GEAR_WRAPPERS
 
     int propagate( const gear::Vector3D& point, IMPL::TrackStateImpl& ts, double& chi2, int& ndf ){
       Vector3D v( point.x(), point.y(), point.z() ) ;
