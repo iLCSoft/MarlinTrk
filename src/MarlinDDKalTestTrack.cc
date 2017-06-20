@@ -830,7 +830,7 @@ namespace MarlinTrk {
     while ( (kalhit = dynamic_cast<DDVTrackHit *>( next() ) ) ) {
       
       double chi2increment;
-      TKalTrackSite* site;
+      TKalTrackSite* site=nullptr;
       int error_code = this->addAndFit( kalhit, chi2increment, site, maxChi2Increment );
       
       

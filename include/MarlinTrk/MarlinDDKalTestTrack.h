@@ -367,7 +367,7 @@ private:
   
   /** map to store relation between lcio hits kaltest hits
    */
-  std::map<EVENT::TrackerHit*,DDVTrackHit*> _lcio_hits_to_kaltest_hits ;
+  std::map<EVENT::TrackerHit*,DDVTrackHit*> _lcio_hits_to_kaltest_hits{};
    
   /** vector to store lcio hits rejected for measurement sites
    */

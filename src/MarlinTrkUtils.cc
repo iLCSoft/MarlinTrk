@@ -10,7 +10,6 @@
 #include "MarlinTrk/HelixTrack.h"
 #include "MarlinTrk/Factory.h"
 
-#include "DD4hep/LCDD.h"
 #include "MarlinTrk/MarlinDDKalTest.h"
 
 #include "lcio.h"

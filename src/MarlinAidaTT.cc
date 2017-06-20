@@ -18,7 +18,7 @@
 #include "aidaTT/IGeometry.hh"
 
 
-#include "DD4hep/LCDD.h"
+#include "DD4hep/Detector.h"
 #include "DD4hep/Fields.h"
 #include "DD4hep/DD4hepUnits.h"
 
@@ -70,11 +70,11 @@ namespace MarlinTrk{
    
     streamlog_out( DEBUG5 ) << " ##################### MarlinAidaTT::init()  - initializing  " << std::endl ;
     
-    DD4hep::Geometry::LCDD& lcdd = DD4hep::Geometry::LCDD::getInstance();
+    dd4hep::Detector& theDetector = dd4hep::Detector::getInstance();
     
     
     double origin[3] = { 0., 0., 0. }, bfield[3] ;
-    lcdd.field().magneticField( origin , bfield  ) ;
+    theDetector.field().magneticField( origin , bfield  ) ;
 
     _bfield = new aidaTT::ConstantSolenoidBField( bfield[2] / dd4hep::tesla ) ; 
 
