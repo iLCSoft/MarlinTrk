@@ -16,7 +16,6 @@
 #include <UTIL/BitField64.h>
 #include "UTIL/LCTrackerConf.h"
 
-#include "DD4hep/LCDD.h"
 #include "DDRec/SurfaceManager.h"
 
 #include <algorithm>
@@ -81,7 +80,7 @@ namespace MarlinTrk{
 
     streamlog_out( DEBUG5 ) << " ##################### MarlinDDKalTest::init()  - initializing  " << std::endl ;
 
-    DD4hep::Geometry::LCDD& lcdd = DD4hep::Geometry::LCDD::getInstance();
+    dd4hep::Detector& lcdd = dd4hep::Detector::getInstance();
 
     double minS = 1.e99; 
     DDCylinderMeasLayer* ipLayer = 0 ;
@@ -89,17 +88,17 @@ namespace MarlinTrk{
 
     // for the tracking we get all tracking detectors and all passive detectors (beam pipe,...)
 
-    std::vector< DD4hep::Geometry::DetElement>        detectors   = lcdd.detectors( "tracker" ) ;
-    const std::vector< DD4hep::Geometry::DetElement>& passiveDets = lcdd.detectors( "passive" ) ;
-    const std::vector< DD4hep::Geometry::DetElement>& calos       = lcdd.detectors( "calorimeter" ) ;
+    std::vector< dd4hep::DetElement>        detectors   = lcdd.detectors( "tracker" ) ;
+    const std::vector< dd4hep::DetElement>& passiveDets = lcdd.detectors( "passive" ) ;
+    const std::vector< dd4hep::DetElement>& calos       = lcdd.detectors( "calorimeter" ) ;
 
     detectors.reserve( detectors.size() + passiveDets.size() + calos.size() ) ;
 
     std::copy( passiveDets.begin() , passiveDets.end() , std::back_inserter( detectors )  ) ;
 
-    for ( std::vector< DD4hep::Geometry::DetElement>::const_iterator it=calos.begin() ; it != calos.end() ; ++it ){
+    for ( std::vector< dd4hep::DetElement>::const_iterator it=calos.begin() ; it != calos.end() ; ++it ){
 
-    // for ( std::vector< DD4hep::Geometry::DetElement>::const_iterator it=passiveDets.begin() ; it != passiveDets.end() ; ++it ){
+    // for ( std::vector< dd4hep::DetElement>::const_iterator it=passiveDets.begin() ; it != passiveDets.end() ; ++it ){
 
       std::string name = it->name() ;
       std::transform( name.begin() , name.end() , name.begin() , ::tolower ) ;
@@ -111,9 +110,9 @@ namespace MarlinTrk{
 
 
 
-    for ( std::vector< DD4hep::Geometry::DetElement>::iterator it=detectors.begin() ; it != detectors.end() ; ++it ){
+    for ( std::vector< dd4hep::DetElement>::iterator it=detectors.begin() ; it != detectors.end() ; ++it ){
 
-      DD4hep::Geometry::DetElement det = *it ;
+      dd4hep::DetElement det = *it ;
 
       streamlog_out( DEBUG5 ) << "  MarlinDDKalTest::init() - creating DDKalDetector for : " << det.name() << std::endl ;
 
