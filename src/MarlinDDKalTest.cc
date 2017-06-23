@@ -53,7 +53,7 @@ namespace MarlinTrk{
 #ifdef MARLINTRK_DIAGNOSTICS_ON
     _diagnostics.end();
 #endif
-    
+    for( auto* ddKalDet : _detectors ) { delete ddKalDet; }
     delete _det ;
   }
   
@@ -116,7 +116,8 @@ namespace MarlinTrk{
 
       streamlog_out( DEBUG5 ) << "  MarlinDDKalTest::init() - creating DDKalDetector for : " << det.name() << std::endl ;
 
-      DDKalDetector* kalDet = new DDKalDetector( det ) ;
+      _detectors.push_back( new DDKalDetector( det ) );
+      DDKalDetector* kalDet = _detectors.back();
 
       this->storeActiveMeasurementModuleIDs( kalDet ) ;
 
