@@ -7,6 +7,8 @@
 #include "MarlinTrk/DiagnosticsController.h"
 #endif
 
+#include "DDKalTest/DDKalDetector.h"
+
 //LCIO:
 #include "lcio.h"
 #include "UTIL/BitField64.h" 
@@ -105,7 +107,8 @@ namespace MarlinTrk{
     std::multimap< int,const DDVMeasLayer *> _active_measurement_modules;
     
     std::multimap< int,const DDVMeasLayer *> _active_measurement_modules_by_layer;
-    
+
+    std::vector< DDKalDetector* > _detectors{};
     
 #ifdef MARLINTRK_DIAGNOSTICS_ON
 
