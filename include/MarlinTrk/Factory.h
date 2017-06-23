@@ -29,7 +29,9 @@ namespace MarlinTrk{
     
   public:
     
-    virtual ~Factory() {}
+    virtual ~Factory() {
+      for( auto& trkSystem : _map ) { delete trkSystem.second; }
+    }
     
     /** Create the MarlinTrkSystem instance of the specified type:<br>
      *  DDKalTest, aidaTT,...<br>
