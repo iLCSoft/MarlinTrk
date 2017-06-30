@@ -1,3 +1,19 @@
+# v02-04
+
+* 2017-06-20 Andre Sailer ([PR#4](https://github.com/iLCSoft/MarlinTrk/pull/4))
+  - Adapt to namespace changes in DD4hep
+
+* 2017-06-27 Andre Sailer ([PR#5](https://github.com/iLCSoft/MarlinTrk/pull/5))
+  - Clean up of tkrSystem and DDKalDetectors at the end of lifetime
+
+* 2017-05-17 Frank Gaede ([PR#2](https://github.com/iLCSoft/MarlinTrk/pull/2))
+  - replace gear::Vector3D with DDSurfaces::Vector3D in IMarlinTrack interface
+        - provide wrapper functions with old signature for backwards compatibility
+        - remove all other usages of Gear
+  - remove obsolete MarlinKalTest and MarlinKalTestTrack
+         - from now on use only MarlinDDKalTest
+  - fix all warnings seen with llvm (on mac)
+
 # v02-03
 
 # v02-02
