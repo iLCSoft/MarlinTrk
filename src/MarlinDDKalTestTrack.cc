@@ -286,7 +286,7 @@ namespace MarlinTrk {
     
     Cov(0,0) = 1.e6 ; // d0
     Cov(1,1) = 1.e2 ; // dphi0
-    Cov(2,2) = 1.e2 ; // dkappa
+    Cov(2,2) = 1.e1 ; // dkappa
     Cov(3,3) = 1.e6 ; // dz
     Cov(4,4) = 1.e2 ; // dtanL
     if (kSdim == 6) Cov(5,5) = 1.e2;  // t0
