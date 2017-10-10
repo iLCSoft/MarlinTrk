@@ -218,8 +218,8 @@ namespace MarlinTrk {
 	std::vector<double> precision ;
 	getHitInfo( hit, hitpos, precision , surf) ;
 
-	_fitTrajectory->addMeasurement( hitpos, precision, *surf, hit , _aidaTT->_useQMS );
-	_indexMap[ surf->id() ] = ++pointLabel ;  // label 0 is for the IP point 
+	if ( _fitTrajectory->addMeasurement( hitpos, precision, *surf, hit , _aidaTT->_useQMS ) )
+	  _indexMap[ surf->id() ] = ++pointLabel ;  // label 0 is for the IP point 
 
 	streamlog_out(DEBUG) << "MarlinAidaTTTrack::fit()  addMeasurement called for pointLabel : " << pointLabel << std::endl ;
 
