@@ -119,5 +119,9 @@ namespace MarlinTrk {
   
 } // end of MarlinTrk namespace 
 
+
+#include "TrkSysConfig.h"
+
+
 #endif
 
