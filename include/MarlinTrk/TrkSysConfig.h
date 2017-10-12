@@ -1,9 +1,6 @@
 #ifndef TrkSysConfig_h
 #define TrkSysConfig_h
 
-//#include "IMarlinTrkSystem.h"
-
-
 
 namespace MarlinTrk{
 

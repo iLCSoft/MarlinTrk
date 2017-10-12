@@ -58,6 +58,24 @@ namespace MarlinTrk{
   }
   
   
+  void MarlinDDKalTest::setOption(unsigned CFGOption, bool val) {
+
+    IMarlinTrkSystem::setOption( CFGOption, val ) ;
+
+    switch( CFGOption ) {
+
+    case IMarlinTrkSystem::CFG::useQMS :
+      this->includeMultipleScattering( val ) ;
+      break ;
+    case IMarlinTrkSystem::CFG::usedEdx :
+      this->includeEnergyLoss( val ) ;
+      break ;
+      // IMarlinTrkSystem::CFG::useSmoothing handled directly in MarlinDDKalTestTrack
+    }
+
+  }
+
+
   void MarlinDDKalTest::init() {
     
      
@@ -215,6 +233,8 @@ namespace MarlinTrk{
   
   void MarlinDDKalTest::includeMultipleScattering( bool msOn ) {
     
+    streamlog_out( DEBUG2 ) << "  **** MarlinDDKalTest::includeMultipleScattering( " << msOn << " ) called " << std::endl ;
+
     if( msOn == true ) {
       _det->SwitchOnMS();
     }
@@ -226,6 +246,8 @@ namespace MarlinTrk{
   
   void MarlinDDKalTest::includeEnergyLoss( bool energyLossOn ) {
     
+    streamlog_out( DEBUG2 ) << "  **** MarlinDDKalTest::includeEnergyLoss( " << energyLossOn << " ) called " << std::endl ;
+
     if( energyLossOn == true ) {
       _det->SwitchOnDEDX();
     }
