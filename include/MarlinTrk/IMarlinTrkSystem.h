@@ -66,9 +66,10 @@ namespace MarlinTrk {
     
     
     /** Sets the specified option ( one of the constants defined in IMarlinTrkSystem::CFG ) 
-     *  to the given value.
+     *  to the given value. Implementation classes can override this if they need to re-configure
+     *  after the initialization.
      */
-    void setOption(unsigned CFGOption, bool val) ;  
+    virtual void setOption(unsigned CFGOption, bool val) ;
     
     /** Return the option's current value - false if option not defined.
      */

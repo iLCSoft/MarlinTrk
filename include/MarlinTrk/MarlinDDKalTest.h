@@ -57,6 +57,12 @@ namespace MarlinTrk{
     /** d'tor */
     ~MarlinDDKalTest() ;
     
+    /** Sets the specified option ( one of the constants defined in IMarlinTrkSystem::CFG )
+     *  to the given value. Override here to re-configure E-loss and QMS
+     *  after the initialization.
+     */
+    virtual void setOption(unsigned CFGOption, bool val) ;
+
     /** initialise track fitter system */
     void init() ; 
     
