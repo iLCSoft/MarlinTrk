@@ -1,3 +1,8 @@
+# v02-06
+
+* 2017-10-12 Frank Gaede ([PR#9](https://github.com/ilcsoft/MarlinTrk/pull/9))
+  - fix the re-setting of eLoss and QMS configuration parameters in TrkSysConfig
+
 # v02-05
 
 * 2017-10-12 Shaojun Lu ([PR#8](https://github.com/iLCSoft/MarlinTrk/pull/8))
