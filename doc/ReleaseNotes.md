@@ -1,3 +1,20 @@
+# v02-05
+
+* 2017-10-12 Shaojun Lu ([PR#8](https://github.com/iLCSoft/MarlinTrk/pull/8))
+  - Fix the segmentation fault which is caused by assigning the wrong number to _indexMap.
+      - Only when trajectory added measurement successfully, then to increase pointLabel by one, and assign it to _indexMap.
+      - Both DDKalTest and AidaTT(GBL) may be used by  "RefitProcessor" and "FullLDCTracking_MarlinTrk" for track fitting.
+
+* 2017-10-12 Frank Gaede ([PR#7](https://github.com/iLCSoft/MarlinTrk/pull/7))
+  - add new helper class TrkSysConfig for setting the correct system configuration per event (scope)
+  - reduce initial error on tanLambda in `MarlinDDKalTestTrack::initialise()`
+
+* 2017-09-11 Frank Gaede ([PR#6](https://github.com/iLCSoft/MarlinTrk/pull/6))
+  - reduce initial uncertainty for kappa/omega for track fits in
+     `MarlinDDKalTestTracks::initialise(bool fitDirection)` 
+        - fixes a problem in TPC track fits, when first three points define a very different curvature
+        - should have no effect on Si-Tracking
+
 # v02-04
 
 * 2017-06-20 Andre Sailer ([PR#4](https://github.com/iLCSoft/MarlinTrk/pull/4))
