@@ -24,26 +24,19 @@ HelixTrack::HelixTrack( const double* x1, const double* x2, const double* x3, do
   << "Bz = " << Bz << " direction = " << direction 
   << std::endl;
 
-
-
-  
-  THelicalTrack*  helicalTrack;
-
-  helicalTrack = new THelicalTrack( p1, p2, p3, Bz, direction ); 
+  THelicalTrack helicalTrack( p1, p2, p3, Bz, direction ); 
     
   // Set the track parameters and convert from the KalTest system to the lcio system
   
-  _phi0 = toBaseRange( helicalTrack->GetPhi0() + M_PI/2. ) ;
-  _omega = 1. / helicalTrack->GetRho();
-  _z0 = helicalTrack->GetDz();
-  _d0 = - helicalTrack->GetDrho();
-  _tanLambda = helicalTrack->GetTanLambda();
+  _phi0 = toBaseRange( helicalTrack.GetPhi0() + M_PI/2. ) ;
+  _omega = 1. / helicalTrack.GetRho();
+  _z0 = helicalTrack.GetDz();
+  _d0 = - helicalTrack.GetDrho();
+  _tanLambda = helicalTrack.GetTanLambda();
   
-  _ref_point_x =  helicalTrack->GetPivot().X() ;
-  _ref_point_y =  helicalTrack->GetPivot().Y() ;
-  _ref_point_z =  helicalTrack->GetPivot().Z() ;
-  
-  delete helicalTrack;
+  _ref_point_x =  helicalTrack.GetPivot().X() ;
+  _ref_point_y =  helicalTrack.GetPivot().Y() ;
+  _ref_point_z =  helicalTrack.GetPivot().Z() ;
   
 }
   
