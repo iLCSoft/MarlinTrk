@@ -36,14 +36,14 @@ public:
   
 private:
   
-  double _ref_point_x ;
-  double _ref_point_y ;
-  double _ref_point_z ;
-  double _d0 ;
-  double _z0 ;
-  double _phi0 ;
-  double _omega ;
-  double _tanLambda ;
+  double _ref_point_x=0.0;
+  double _ref_point_y=0.0;
+  double _ref_point_z=0.0;
+  double _d0=0.0;
+  double _z0=0.0;
+  double _phi0=0.0;
+  double _omega=0.0;
+  double _tanLambda=0.0;
   
   /** helper function to restrict the range of the azimuthal angle to ]-pi,pi]*/
   inline double toBaseRange( double phi) const {
