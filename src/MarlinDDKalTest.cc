@@ -148,7 +148,7 @@ namespace MarlinTrk{
       // --- keep the cylinder meas layer with smallest sorting policy (radius) as ipLayer
       // fixme: this should be implemented in a more explicit way ...
       for( int i=0; i < nLayers; ++i ) {
-	const TVSurface* tvs = dynamic_cast<const TVSurface*>( kalDet->At( i ) ); 
+	const TVSurface* tvs = static_cast<const TVSurface*>( kalDet->At( i ) );
 
 	double s = tvs->GetSortingPolicy() ;
 	if( s < minS &&  dynamic_cast< DDCylinderMeasLayer* > (  kalDet->At( i) )  ) {
@@ -387,18 +387,15 @@ namespace MarlinTrk{
     
     int nsufaces =  _det->GetEntriesFast();
     
-    const DDVMeasLayer* ml_retval = 0;
+    const TVSurface* ml_retval = nullptr;
     double min_deflection = DBL_MAX;
     
     for(int i=0; i<nsufaces; ++i) {
       
-      const DDVMeasLayer   &ml  = *dynamic_cast< const DDVMeasLayer *>(_det->At(i)); 
-      
       double defection_angle = 0 ;
       TVector3 crossing_point ;   
       
-      const TVSurface *sfp = dynamic_cast<const TVSurface *>(&ml);  // surface at destination       
-      
+      const TVSurface *sfp = static_cast<const TVSurface *>(_det->At(i));  // surface at destination
       
       int does_cross = sfp->CalcXingPointWith(helix, crossing_point, defection_angle, mode) ;
       
@@ -421,14 +418,14 @@ namespace MarlinTrk{
           //                              << std::endl ;
           
           min_deflection = deflection ;
-          ml_retval = &ml ;
+          ml_retval = sfp;
         }
         
       }
       
     }
     
-    return ml_retval;
+    return dynamic_cast<const DDVMeasLayer *>(ml_retval);
   }
   
   const DDVMeasLayer* MarlinDDKalTest::findMeasLayer( EVENT::TrackerHit * trkhit) const {
