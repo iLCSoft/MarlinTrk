@@ -54,7 +54,9 @@ namespace MarlinTrk{
     
     /// Default c'tor
     MarlinAidaTT() ;
-    
+    MarlinAidaTT(const MarlinAidaTT&) = delete;
+    MarlinAidaTT& operator=(const MarlinTrk::MarlinAidaTT&) = delete;
+
     /** d'tor */
     ~MarlinAidaTT() ;
     
@@ -100,17 +102,17 @@ namespace MarlinTrk{
     // std::multimap< int,const DDVMeasLayer *> _active_measurement_modules_by_layer;
         
     
-    bool _useQMS ;
-    bool _usedEdx ;
-    bool _is_initialised ;
+    bool _useQMS=false;
+    bool _usedEdx=false;
+    bool _is_initialised=false;
     
     /// multi-map of surfaces
-    SurfMap _surfMap ;
+    SurfMap _surfMap{};
     
-    const aidaTT::IGeometry*         _geom ;
-    aidaTT::IBField*           _bfield ;
-    aidaTT::IFittingAlgorithm* _fitter ;
-    aidaTT::IPropagation*      _propagation  ;
+    const aidaTT::IGeometry*   _geom=nullptr;
+    aidaTT::IBField*           _bfield=nullptr;
+    aidaTT::IFittingAlgorithm* _fitter=nullptr;
+    aidaTT::IPropagation*      _propagation=nullptr;
 
  } ;
   

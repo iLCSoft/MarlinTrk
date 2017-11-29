@@ -72,7 +72,7 @@ namespace MarlinTrk {
     }
     
   protected:
-    Map _map ;
+    Map _map{};
     
   };
   

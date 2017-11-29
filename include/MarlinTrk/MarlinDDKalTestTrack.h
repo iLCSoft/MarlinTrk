@@ -337,33 +337,33 @@ private:
 
   // memeber variables 
   
-  TKalTrack* _kaltrack;
+  TKalTrack* _kaltrack=nullptr;
   
-  EVENT::TrackerHitVec _lcioHits ; 
+  EVENT::TrackerHitVec _lcioHits{};
   
-  TObjArray* _kalhits;
+  TObjArray* _kalhits=nullptr;
   
-  MarlinDDKalTest* _ktest;
+  MarlinDDKalTest* _ktest=nullptr;
   
-  EVENT::TrackerHit* _trackHitAtPositiveNDF;
-  int _hitIndexAtPositiveNDF;
+  EVENT::TrackerHit* _trackHitAtPositiveNDF=nullptr;
+  int _hitIndexAtPositiveNDF=-1;
   
   /** used to store whether initial track state has been supplied or created 
    */
-  bool _initialised ;
+  bool _initialised=false;
   
   /** used to store the fit direction supplied to intialise 
    */
-  bool _fitDirection ;
+  bool _fitDirection=false;
   
   
   /** used to store whether smoothing has been performed
    */
-  bool _smoothed ;
+  bool _smoothed=false;
   
   /** map to store relation between lcio hits and measurement sites
    */
-  std::map<EVENT::TrackerHit*,TKalTrackSite*> _hit_used_for_sites ;
+  std::map<EVENT::TrackerHit*,TKalTrackSite*> _hit_used_for_sites{};
   
   /** map to store relation between lcio hits kaltest hits
    */
@@ -371,15 +371,15 @@ private:
    
   /** vector to store lcio hits rejected for measurement sites
    */
-  std::vector<EVENT::TrackerHit*> _hit_not_used_for_sites ;
+  std::vector<EVENT::TrackerHit*> _hit_not_used_for_sites{};
 
   /** vector to store the chi-sqaure increment for measurement sites
    */
-  std::vector< std::pair<EVENT::TrackerHit*, double> > _hit_chi2_values ;
+  std::vector< std::pair<EVENT::TrackerHit*, double> > _hit_chi2_values{};
   
   /** vector to store the chi-sqaure increment for measurement sites
    */
-  std::vector< std::pair<EVENT::TrackerHit*, double> > _outlier_chi2_values ;
+  std::vector< std::pair<EVENT::TrackerHit*, double> > _outlier_chi2_values{};
 
   
 } ;
