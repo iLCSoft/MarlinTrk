@@ -257,27 +257,27 @@ protected:
 
   // memeber variables 
   
-  MarlinAidaTT* _aidaTT;
+  MarlinAidaTT* _aidaTT=nullptr;
   
   /** used to store whether initial track state has been supplied or created 
    */
-  bool _initialised ;
+  bool _initialised=false;
   
   /** used to store whether smoothing has been performed
    */
-  bool _smoothed ;
+  bool _smoothed=false;
   
-  std::vector< EVENT::TrackerHit*> _lcioHits ;
+  std::vector< EVENT::TrackerHit*> _lcioHits{};
  
-  aidaTT::trackParameters _initialTrackParams ;
+  aidaTT::trackParameters _initialTrackParams{};
 
-  aidaTT::trajectory* _fitTrajectory ;
+  aidaTT::trajectory* _fitTrajectory{};
   
-  const std::vector<std::pair<double, const aidaTT::ISurface*> >* _intersections ;
+  const std::vector<std::pair<double, const aidaTT::ISurface*> >* _intersections{};
 
-  std::map< int, int > _indexMap ;
+  std::map< int, int > _indexMap{};
 
-  double _mass ;
+  double _mass=0.0;
 } ;
 
 } // end of namespace MarlinTrk

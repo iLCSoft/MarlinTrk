@@ -32,6 +32,9 @@ namespace MarlinTrk{
     virtual ~Factory() {
       for( auto& trkSystem : _map ) { delete trkSystem.second; }
     }
+
+    Factory(const Factory&) = delete;
+    Factory const& operator=(const Factory&) = delete;
     
     /** Create the MarlinTrkSystem instance of the specified type:<br>
      *  DDKalTest, aidaTT,...<br>
@@ -78,9 +81,9 @@ namespace MarlinTrk{
 
     Factory() : _currentTrkSystem(0){}
 
-    IMarlinTrkSystem* _currentTrkSystem ;
+    IMarlinTrkSystem* _currentTrkSystem=nullptr;
 
-    TrkSystemMap _map ;
+    TrkSystemMap _map{};
 
   } ;
   

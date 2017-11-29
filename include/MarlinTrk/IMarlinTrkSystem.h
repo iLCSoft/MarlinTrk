@@ -19,7 +19,7 @@ namespace MarlinTrk {
   class Exception : public std::exception {
     
   protected:
-    std::string message ;
+    std::string message="";
     
     Exception(){  /*no_op*/ ; }
     
@@ -103,7 +103,7 @@ namespace MarlinTrk {
     
   protected:
     
-    ConfigFlags _cfg ;
+    ConfigFlags _cfg{};
     
     /** Register the possible configuration options
      */ 

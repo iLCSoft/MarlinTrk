@@ -53,7 +53,9 @@ namespace MarlinTrk{
     
     /// Default c'tor
     MarlinDDKalTest() ;
-    
+    MarlinDDKalTest(const MarlinDDKalTest&) = delete;
+    MarlinDDKalTest const& operator=(const MarlinDDKalTest&) = delete;
+
     /** d'tor */
     ~MarlinDDKalTest() ;
     
@@ -91,7 +93,7 @@ namespace MarlinTrk{
     void getSensitiveMeasurementModulesForLayer( int layerID, std::vector<const DDVMeasLayer *>& measmodules) const;
     
     //  void init(bool MSOn, bool EnergyLossOn) ;
-    bool is_initialised ;
+    bool is_initialised=false;
     
     //** find the measurment layer for a given hit 
     const DDVMeasLayer* findMeasLayer( EVENT::TrackerHit * trkhit) const ; 
@@ -106,13 +108,13 @@ namespace MarlinTrk{
 
     // members:
 
-    const DDCylinderMeasLayer* _ipLayer ;
+    const DDCylinderMeasLayer* _ipLayer=nullptr;
     
-    TKalDetCradle* _det ;            // the detector cradle
+    TKalDetCradle* _det=nullptr;         // the detector cradle
     
-    std::multimap< int,const DDVMeasLayer *> _active_measurement_modules;
+    std::multimap< int,const DDVMeasLayer *> _active_measurement_modules{};
     
-    std::multimap< int,const DDVMeasLayer *> _active_measurement_modules_by_layer;
+    std::multimap< int,const DDVMeasLayer *> _active_measurement_modules_by_layer{};
 
     std::vector< DDKalDetector* > _detectors{};
     
