@@ -35,6 +35,7 @@
 
   
 using namespace UTIL ;
+using namespace lcio ;
 
 namespace MarlinTrk {
 
