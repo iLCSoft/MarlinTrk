@@ -122,9 +122,9 @@ namespace MarlinTrk {
     
     return_error = createPrefit(hit_list, &pre_fit, bfield_z, fit_direction);
     
-    streamlog_out( DEBUG0 ) << " **** createFinalisedLCIOTrack - created pre-fit: " <<  toString( &pre_fit )  << std::endl ;
-
     pre_fit.setCovMatrix(initial_cov_for_prefit);
+
+    streamlog_out( DEBUG3 ) << " **** createFinalisedLCIOTrack - created pre-fit: " <<  toString( &pre_fit )  << std::endl ;
 
 
     ///////////////////////////////////////////////////////
@@ -349,7 +349,6 @@ namespace MarlinTrk {
       if(UTIL::BitSet32( hit_list[ihit]->getType() )[ UTIL::ILDTrkHitTypeBit::ONE_DIMENSIONAL ] == false ){
         // then add to the list 
         twoD_hits.push_back(hit_list[ihit]);
-        
       }
     }
     
@@ -373,15 +372,16 @@ namespace MarlinTrk {
     
     HelixTrack helixTrack( x1, x2, x3, bfield_z, HelixTrack::forwards );
 
-    if ( fit_direction == IMarlinTrack::backward ) {
-      pre_fit->setLocation(lcio::TrackState::AtLastHit);
-      helixTrack.moveRefPoint(hit_list.back()->getPosition()[0], hit_list.back()->getPosition()[1], hit_list.back()->getPosition()[2]);      
-    } else {
-      pre_fit->setLocation(lcio::TrackState::AtFirstHit);
-      helixTrack.moveRefPoint(hit_list.front()->getPosition()[0], hit_list.front()->getPosition()[1], hit_list.front()->getPosition()[2]);      
-    }
-    
-    
+    helixTrack.moveRefPoint(0.0, 0.0, 0.0);
+
+    // if ( fit_direction == IMarlinTrack::backward ) {
+    //   pre_fit->setLocation(lcio::TrackState::AtLastHit);
+    //   helixTrack.moveRefPoint(hit_list.back()->getPosition()[0], hit_list.back()->getPosition()[1], hit_list.back()->getPosition()[2]);
+    // } else {
+    //   pre_fit->setLocation(lcio::TrackState::AtFirstHit);
+    //   helixTrack.moveRefPoint(hit_list.front()->getPosition()[0], hit_list.front()->getPosition()[1], hit_list.front()->getPosition()[2]);
+    // }
+
     const float referencePoint[3] = { float(helixTrack.getRefPointX()) ,  float(helixTrack.getRefPointY()) ,  float(helixTrack.getRefPointZ() )};
     
     pre_fit->setD0(helixTrack.getD0()) ;
