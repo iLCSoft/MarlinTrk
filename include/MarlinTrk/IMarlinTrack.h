@@ -8,7 +8,7 @@
 #include "EVENT/TrackerHit.h"
 #include "IMPL/TrackStateImpl.h"
 
-#include "DDSurfaces/Vector3D.h"
+#include "DDRec/Vector3D.h"
 
 #include <exception>
 #include <string>
@@ -23,7 +23,7 @@
 namespace MarlinTrk{
   
   /// the Vector3D used for the tracking interface
-  typedef DDSurfaces::Vector3D Vector3D ;
+  typedef dd4hep::rec::Vector3D Vector3D ;
   
   /** Interface for generic tracks in MarlinTrk. The interface should provide the functionality to
    *  perform track finding and fitting. It is asssumed that the underlying implemetation will by 
