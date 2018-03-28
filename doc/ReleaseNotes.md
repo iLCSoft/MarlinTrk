@@ -1,3 +1,22 @@
+# v02-07
+
+* 2018-03-13 Marko Petric ([PR#11](https://github.com/iLCSoft/MarlinTrk/pull/11))
+  - Fix for iLCSoft/LCIO#35
+
+* 2018-03-23 Frank Gaede ([PR#12](https://github.com/iLCSoft/MarlinTrk/pull/12))
+  - use the origin as reference point in MarlinTrk::createPrefit() for initial helix
+      - this improves the fit probability for Si-tracks (in ILD)
+      - similar issues reported by CLICdp
+
+* 2018-03-28 Marko Petric ([PR#13](https://github.com/iLCSoft/MarlinTrk/pull/13))
+  - Fix for the removal of DDSurfaces which have been merged into DDRec 
+    -  includes from `DDSurfaces` -> `DDRec`
+    - namespace `DDSurfaces` -> `dd4hep::rec`
+
+* 2017-11-30 Andre Sailer ([PR#10](https://github.com/iLCSoft/MarlinTrk/pull/10))
+  - Performance optimisation, avoiding dynamic_cast, see also  AIDAsoft/aidaTT#19
+  - Fix compiler warnings for uninitialised members
+
 # v02-06
 
 * 2017-10-12 Frank Gaede ([PR#9](https://github.com/ilcsoft/MarlinTrk/pull/9))
