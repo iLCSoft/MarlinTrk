@@ -74,17 +74,17 @@ INCLUDE_DIRECTORIES( SYSTEM  ${DDKalTest_INCLUDE_DIRS} )
 LINK_LIBRARIES( ${DDKalTest_LIBRARIES} )
 ADD_DEFINITIONS( ${DDKalTest_DEFINITIONS} )
 
+# DD4hep depends on geant4. geant4 calls find_package clhep internally and also contains a findclhep.cmake (before 10.5)
+# that findclhep cmake is not playing nice with other things so we call find clhep before find dd4hep
+FIND_PACKAGE(CLHEP REQUIRED)
+INCLUDE_DIRECTORIES( SYSTEM  ${CLHEP_INCLUDE_DIRS} )
+LINK_LIBRARIES( ${CLHEP_LIBRARIES} )
+ADD_DEFINITIONS( ${CLHEP_DEFINITIONS} )
+
 FIND_PACKAGE( DD4hep REQUIRED COMPONENTS DDRec ) 
 INCLUDE_DIRECTORIES( SYSTEM  ${DD4hep_INCLUDE_DIRS} )
 LINK_LIBRARIES( ${DD4hep_LIBRARIES}  ${DD4hep_COMPONENT_LIBRARIES} )
 ADD_DEFINITIONS( ${DD4hep_DEFINITIONS} )
-
-#DD4hep depends on geant4. geant4 calls find_package clhep internally and also contains a findclhep.cmake
-# that findclhep cmake is not playing nice with other things
-FIND_PACKAGE(CLHEP REQUIRED CONFIG)
-INCLUDE_DIRECTORIES( SYSTEM  ${CLHEP_INCLUDE_DIRS} )
-LINK_LIBRARIES( ${CLHEP_LIBRARIES} )
-ADD_DEFINITIONS( ${CLHEP_DEFINITIONS} )
 
 FIND_PACKAGE( aidaTT REQUIRED )
 ADD_DEFINITIONS( "-D AIDATT_USE_DD4HEP -DUSE_GBL -DUSE_LCIO" ) 
@@ -142,5 +142,5 @@ INSTALL_SHARED_LIBRARY( ${PROJECT_NAME} DESTINATION lib )
 DISPLAY_STD_VARIABLES()
 
 # generate and install following configuration files
-GENERATE_PACKAGE_CONFIGURATION_FILES( MarlinTrkConfig.cmake MarlinTrkConfigVersion.cmake MarlinTrkLibDeps.cmake )
+GENERATE_PACKAGE_CONFIGURATION_FILES( MarlinTrkConfig.cmake MarlinTrkConfigVersion.cmake )
 
