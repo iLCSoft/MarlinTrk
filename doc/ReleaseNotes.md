@@ -1,3 +1,9 @@
+# v02-08
+
+* 2019-08-23 Andre Sailer ([PR#16](https://github.com/iLCSoft/MarlinTrk/pull/16))
+  - CMake: drop export of Lib dependencies, which doesn't work in cmake 3.12
+  - CMake: fix CLHEP discovery, first find CLHEP then DD4hep (and implicitly geant4)
+
 # v02-07
 
 * 2018-03-13 Marko Petric ([PR#11](https://github.com/iLCSoft/MarlinTrk/pull/11))
