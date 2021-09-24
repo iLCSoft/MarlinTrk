@@ -1,5 +1,4 @@
 #include "MarlinTrk/MarlinDDKalTest.h"
-#include "MarlinTrk/MarlinDDKalTestTrack.h"
 
 #include "kaltest/TKalDetCradle.h"
 #include "kaltest/TVKalDetector.h"
@@ -55,6 +54,7 @@ namespace MarlinTrk{
 #endif
     for( auto* ddKalDet : _detectors ) { delete ddKalDet; }
     delete _det ;
+    delete _marlinTrack;
   }
   
   
@@ -226,8 +226,8 @@ namespace MarlinTrk{
       throw MarlinTrk::Exception(errorMsg.str());
       
     }
-    
-    return new MarlinDDKalTestTrack(this) ;
+    _marlinTrack = new MarlinDDKalTestTrack(this);
+    return _marlinTrack ;
     
   }
   

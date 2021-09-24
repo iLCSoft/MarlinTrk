@@ -2,6 +2,7 @@
 #define MarlinDDKalTest_h
 
 #include "MarlinTrk/IMarlinTrkSystem.h"
+#include "MarlinTrk/MarlinDDKalTestTrack.h"
 
 #ifdef MARLINTRK_DIAGNOSTICS_ON
 #include "MarlinTrk/DiagnosticsController.h"
@@ -112,6 +113,8 @@ namespace MarlinTrk{
     
     TKalDetCradle* _det=nullptr;         // the detector cradle
     
+    MarlinDDKalTestTrack* _marlinTrack = nullptr;
+
     std::multimap< int,const DDVMeasLayer *> _active_measurement_modules{};
     
     std::multimap< int,const DDVMeasLayer *> _active_measurement_modules_by_layer{};
