@@ -98,7 +98,7 @@ namespace MarlinTrk {
   
   
   
-  int createTrackStateAtCaloFace( IMarlinTrack* marlinTrk, IMPL::TrackStateImpl* track, EVENT::TrackerHit* trkhit, bool tanL_is_positive );
+  // int createTrackStateAtCaloFace( IMarlinTrack* marlinTrk, IMPL::TrackStateImpl* track, EVENT::TrackerHit* trkhit, bool tanL_is_positive );
   
   int createFinalisedLCIOTrack( IMarlinTrack* marlinTrk, std::vector<EVENT::TrackerHit*>& hit_list, IMPL::TrackImpl* track, bool fit_direction, const EVENT::FloatVec& initial_cov_for_prefit, float bfield_z, double maxChi2Increment){
     
@@ -801,6 +801,8 @@ namespace MarlinTrk {
     }
         
     int return_error = 0;
+    int return_error_barrel = 0;
+    int return_error_endcap = 0;
     
     double chi2 = -DBL_MAX;
     int ndf = 0;
@@ -821,19 +823,48 @@ namespace MarlinTrk {
     
     int detElementID = 0;
     
-    return_error = marlintrk->propagateToLayer(encoder.lowWord(), trkhit, *trkStateCalo, chi2, ndf, detElementID, IMarlinTrack::modeForward ) ;
+    TrackStateImpl tsBarrel;
+    TrackStateImpl tsEndcap;
     
-    if (return_error == IMarlinTrack::no_intersection ) { // try forward or backward
-
-      encoder[lcio::LCTrackerCellID::subdet()] = ecal_endcap_face_ID ;
-
-      if (tanL_is_positive) {
+    // propagate to the barrel layer
+    return_error_barrel = marlintrk->propagateToLayer(encoder.lowWord(), trkhit, tsBarrel, chi2, ndf, detElementID, IMarlinTrack::modeForward ) ;
+    
+    // propagate to the endcap layer
+    encoder[lcio::LCTrackerCellID::subdet()] = ecal_endcap_face_ID ;
+    if (tanL_is_positive) {
         encoder[lcio::LCTrackerCellID::side()] = lcio::ILDDetID::fwd;
-      }
-      else{
+    }
+    else{
         encoder[lcio::LCTrackerCellID::side()] = lcio::ILDDetID::bwd;
-      }
-      return_error = marlintrk->propagateToLayer(encoder.lowWord(), trkhit, *trkStateCalo, chi2, ndf, detElementID, IMarlinTrack::modeForward ) ;
+    }
+    return_error_endcap = marlintrk->propagateToLayer(encoder.lowWord(), trkhit, tsEndcap, chi2, ndf, detElementID, IMarlinTrack::modeForward ) ;
+
+    // check which is the right intersection / closer to the trkhit
+    if ( return_error_barrel == IMarlinTrack::no_intersection ){
+        //if barrel fails just return ts at the Endcap if exists
+        return_error = marlintrk->propagateToLayer(encoder.lowWord(), trkhit, *trkStateCalo, chi2, ndf, detElementID, IMarlinTrack::modeForward );
+    }
+    else if( return_error_endcap == IMarlinTrack::no_intersection ){
+        //if barrel succeeded and endcap fails return ts at the barrel
+        encoder[lcio::LCTrackerCellID::subdet()] = ecal_barrel_face_ID ;
+        encoder[lcio::LCTrackerCellID::side()]   = lcio::ILDDetID::barrel;
+        return_error = marlintrk->propagateToLayer(encoder.lowWord(), trkhit, *trkStateCalo, chi2, ndf, detElementID, IMarlinTrack::modeForward ) ;
+    }
+    else{
+        //this means both barrel and endcap have intersections. Return closest to the tracker hit
+        Vector3D hitPos ( trkhit->getPosition() );
+        Vector3D barrelPos ( tsBarrel.getReferencePoint() );
+        Vector3D endcapPos ( tsEndcap.getReferencePoint() );
+        double dToBarrel = (hitPos-barrelPos).r();
+        double dToendcap = (hitPos-endcapPos).r();
+        if ( dToBarrel < dToendcap ){
+            encoder[lcio::LCTrackerCellID::subdet()] = ecal_barrel_face_ID ;
+            encoder[lcio::LCTrackerCellID::side()]   = lcio::ILDDetID::barrel;
+            return_error = marlintrk->propagateToLayer(encoder.lowWord(), trkhit, *trkStateCalo, chi2, ndf, detElementID, IMarlinTrack::modeForward ) ;
+        }
+        else{
+            return_error = marlintrk->propagateToLayer(encoder.lowWord(), trkhit, *trkStateCalo, chi2, ndf, detElementID, IMarlinTrack::modeForward );
+        }   
     }
     
     //fg: for curling tracks the propagated track has the wrong z0 whereas it should be 0. really 
