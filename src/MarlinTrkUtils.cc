@@ -98,7 +98,7 @@ namespace MarlinTrk {
   
   
   
-  // int createTrackStateAtCaloFace( IMarlinTrack* marlinTrk, IMPL::TrackStateImpl* track, EVENT::TrackerHit* trkhit, bool tanL_is_positive );
+  int createTrackStateAtCaloFace( IMarlinTrack* marlinTrk, IMPL::TrackStateImpl* track, EVENT::TrackerHit* trkhit, bool tanL_is_positive );
   
   int createFinalisedLCIOTrack( IMarlinTrack* marlinTrk, std::vector<EVENT::TrackerHit*>& hit_list, IMPL::TrackImpl* track, bool fit_direction, const EVENT::FloatVec& initial_cov_for_prefit, float bfield_z, double maxChi2Increment){
     
