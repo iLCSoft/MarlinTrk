@@ -842,13 +842,13 @@ namespace MarlinTrk {
     // check which is the right intersection / closer to the trkhit
     if ( return_error_barrel == IMarlinTrack::no_intersection ){
         //if barrel fails just return ts at the Endcap if exists
-        return_error = marlintrk->propagateToLayer(encoder.lowWord(), trkhit, *trkStateCalo, chi2, ndf, detElementID, IMarlinTrack::modeForward );
+        return_error = return_error_endcap;
+        *trkStateCalo = tsEndcap;
     }
     else if( return_error_endcap == IMarlinTrack::no_intersection ){
         //if barrel succeeded and endcap fails return ts at the barrel
-        encoder[lcio::LCTrackerCellID::subdet()] = ecal_barrel_face_ID ;
-        encoder[lcio::LCTrackerCellID::side()]   = lcio::ILDDetID::barrel;
-        return_error = marlintrk->propagateToLayer(encoder.lowWord(), trkhit, *trkStateCalo, chi2, ndf, detElementID, IMarlinTrack::modeForward ) ;
+        return_error = return_error_barrel;
+        *trkStateCalo = tsBarrel;
     }
     else{
         //this means both barrel and endcap have intersections. Return closest to the tracker hit
@@ -858,12 +858,12 @@ namespace MarlinTrk {
         double dToBarrel = (hitPos-barrelPos).r();
         double dToendcap = (hitPos-endcapPos).r();
         if ( dToBarrel < dToendcap ){
-            encoder[lcio::LCTrackerCellID::subdet()] = ecal_barrel_face_ID ;
-            encoder[lcio::LCTrackerCellID::side()]   = lcio::ILDDetID::barrel;
-            return_error = marlintrk->propagateToLayer(encoder.lowWord(), trkhit, *trkStateCalo, chi2, ndf, detElementID, IMarlinTrack::modeForward ) ;
+            return_error = return_error_barrel;
+            *trkStateCalo = tsBarrel;
         }
         else{
-            return_error = marlintrk->propagateToLayer(encoder.lowWord(), trkhit, *trkStateCalo, chi2, ndf, detElementID, IMarlinTrack::modeForward );
+            return_error = return_error_endcap;
+            *trkStateCalo = tsEndcap;
         }   
     }
     
