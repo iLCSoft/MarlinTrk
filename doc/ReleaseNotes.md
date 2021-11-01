@@ -1,3 +1,11 @@
+# v02-09
+
+* 2021-09-29 Bohdan Dudar ([PR#22](https://github.com/iLCSoft/MarlinTrk/pull/22))
+  - Now checking for the intersection with the endcaps even if intersection with the barrel has been found. The closest track state to the last tracker hit is saved
+
+* 2021-09-27 Thomas Madlener ([PR#23](https://github.com/iLCSoft/MarlinTrk/pull/23))
+  - Migrate CI from travis to github actions.
+
 # v02-08
 
 * 2019-08-23 Andre Sailer ([PR#16](https://github.com/iLCSoft/MarlinTrk/pull/16))
