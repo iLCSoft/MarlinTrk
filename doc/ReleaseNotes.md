@@ -1,3 +1,8 @@
+# v02-09-01
+
+* 2022-06-28 Thomas Madlener ([PR#24](https://github.com/iLCSoft/MarlinTrk/pull/24))
+  - Fix doxygen cmake config to also work with newer cmake versions (>= 3.17)
+
 # v02-09
 
 * 2021-09-29 Bohdan Dudar ([PR#22](https://github.com/iLCSoft/MarlinTrk/pull/22))
