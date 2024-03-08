@@ -1,3 +1,11 @@
+# v02-09-02
+
+* 2024-03-08 tmadlener ([PR#27](https://github.com/iLCSoft/MarlinTrk/pull/27))
+  - Update CI to latest clicdp nightlies and add key4hep based workflows
+
+* 2024-03-08 Bohdan Dudar ([PR#26](https://github.com/iLCSoft/MarlinTrk/pull/26))
+  - Set d0 and z0 of the TrackStateAtCalo always to 0 #25
+
 # v02-09-01
 
 * 2022-06-28 Thomas Madlener ([PR#24](https://github.com/iLCSoft/MarlinTrk/pull/24))
