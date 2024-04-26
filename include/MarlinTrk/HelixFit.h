@@ -11,7 +11,7 @@
  //
  //  C++ rewrite of the aleph Fortran routine TFITHL
  //
- //! Fast helix fit 
+ //! Fast helix fit
  //
  //
  //   Input:  NPT           Number of 3-D points to be fit
@@ -20,7 +20,7 @@
  //           zf       Array of Z-values of points to be fit
  //           wf       Array of 1/(sig(rphi))**2 for each point
  //           wzf      Array of 1/(sig(z))**2 for each point
- //           iopt     < 3 : error matrix calculated 
+ //           iopt     < 3 : error matrix calculated
  //                    = 3 : 3-dimensional iteration
  //
  //  OUTPUT: vv0    = Helix parameter in perigee form
@@ -41,17 +41,14 @@
  */
 
 namespace MarlinTrk {
-  
-  class HelixFit {
-    
-    
-  public:
-    
-    int fastHelixFit(int npt, double* xf, double* yf, float* rf, float* pf, double* wf, float* zf , float* wzf, int iopt,
-                     float* vv0, float* ee0, float& ch2ph, float& ch2z);
-    
-  };
-  
-}
+
+class HelixFit {
+
+public:
+  int fastHelixFit(int npt, double* xf, double* yf, float* rf, float* pf, double* wf, float* zf, float* wzf, int iopt,
+                   float* vv0, float* ee0, float& ch2ph, float& ch2z);
+};
+
+} // namespace MarlinTrk
 
 #endif

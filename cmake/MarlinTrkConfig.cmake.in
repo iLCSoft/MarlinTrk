@@ -50,7 +50,7 @@ INCLUDE( "@ILCSOFT_CMAKE_MODULES_ROOT@/MacroCheckPackageLibs.cmake" )
 # additional components are set by cmake in variable PKG_FIND_COMPONENTS
 # first argument should be the package name
 CHECK_PACKAGE_LIBS( MarlinTrk MarlinTrk )
- 
+
 # ---------- final checking ---------------------------------------------------
 INCLUDE( FindPackageHandleStandardArgs )
 # set MARLINTRK_FOUND to TRUE if all listed variables are TRUE and not empty
