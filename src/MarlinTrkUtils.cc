@@ -326,7 +326,7 @@ namespace MarlinTrk {
   
   
   
-  int createPrefit( std::vector<EVENT::TrackerHit*>& hit_list, IMPL::TrackStateImpl* pre_fit, float bfield_z, bool fit_direction){
+  int createPrefit( std::vector<EVENT::TrackerHit*>& hit_list, IMPL::TrackStateImpl* pre_fit, float bfield_z, bool /*fit_direction*/){
     
     ///////////////////////////////////////////////////////
     // check inputs 
