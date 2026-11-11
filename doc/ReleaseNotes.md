@@ -1,3 +1,12 @@
+# v02-10
+
+* 2026-11-11 Juan Miguel Carceller ([PR#30](https://github.com/iLCSoft/MarlinTrk/pull/30))
+  - Require CMake 3.10 to fix `Compatibility with CMake < 3.5 has been removed from CMake.`
+
+* 2026-09-10 Thomas Madlener ([PR#29](https://github.com/iLCSoft/MarlinTrk/pull/29))
+  - Switch to the latest version of the key4hep-build workflow
+  - Fix -Werror=shadow and -Werror=unused-parameter build failures exposed by the gcc16/C++23 nightly stack
+
 # v02-09-02
 
 * 2024-03-08 tmadlener ([PR#27](https://github.com/iLCSoft/MarlinTrk/pull/27))
