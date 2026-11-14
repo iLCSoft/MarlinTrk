@@ -592,75 +592,47 @@ namespace MarlinTrk {
 
       return_error = marlintrk->propagate(point, firstHit, *trkStateIP, chi2, ndf ) ;
 
-    } else { 
+    } else {
 
-      // if we fitted forward, we start from the last_constrained hit
-      // and then add the last inner hits with a Kalman step ... 
-      
-      // create a temporary IMarlinTrack 
-      
+      // if we fitted forward, the IP state needs the state at the innermost hit with every hit used once.
+      // The track cannot be smoothed reliably back to the first sites, and adding the inner hits to the
+      // smoothed state at the last constrained hit counts them twice. So fit the hits once more in the other
+      // direction, starting from the state at the last hit with an inflated covariance (so that it carries
+      // practically no information of its own), and propagate from the innermost hit.
+
       auto mTrk = std::shared_ptr<MarlinTrk::IMarlinTrack>( trksystem->createTrack() ) ;
-      
+
+      for( const auto& hit : hits_in_fit ) {
+        mTrk->addHit( hit.first ) ;
+      }
+
       IMPL::TrackStateImpl ts;
+      return_error = marlintrk->getTrackState( lastHit, ts, chi2, ndf ) ;
+
+      if ( return_error == IMarlinTrack::success ) {
+
+        const double covInflation = 1.e4 ;
+        EVENT::FloatVec cov = ts.getCovMatrix() ;
+        for( auto& c : cov ) c *= covInflation ;
+        ts.setCovMatrix( cov ) ;
+
+        double _bfield = 42.0 ;
+        // fixme: the implementation for DDKalTest does no longer need this value but the IMarlinTrk interface is not yet changed
+        return_error = mTrk->initialise( ts, _bfield, IMarlinTrack::backward ) ;
+      }
+
+      if ( return_error == IMarlinTrack::success ) return_error = mTrk->fit() ;
 
       double chi2Tmp = 0 ;
       int ndfTmp = 0 ;
-      return_error = marlintrk->getTrackState( last_constrained_hit, ts ,  chi2 , ndf ) ;
-      
-      streamlog_out( DEBUG3  )  << "  MarlinTrk::finaliseLCIOTrack:--  TrackState at last constrained hit : " << std::endl
-				<< toString( &ts )    << std::endl ;
-      
-      //need to add a dummy hit to the track
-      mTrk->addHit( last_constrained_hit ) ;
-      
-      double _bfield = 42.0 ;   
-      // fixme: the implementation for DDKalTest does no longer need this value but the IMarlinTrk interface is not yet changed
-      mTrk->initialise( ts ,  _bfield ,  fit_direction ) ;
+      if ( return_error == IMarlinTrack::success ) return_error = mTrk->propagate( point, firstHit, *trkStateIP, chi2Tmp, ndfTmp ) ;
 
-      std::vector<std::pair<EVENT::TrackerHit*, double> >::reverse_iterator hI = hits_in_fit.rbegin() ;
-
-      while( (*hI).first != last_constrained_hit ){
-
-	streamlog_out( DEBUG0  )  << "  MarlinTrk::finaliseLCIOTrack:--  hit in reverse_iterator : "  << std::endl
-				  << toString( (*hI).first ) << std::endl ; 
-	++hI ;
+      // should this extra fit fail (rare), keep the track: propagate the smoothed state at the last constrained hit
+      if ( return_error != IMarlinTrack::success ) {
+        streamlog_out(DEBUG4) << "MarlinTrk::finaliseLCIOTrack: outside-in fit for the IP state failed ("
+                              << return_error << "), using the smoothed state at the last constrained hit" << std::endl;
+        return_error = marlintrk->propagate( point, last_constrained_hit, *trkStateIP, chi2Tmp, ndfTmp ) ;
       }
-
-      ++hI ;
-
-      while( hI != hits_in_fit.rend()  ){
-
-	EVENT::TrackerHit* h =  (*hI).first ;
-
-
-	double deltaChi ;
-	double maxChi2Increment = 1e10 ; // ???
-
-	int addHit = mTrk->addAndFit(  h , deltaChi, maxChi2Increment ) ; 
-
-
-	streamlog_out( DEBUG3 ) << " MarlinTrk::finaliseLCIOTrack: hit " << toString( h )   
-				<< "  added : " << MarlinTrk::errorCode( addHit )
-				<< "  deltaChi2: " << deltaChi 
-				<< std::endl ;
-
-	if( addHit !=  MarlinTrk::IMarlinTrack::success ){
-
-	  streamlog_out( ERROR ) << " ****  MarlinTrk::finaliseLCIOTrack:  could not add inner hit to track !!! " << std::endl ; 
-	}
-
-	++hI ;
-
-      }//------------------------------------
-
-      streamlog_out(DEBUG4) << "MarlinTrk::finaliseLCIOTrack: temporary kaltest track for track state at the IP: "
-			    <<  mTrk->toString() << std::endl ;
-
-      // now propagate the temporary track to the IP
-      return_error = mTrk->propagate( point, firstHit, *trkStateIP, chi2Tmp, ndfTmp ) ;
-
-      
-      streamlog_out( DEBUG4 ) << " ***  MarlinTrk::finaliseLCIOTrack: - propagated temporary track fromfirst hit to IP : " <<  toString( trkStateIP ) << std::endl ;
     }
 
 
