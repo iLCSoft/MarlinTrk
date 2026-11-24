@@ -1,3 +1,8 @@
+# v02-10-01
+
+* 2026-11-18 Joshua Beirer ([PR#31](https://github.com/iLCSoft/MarlinTrk/pull/31))
+  - `finaliseLCIOTrack`: for tracks fitted inside-out, the IP track state now comes from a second, outside-in fit of the same hits, instead of adding the innermost hits again to the smoothed state at the last constrained hit. That counted them twice and underestimated the d0/z0 uncertainties, increasingly with momentum.
+
 # v02-10
 
 * 2026-11-11 Juan Miguel Carceller ([PR#30](https://github.com/iLCSoft/MarlinTrk/pull/30))
